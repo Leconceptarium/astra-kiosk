@@ -91,7 +91,7 @@
     <div class="ftr">
       <div id="led" class="led"></div>
       <div id="status" class="status">En veille. Dites <b>« okay Astra »</b>.</div>
-      <button id="gmStart" class="btn wake">Démarrer (GM)</button>
+      <button id="gmStart" class="btn wake" style="display:none">Démarrer (GM)</button>
       <button id="mute" class="btn small">🔈</button>
     </div>
 
@@ -383,11 +383,13 @@
   // preload voices list on some browsers
   window.speechSynthesis?.addEventListener('voiceschanged', ()=>{});
 
-  // Auto-open GM panel on first load (operator closes it)
-  window.addEventListener('load', ()=>{
-    togglePanel(true);
+  // Auto-boot kiosk mode on load (no GM click required)
+window.addEventListener('load', ()=>{
+  boot();
+});
   });
 
   </script>
 </body>
 </html>
+
