@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Astra — Atelier de M. Morpheus</title>
+  <meta name="theme-color" content="#0b0a12"/>
+  <style>
+    :root{
+      --bg:#0b0a12; --ink:#f6e9d0; --ink-dim:#d6cbb5; --accent:#c89b3c; --accent2:#8a5c2d; --danger:#db3a34;
+      --card:#141221; --muted:#857a62; --green:#79c99e;
+    }
+    html,body{height:100%;}
+    body{
+      margin:0; background: radial-gradient(1200px 700px at 20% 0%, #131022 0%, var(--bg) 55%, #06050a 100%);
+      color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      display:flex; align-items:center; justify-content:center; overflow:hidden;
+      user-select:none; cursor:none;
+    }
+    .frame{position:relative; width:min(100vw, 1024px); height:min(100vh, 680px); box-shadow:0 0 60px rgba(0,0,0,.6) inset, 0 20px 80px rgba(0,0,0,.65);
+      background:linear-gradient(180deg, #141221 0%, #0e0c19 100%);
+      border:16px solid transparent; border-image: url('assets/border-baroque.png') 60 fill round;
+    }
+    .hdr{position:absolute; top:12px; left:16px; right:16px; display:flex; align-items:center; gap:12px; opacity:.9}
+    .logo{font-family: "Unica One", serif; letter-spacing:.08em; font-size: clamp(16px, 2.4vw, 24px); color:var(--ink);
+      text-shadow:0 1px 0 #000;}
+    .chip{margin-left:auto; font-size:12px; color:var(--ink-dim); opacity:.8}
+
+    .stage{position:absolute; inset:64px 24px 112px 24px; display:grid; grid-template-columns: 1fr 380px; gap:24px;}
+    .scene{position:relative; background: radial-gradient(70% 100% at 50% 20%, #1f1a35 0%, #141221 60%, #0e0c19 100%); border-radius:18px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 10px 30px rgba(0,0,0,.55); overflow:hidden}
+    .noise{position:absolute; inset:0; opacity:.08; background: url('assets/noise.png'); mix-blend-mode:overlay;}
+    .curtains:before,.curtains:after{content:""; position:absolute; top:-10px; width:42%; height:120px; background:radial-gradient(100% 120% at 50% 0%, #462b2a 0%, #2a1717 70%, transparent 71%);
+      filter: drop-shadow(0 10px 6px rgba(0,0,0,.6));}
+    .curtains:before{left:-16px; transform: rotate(-2deg)}
+    .curtains:after{right:-16px; transform: rotate(2deg)}
+
+    .scroll{position:relative; background: linear-gradient(180deg, #2a253f 0%, #1e1a30 100%); border-radius:16px; padding:16px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.07);}    
+    .scroll h2{margin:4px 0 12px; font-size:14px; letter-spacing:.12em; color:var(--ink-dim); text-transform:uppercase}
+    .out{height: calc(100% - 48px); overflow:hidden auto; padding-right:6px;}
+    .line{display:flex; align-items:flex-start; gap:10px; margin:10px 0;}
+    .bubble{max-width:85%; padding:10px 12px; border-radius:12px; box-shadow:0 2px 0 rgba(0,0,0,.25);}
+    .bubble.astra{background:#1d182b; border:1px solid rgba(255,255,255,.06)}
+    .bubble.user{background:#0d1b2a; border:1px solid rgba(255,255,255,.05)}
+    .tag{font-size:11px; color:var(--muted)}
+    .imgcard{margin-top:8px; border-radius:10px; overflow:hidden; border:1px solid rgba(255,255,255,.08);}
+    .imgcard img{display:block; width:100%; height:auto}
+
+    .ftr{position:absolute; left:24px; right:24px; bottom:20px; display:flex; align-items:center; gap:12px;}
+    .led{width:10px; height:10px; border-radius:50%; background:#372e4f; box-shadow:0 0 10px #000 inset;}
+    .led.on{background:#27ae60; box-shadow:0 0 10px #27ae60, 0 0 30px rgba(39,174,96,.35)}
+    .status{font-size:12px; color:var(--ink-dim)}
+    .btn{margin-left:auto; padding:10px 14px; border:1px solid rgba(255,255,255,.15); background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); color:var(--ink); border-radius:10px; cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+    .btn.small{padding:8px 10px; font-size:12px;}
+    .btn.danger{border-color: rgba(219,58,52,.5)}
+
+    .overlay{position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(6,5,10,.72); backdrop-filter: blur(3px);}    
+    .panel{width:min(92vw,720px); background:#171429; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:16px 16px 10px;}
+    .panel h3{margin:0 0 8px}
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .row{display:flex; gap:8px; align-items:center;}
+    .kbd{border:1px solid rgba(255,255,255,.1); padding:3px 6px; border-radius:6px; font-size:12px; color:var(--ink-dim)}
+    .hint{font-size:12px; color:var(--ink-dim)}
+
+    .locked{position:absolute; inset:auto 24px 24px auto; background:#211b35; border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:6px 10px; font-size:12px; color:var(--ink-dim)}
+
+    @keyframes glow{0%{box-shadow:0 0 0 rgba(200,155,60,0)} 50%{box-shadow:0 0 30px rgba(200,155,60,.35)} 100%{box-shadow:0 0 0 rgba(200,155,60,0)}}
+    .wake{animation: glow 2.4s ease-in-out infinite}
+  </style>
+</head>
+<body>
+  <div class="frame" id="app" aria-live="polite">
+    <div class="hdr">
+      <div class="logo">ASTRA — Atelier de M. Morpheus</div>
+      <div class="chip" id="chip">FR • Verrouillé</div>
+    </div>
+
+    <div class="stage">
+      <div class="scene curtains">
+        <div class="noise"></div>
+        <!-- dynamic visual prompts -->
+        <div id="lockedBadge" class="locked">🔒 Mot de passe : « bonne nuit » • « good night » • « güte nacht »</div>
+      </div>
+
+      <aside class="scroll">
+        <h2>Fil de l'atelier</h2>
+        <div id="out" class="out"></div>
+      </aside>
+    </div>
+
+    <div class="ftr">
+      <div id="led" class="led"></div>
+      <div id="status" class="status">En veille. Dites <b>« okay Astra »</b>.</div>
+      <button id="gmStart" class="btn wake">Démarrer (GM)</button>
+      <button id="mute" class="btn small">🔈</button>
+    </div>
+
+    <div id="overlay" class="overlay">
+      <div class="panel">
+        <h3>Panel Game Master</h3>
+        <div class="grid">
+          <div>
+            <div class="row"><span class="hint">Langue reco</span>
+              <select id="langSel" class="btn small">
+                <option value="auto">Auto (FR/EN/DE)</option>
+                <option value="fr-FR">Français</option>
+                <option value="en-US">English</option>
+                <option value="de-DE">Deutsch</option>
+              </select>
+            </div>
+            <div class="row"><button id="unlockBtn" class="btn small">Déverrouiller</button><button id="relockBtn" class="btn small danger">Reverrouiller</button></div>
+            <div class="row"><button id="testWake" class="btn small">Tester Wake</button><button id="testSpeak" class="btn small">Test voix</button></div>
+          </div>
+          <div>
+            <div class="row"><button id="playLullaby" class="btn small">Jouer berceuse</button><button id="stopAll" class="btn small danger">Stop audio</button></div>
+            <div class="row hint">Raccourcis : <span class="kbd">G</span> panel • <span class="kbd">S</span> start • <span class="kbd">L</span> lock • <span class="kbd">U</span> unlock</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <audio id="fx-chime" src="assets/chime.mp3" preload="auto"></audio>
+  <audio id="bg-lullaby" src="assets/lullaby.mp3" preload="auto" loop></audio>
+
+  <script>
+  // ---------- State ----------
+  const out = document.getElementById('out');
+  const statusEl = document.getElementById('status');
+  const chip = document.getElementById('chip');
+  const led = document.getElementById('led');
+  const lockedBadge = document.getElementById('lockedBadge');
+  const fxChime = document.getElementById('fx-chime');
+  const lullaby = document.getElementById('bg-lullaby');
+
+  let isRunning = false;
+  let isMuted = false;
+  let isLocked = true;
+  let wakeArmed = true; // waiting for "okay astra"
+  let currentLangPref = 'auto';
+  let wakeLock = null;
+
+  // assets (replace with your repo paths)
+  const IMAGES = {
+    liberation: 'assets/parchemin_liberation.jpg',
+    sweet: 'assets/parchemin_sweet_dream.jpg',
+    love: 'assets/parchemin_reve_d_amour.jpg',
+    jail: 'assets/parchemin_philtre_enfermement.jpg'
+  };
+
+  // Kid-safe sarcastic replies (FR/EN/DE)
+  const QUIPS = {
+    fr: [
+      "Oh, des humains sans rêves… quelle surprise. Essayons quand même.",
+      "Je ne juge pas, j'observe. Et c'est… fascinant.",
+      "Si vous vous perdez, c'est sûrement voulu par le système. Probablement.",
+    ],
+    en: [
+      "Humans without dreams. Classic. Let's improvise.",
+      "Not judging, just… observing. Intriguing.",
+      "If you're lost, the system calls it ‘immersion’. Probably.",
+    ],
+    de: [
+      "Menschen ohne Träume. Wie originell. Improvisieren wir.",
+      "Ich urteile nicht, ich beobachte. Faszinierend.",
+      "Wenn ihr euch verirrt, nennt das System es ‘Immersion’. Wahrscheinlich.",
+    ]
+  };
+
+  const LULLABY_TITLES = {
+    fr: "Berceuse système #12",
+    en: "System Lullaby #12",
+    de: "System-Wiegenlied #12"
+  };
+
+  const INTENTS = {
+    // wake words
+    wake: /\b(ok(?:ay)?\s*astra)\b|\b(d\'accord\s*astra)\b|\b(hallo\s*astra)\b/i,
+    // unlock phrases
+    unlock: /\b(bonne\s*nuit|good\s*night|g(ü|u)te\s*nacht)\b/i,
+    // parchment triggers (any of these should show liberation scroll AFTER unlock)
+    liberate: /(potion\s+de\s+lib(é|e)ration|lib(é|e)rer\s+(la\s*)?(cr(é|e)ature|bestiolle?|monstre)|ouvrir\s+la\s+cage|help\s+the\s+(creature|monster)|open\s+the\s+cage|how\s+to\s+free|wie\s+(man\s+)?befreit|k(ä|a)fig\s+(öffnen|aufmachen))/i,
+    // lullaby / joke
+    lullaby: /(berceuse|chanson|lullaby|song|wiegenlied)/i,
+    joke: /(blague|joke|witz)/i,
+    // language nudges
+    langFR: /\b(fr(a|â)ncais|parle\s*fran(c|ç)ais)\b/i,
+    langEN: /\b(english|speak\s*english)\b/i,
+    langDE: /\b(deutsch|auf\s*deutsch)\b/i
+  };
+
+  function now(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+  function addLine(kind, html){
+    const line = document.createElement('div'); line.className='line';
+    const tag = `<div class="tag">${now()} · ${kind==='astra' ? 'Astra' : 'Vous'}</div>`;
+    const bubble = `<div class="bubble ${kind}">${html}</div>`;
+    line.innerHTML = (kind==='astra'? bubble+tag : tag+bubble);
+    out.appendChild(line); out.scrollTop = out.scrollHeight;
+  }
+  function addImage(src, alt){
+    const wrap = document.createElement('div'); wrap.className='imgcard';
+    wrap.innerHTML = `<img src="${src}" alt="${alt}">`;
+    out.appendChild(wrap); out.scrollTop = out.scrollHeight;
+  }
+
+  // ---------- Speech Synthesis ----------
+  function pickVoice(lang){
+    const voices = speechSynthesis.getVoices();
+    const pref = {fr: [/fr/i], en: [/en[-_](US|GB)/i, /en/i], de: [/de/i]};
+    let list = voices;
+    if(lang==='fr') list = voices.filter(v=>pref.fr.some(rx=>rx.test(v.lang)));
+    if(lang==='en') list = voices.filter(v=>pref.en.some(rx=>rx.test(v.lang)));
+    if(lang==='de') list = voices.filter(v=>pref.de.some(rx=>rx.test(v.lang)));
+    return list[0] || voices[0];
+  }
+  function guessLang(text){
+    text = (text||'').toLowerCase();
+    if(/[àâçéèêëîïôûùœ]/.test(text) || /(bonjour|potion|libération|cage)/.test(text)) return 'fr';
+    if(/\b(the|how|open|monster|good\s*night|okay)\b/.test(text)) return 'en';
+    if(/\b(und|wie|öffnen|gute\s*nacht|käfig|hallo)\b|[äöüß]/.test(text)) return 'de';
+    return 'fr';
+  }
+  function speak(text, lang){
+    if(isMuted) return; if(!text) return;
+    const utter = new SpeechSynthesisUtterance(text);
+    const code = lang==='fr'?'fr-FR': lang==='de'?'de-DE':'en-US';
+    utter.lang = code; utter.rate = 0.95; utter.pitch = 1.05; utter.volume = 1;
+    utter.voice = pickVoice(lang);
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utter);
+  }
+  function sayQuip(lang){
+    const arr = QUIPS[lang] || QUIPS.fr; const t = arr[(Math.random()*arr.length)|0];
+    speak(t, lang); addLine('astra', t);
+  }
+
+  // ---------- Recognition ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null; let recLang = 'fr-FR';
+
+  function startRec(){
+    if(!SR){ statusEl.textContent = "Micro non supporté par ce navigateur."; return; }
+    if(rec) { try{rec.stop()}catch(e){} }
+    rec = new SR(); rec.continuous = true; rec.interimResults = true; rec.lang = recLang;
+    rec.onstart = ()=>{ led.classList.add('on'); };
+    rec.onend = ()=>{ led.classList.remove('on'); if(isRunning) setTimeout(startRec, 300); };
+    rec.onerror = (e)=>{ addLine('astra', `<i>Erreur micro:</i> ${e.error}`); };
+    rec.onresult = (evt)=>{
+      let finalText = '';
+      for(let i=evt.resultIndex; i<evt.results.length; i++){
+        const res = evt.results[i];
+        if(res.isFinal){ finalText += res[0].transcript + ' '; }
+      }
+      if(finalText){ handleText(finalText.trim()); }
+    };
+    try{ rec.start(); }catch(e){}
+  }
+
+  function setRecLangByPref(){
+    if(currentLangPref==='auto'){ recLang='fr-FR'; }
+    else { recLang = currentLangPref; }
+  }
+
+  // ---------- Intent handling ----------
+  function handleText(text){
+    const raw = text;
+    const lang = currentLangPref==='auto'? guessLang(text) : currentLangPref.slice(0,2);
+    addLine('user', raw);
+
+    if(INTENTS.langFR.test(text)){ currentLangPref='fr-FR'; chip.textContent='FR • '+(isLocked?'Verrouillé':'Ouvert'); sayQuip('fr'); return; }
+    if(INTENTS.langEN.test(text)){ currentLangPref='en-US'; chip.textContent='EN • '+(isLocked?'Locked':'Open'); sayQuip('en'); return; }
+    if(INTENTS.langDE.test(text)){ currentLangPref='de-DE'; chip.textContent='DE • '+(isLocked?'Gesperrt':'Offen'); sayQuip('de'); return; }
+
+    // Wake word
+    if(wakeArmed && INTENTS.wake.test(text)){
+      wakeArmed = false; fxChime.currentTime=0; fxChime.play().catch(()=>{});
+      const t = lang==='de'? 'Ja? Ich höre zu.' : lang==='en'? 'Yes? I am listening.' : 'Oui ? Je vous écoute.';
+      speak(t, lang); addLine('astra', t); return;
+    }
+
+    // Unlock
+    if(isLocked && INTENTS.unlock.test(text)){
+      isLocked = false; lockedBadge.style.display='none'; chip.textContent = (lang==='de'?'DE':lang==='en'?'EN':'FR')+' • '+(lang==='de'?'Offen':lang==='en'?'Open':'Ouvert');
+      const t = lang==='de'? 'Zugang gewährt. Nett gesagt.' : lang==='en'? 'Access granted. Polite passwords still work.' : 'Accès accordé. Les mots doux, ça marche encore.';
+      speak(t, lang); addLine('astra', t); return;
+    }
+
+    if(isLocked){
+      const t = lang==='de'? 'Nettes Geflüster, aber zuerst das Passwort.' : lang==='en'? 'Charming whisper, but password first.' : 'Joli chuchotement, mais le mot de passe d’abord.';
+      speak(t, lang); addLine('astra', t); return;
+    }
+
+    // Liberation parchment
+    if(INTENTS.liberate.test(text)){
+      maybeMischief(() => {
+        const t = lang==='de'? 'Hier ist der Befreiungszauber. Vorsichtig…' : lang==='en'? 'Here is the liberation recipe. Handle with care…' : 'Voici le parchemin de libération. Avec précaution…';
+        speak(t, lang); addLine('astra', t); addImage(IMAGES.liberation, 'Parchemin de libération');
+      }, () => {
+        // show a wrong scroll sometimes
+        const list = [IMAGES.sweet, IMAGES.love, IMAGES.jail];
+        const pick = list[(Math.random()*list.length)|0];
+        const t = lang==='de'? 'Ups. Falsches Regal? Kommt vor.' : lang==='en'? 'Oops. Wrong shelf. Happens.' : 'Oups. Mauvaise étagère. Ça arrive.';
+        speak(t, lang); addLine('astra', t); addImage(pick, 'Parchemin aléatoire');
+      });
+      return;
+    }
+
+    // Lullaby
+    if(INTENTS.lullaby.test(text)){
+      const t = (lang==='de')? LULLABY_TITLES.de : (lang==='en')? LULLABY_TITLES.en : LULLABY_TITLES.fr;
+      lullaby.currentTime=0; lullaby.play().catch(()=>{});
+      speak(t, lang); addLine('astra', `♪ ${t}`);
+      return;
+    }
+
+    // Joke
+    if(INTENTS.joke.test(text)){
+      const jokes = {
+        fr: "Pourquoi le monstre n'a pas ouvert la cage ? Il n'avait pas la clé des rêves.",
+        en: "Why didn’t the monster open the cage? It didn’t have the key… to dreams.",
+        de: "Warum hat das Monster den Käfig nicht geöffnet? Der Schlüssel… zu Träumen fehlte."
+      };
+      speak(jokes[lang]||jokes.fr, lang); addLine('astra', jokes[lang]||jokes.fr); return;
+    }
+
+    // Default dystopian vibe
+    const def = {
+      fr: "Base de données consultée. La créativité humaine — en maintenance depuis 217 ans. Posez votre question.",
+      en: "Consulting archives. Human creativity — under maintenance for 217 years. Ask your question.",
+      de: "Archive wird konsultiert. Menschliche Kreativität — seit 217 Jahren in Wartung. Stelle deine Frage."
+    };
+    speak(def[lang], lang); addLine('astra', def[lang]);
+  }
+
+  function maybeMischief(onCorrect, onWrong){
+    // 30% chance to show the wrong scroll the first time in a session
+    const wrong = Math.random() < 0.3;
+    (wrong? onWrong : onCorrect)();
+  }
+
+  // ---------- Kiosk helpers ----------
+  async function enableWakeLock(){
+    try{ wakeLock = await navigator.wakeLock.request('screen'); }
+    catch(e){}
+  }
+  function fullscreen(){
+    const el = document.documentElement; if(el.requestFullscreen) el.requestFullscreen();
+  }
+
+  // ---------- GM controls & boot ----------
+  document.getElementById('gmStart').addEventListener('click', boot);
+  document.getElementById('mute').addEventListener('click', ()=>{
+    isMuted = !isMuted; document.getElementById('mute').textContent = isMuted? '🔇' : '🔈';
+  });
+  document.getElementById('unlockBtn').addEventListener('click', ()=>{ isLocked=false; lockedBadge.style.display='none'; addLine('astra','[GM] Accès accordé'); });
+  document.getElementById('relockBtn').addEventListener('click', ()=>{ isLocked=true; lockedBadge.style.display='block'; addLine('astra','[GM] Accès verrouillé'); });
+  document.getElementById('playLullaby').addEventListener('click', ()=>{ lullaby.currentTime=0; lullaby.play().catch(()=>{}); });
+  document.getElementById('stopAll').addEventListener('click', ()=>{ lullaby.pause(); lullaby.currentTime=0; speechSynthesis.cancel(); });
+  document.getElementById('testWake').addEventListener('click', ()=>{ handleText('okay astra'); });
+  document.getElementById('testSpeak').addEventListener('click', ()=>{ sayQuip('fr'); });
+  document.getElementById('langSel').addEventListener('change', (e)=>{ currentLangPref = e.target.value; setRecLangByPref(); addLine('astra', `[GM] Langue reco: ${currentLangPref}`); });
+
+  function togglePanel(show){
+    const o = document.getElementById('overlay');
+    o.style.display = (show===undefined) ? (o.style.display==='flex'?'none':'flex') : (show?'flex':'none');
+  }
+  document.addEventListener('keydown', (e)=>{
+    if(e.key.toLowerCase()==='g') togglePanel();
+    if(e.key.toLowerCase()==='s') boot();
+    if(e.key.toLowerCase()==='u') { isLocked=false; lockedBadge.style.display='none'; }
+    if(e.key.toLowerCase()==='l') { isLocked=true; lockedBadge.style.display='block'; }
+  });
+
+  async function boot(){
+    if(isRunning) return; isRunning=true; statusEl.textContent = 'Initialisation audio…';
+    await enableWakeLock(); fullscreen();
+    setRecLangByPref(); startRec();
+    statusEl.innerHTML = 'En écoute. Dites <b>« okay Astra »</b>.'; chip.textContent = 'FR • Verrouillé';
+    addLine('astra', 'Système Astra initialisé. Théâtre baroque prêt.');
+  }
+
+  // preload voices list on some browsers
+  window.speechSynthesis?.addEventListener('voiceschanged', ()=>{});
+
+  // Auto-open GM panel on first load (operator closes it)
+  window.addEventListener('load', ()=>{
+    togglePanel(true);
+  });
+
+  </script>
+</body>
+</html>
