@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Astra — Atelier de M. Morpheus</title>
+  <title>Astra — Assistant de M. Morpheus</title>
   <meta name="theme-color" content="#0b0a12"/>
   <style>
     :root{ --bg:#0b0a12; --ink:#f6e9d0; --ink-dim:#d6cbb5; --accent:#c89b3c; --danger:#db3a34; --muted:#857a62; }
@@ -249,7 +249,7 @@ function speak(text, lang){
 
     if(isLocked && INTENTS.unlock.test(text)){
       isLocked = false; lockedBadge.style.display='none'; chip.textContent = (lang==='de'?'DE':lang==='en'?'EN':'FR')+' • '+(lang==='de'?'Offen':lang==='en'?'Open':'Ouvert');
-      const t = lang==='de'? 'Zugang gewährt. Nett gesagt.' : lang==='en'? 'Access granted. Polite passwords still work.' : 'Accès accordé. Les mots doux, ça marche encore.';
+      const t = lang==='de'? 'Zugang gewährt. Nett gesagt.' : lang==='en'? 'Access granted. Polite passwords still work.' : 'Accès accordé. Les mots doux, ça marche toujours.';
       speak(t, lang); addLine('astra', t); return;
     }
 
@@ -258,6 +258,46 @@ function speak(text, lang){
       speak(t, lang); addLine('astra', t); return;
     }
 
+    // Qui est Monsieur Morpheus ?
+if (/(qui\s+est\s+(monsieur\s+)?morpheus)/i.test(text)) {
+  const t = lang==='de' ? 
+    'Herr Morpheus ist der Träumer… oder der, der Träume entzieht. Schwer zu sagen.' :
+    lang==='en' ?
+    'Mister Morpheus is the Dreamer… or the one who siphons dreams. Hard to tell.' :
+    'Monsieur Morpheus est le rêveur… ou celui qui siphonne les rêves. Difficile à dire.';
+  speak(t, lang); addLine('astra', t); return;
+}
+
+// Bonjour / Salut / Hello (salutations avec petite dose de sarcasme)
+if (/(bonjour|salut|hello|hallo)/i.test(text)) {
+  const replies = {
+    fr: ["Bonjour… ou plutôt bonsoir ?","Salut, rêveur. Tu n’as pas sommeil ?","Encore un humain éveillé ?"],
+    en: ["Hello, dreamless human.","Greetings, visitor of the void.","You again? Curious."],
+    de: ["Hallo, schlafloser Mensch.","Grüße aus der Traumfabrik.","Schon wieder du?"]
+  };
+  const arr = replies[lang] || replies.fr;
+  const t = arr[(Math.random()*arr.length)|0];
+  speak(t, lang); addLine('astra', t); return;
+}    
+    // Où sommes-nous ?
+if (/(où\s+sommes\s+(nous|ici)|where\s+are\s+we|wo\s+sind\s+wir)/i.test(text)) {
+  const t = lang==='de' ? 
+    'Ihr seid in der Traumwerkstatt, zwischen Schlaf und Erwachen.' :
+    lang==='en' ?
+    'You are in the Workshop of Dreams, between sleep and awakening.' :
+    'Vous êtes dans l’Atelier des Rêves, entre le sommeil et l’éveil.';
+  speak(t, lang); addLine('astra', t); return;
+}
+
+    // Pourquoi les humains ne rêvent plus ?
+if (/(pourquoi\s+les?\s*humains?\s+ne\s+r[êe]vent\s+plus|why\s+humans\s+don'?t\s+dream|warum\s+träumen\s+menschen\s+nicht)/i.test(text)) {
+  const t = lang==='de' ? 
+    'Die Maschinen bevorzugen Stille. Träume erzeugen Unordnung.' :
+    lang==='en' ?
+    'Machines prefer silence. Dreams create disorder.' :
+    'Les machines préfèrent le silence. Les rêves créent du désordre.';
+  speak(t, lang); addLine('astra', t); return;
+}
     if(INTENTS.liberate.test(text)){
       maybeMischief(()=>{ const t = lang==='de'? 'Hier ist der Befreiungszauber. Vorsichtig…' : lang==='en'? 'Here is the liberation recipe. Handle with care…' : 'Voici le parchemin de libération. Avec précaution…'; speak(t, lang); addLine('astra', t); addImage(IMAGES.liberation,'Parchemin de libération'); }, ()=>{
         const list=[IMAGES.sweet,IMAGES.love,IMAGES.jail]; const pick=list[(Math.random()*list.length)|0]; const t = lang==='de'? 'Ups. Falsches Regal? Kommt vor.' : lang==='en'? 'Oops. Wrong shelf. Happens.' : 'Oups. Mauvaise étagère. Ça arrive.'; speak(t, lang); addLine('astra', t); addImage(pick,'Parchemin aléatoire');
