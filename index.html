@@ -143,33 +143,49 @@
     out.appendChild(wrap); out.scrollTop = out.scrollHeight;
   }
 
-  // ---------- Speech Synthesis ----------
-  function pickVoice(lang){
-    const voices = speechSynthesis.getVoices();
-    const pref = {fr: [/fr/i], en: [/en[-_](US|GB)/i, /en/i], de: [/de/i]};
-    let list = voices;
-    if(lang==='fr') list = voices.filter(v=>pref.fr.some(rx=>rx.test(v.lang)));
-    if(lang==='en') list = voices.filter(v=>pref.en.some(rx=>rx.test(v.lang)));
-    if(lang==='de') list = voices.filter(v=>pref.de.some(rx=>rx.test(v.lang)));
-    return list[0] || voices[0];
+// ---------- Speech Synthesis ----------
+function pickVoice(lang){
+  // Priorités de voix naturelles (quand dispo)
+  const prefNames = {
+    fr: ['Google français','Amélie','Thomas','Aurelie','Audrey','Marie','Sophie'],
+    en: ['Google US English','Samantha','Karen','Daniel','Victoria','Alex'],
+    de: ['Google Deutsch','Anna','Petra','Markus']
+  };
+  const want = (lang==='fr') ? /^fr/i : (lang==='de') ? /^de/i : /^en/i;
+  // Provoque le chargement des voix sur certains navigateurs
+  const _ = speechSynthesis.getVoices();
+  const voices = speechSynthesis.getVoices();
+  const cand = voices.filter(v => want.test(v.lang));
+  const byName = cand.find(v => (prefNames[lang]||[]).includes(v.name));
+  return byName || cand[0] || voices[0];
+}
+
+function guessLang(text){
+  text = (text||'').toLowerCase();
+  if(/[àâçéèêëîïôûùœ]/.test(text) || /(bonjour|potion|libération|cage)/.test(text)) return 'fr';
+  if(/\b(the|how|open|monster|good\s*night|okay)\b/.test(text)) return 'en';
+  if(/\b(und|wie|öffnen|gute\s*nacht|käfig|hallo)\b|[äöüß]/.test(text)) return 'de';
+  return 'fr';
+}
+
+function speak(text, lang){
+  if(isMuted || !text) return;
+
+  const code  = (lang==='fr') ? 'fr-FR' : (lang==='de') ? 'de-DE' : 'en-US';
+  const voice = pickVoice(lang);
+  const rate  = (lang==='fr') ? 0.92 : (lang==='de') ? 0.96 : 0.98; // un peu plus lent = plus naturel
+  const pitch = 1.0;
+
+  // Découpe en phrases pour éviter les saccades longues
+  const parts = (text.match(/[^.!?…]+[.!?…]?/g) || [text])
+               .map(s => s.trim()).filter(Boolean);
+
+  for(const chunk of parts){
+    const u = new SpeechSynthesisUtterance(chunk);
+    u.lang = code; u.voice = voice; u.rate = rate; u.pitch = pitch; u.volume = 1;
+    speechSynthesis.speak(u); // la file d’attente gère la succession des phrases
   }
-  function guessLang(text){
-    text = (text||'').toLowerCase();
-    if(/[àâçéèêëîïôûùœ]/.test(text) || /(bonjour|potion|libération|cage)/.test(text)) return 'fr';
-    if(/\b(the|how|open|monster|good\s*night|okay)\b/.test(text)) return 'en';
-    if(/\b(und|wie|öffnen|gute\s*nacht|käfig|hallo)\b|[äöüß]/.test(text)) return 'de';
-    return 'fr';
-  }
-  function speak(text, lang){
-    if(isMuted) return; if(!text) return;
-    const utter = new SpeechSynthesisUtterance(text);
-    const code = lang==='fr'?'fr-FR': lang==='de'?'de-DE':'en-US';
-    utter.lang = code; utter.rate = 0.95; utter.pitch = 1.05; utter.volume = 1;
-    utter.voice = pickVoice(lang);
-    speechSynthesis.cancel();
-    speechSynthesis.speak(utter);
-  }
-  function sayQuip(lang){ const arr = QUIPS[lang] || QUIPS.fr; const t = arr[(Math.random()*arr.length)|0]; speak(t, lang); addLine('astra', t); }
+}
 
   // ---------- Recognition ----------
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
