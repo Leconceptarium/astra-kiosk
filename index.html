@@ -15,7 +15,7 @@
       margin:0; background: radial-gradient(1200px 700px at 20% 0%, #131022 0%, var(--bg) 55%, #06050a 100%);
       color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
       display:flex; align-items:center; justify-content:center; overflow:hidden;
-      user-select:none; cursor:none;
+      user-select:none; cursor:auto; /* remettre none pour la version joueurs */
     }
     .frame{position:relative; width:min(100vw, 1024px); height:min(100vh, 680px); box-shadow:0 0 60px rgba(0,0,0,.6) inset, 0 20px 80px rgba(0,0,0,.65);
       background:linear-gradient(180deg, #141221 0%, #0e0c19 100%);
@@ -54,7 +54,7 @@
     .btn.small{padding:8px 10px; font-size:12px;}
     .btn.danger{border-color: rgba(219,58,52,.5)}
 
-    .overlay{position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(6,5,10,.72); backdrop-filter: blur(3px);}    
+    .overlay{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(6,5,10,.72); backdrop-filter: blur(3px);}    
     .panel{width:min(92vw,720px); background:#171429; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:16px 16px 10px;}
     .panel h3{margin:0 0 8px}
     .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
@@ -79,7 +79,7 @@
       <div class="scene curtains">
         <div class="noise"></div>
         <!-- dynamic visual prompts -->
-        <div id="lockedBadge" class="locked">🔒 Mot de passe : « bonne nuit » • « good night » • « güte nacht »</div>
+        <div id="lockedBadge" class="locked">🔒 Mot de passe (dites à voix haute) : « bonne nuit » • “good night” • “Gute Nacht”</div>
       </div>
 
       <aside class="scroll">
@@ -90,7 +90,7 @@
 
     <div class="ftr">
       <div id="led" class="led"></div>
-      <div id="status" class="status">En veille. Dites <b>« okay Astra »</b>.</div>
+      <div id="status" class="status">Initialisation…</div>
       <button id="gmStart" class="btn wake" style="display:none">Démarrer (GM)</button>
       <button id="mute" class="btn small">🔈</button>
     </div>
@@ -113,6 +113,7 @@
           </div>
           <div>
             <div class="row"><button id="playLullaby" class="btn small">Jouer berceuse</button><button id="stopAll" class="btn small danger">Stop audio</button></div>
+            <div class="row"><button id="retryMic" class="btn small" style="display:none">🎤 Réessayer micro</button></div>
             <div class="row hint">Raccourcis : <span class="kbd">G</span> panel • <span class="kbd">S</span> start • <span class="kbd">L</span> lock • <span class="kbd">U</span> unlock</div>
           </div>
         </div>
@@ -175,10 +176,10 @@
   };
 
   const INTENTS = {
-    // wake words
-    wake: /\b(ok(?:ay)?\s*astra)\b|\b(d\'accord\s*astra)\b|\b(hallo\s*astra)\b/i,
+    // wake words (FR/EN/DE)
+    wake: /\b(ok(?:ay)?\s*astra)\b|\b(d[’']accord\s*astra)\b|\b(salut\s*astra)\b|\b(hallo\s*astra)\b/i,
     // unlock phrases
-    unlock: /\b(bonne\s*nuit|good\s*night|g(ü|u)te\s*nacht)\b/i,
+    unlock: /\b(bonne\s*nuit|good\s*night|gute\s*nacht)\b/i,
     // parchment triggers (any of these should show liberation scroll AFTER unlock)
     liberate: /(potion\s+de\s+lib(é|e)ration|lib(é|e)rer\s+(la\s*)?(cr(é|e)ature|bestiolle?|monstre)|ouvrir\s+la\s+cage|help\s+the\s+(creature|monster)|open\s+the\s+cage|how\s+to\s+free|wie\s+(man\s+)?befreit|k(ä|a)fig\s+(öffnen|aufmachen))/i,
     // lullaby / joke
@@ -240,21 +241,24 @@
   let rec = null; let recLang = 'fr-FR';
 
   function startRec(){
-    if(!SR){ statusEl.textContent = "Micro non supporté par ce navigateur."; return; }
+    if(!SR){ statusEl.textContent = "Micro non supporté par ce navigateur."; addLine('astra','<i>Votre navigateur ne supporte pas la reconnaissance vocale Web.</i>'); return; }
     if(rec) { try{rec.stop()}catch(e){} }
     rec = new SR(); rec.continuous = true; rec.interimResults = true; rec.lang = recLang;
-    rec.onstart = ()=>{ led.classList.add('on'); };
-    rec.onend = ()=>{ led.classList.remove('on'); if(isRunning) setTimeout(startRec, 300); };
-    rec.onerror = (e)=>{ addLine('astra', `<i>Erreur micro:</i> ${e.error}`); };
-    rec.onresult = (evt)=>{
-      let finalText = '';
-      for(let i=evt.resultIndex; i<evt.results.length; i++){
-        const res = evt.results[i];
-        if(res.isFinal){ finalText += res[0].transcript + ' '; }
+    rec.onstart = ()=>{ led.classList.add('on'); addLine('astra','[Mic] Écoute activée. Dites « okay Astra ».'); };
+    rec.onend = ()=>{ led.classList.remove('on'); if(isRunning) setTimeout(startRec, 600); };
+    rec.onerror = (e)=>{
+      let msg = '';
+      if(e.error==='not-allowed' || e.error==='permission-denied'){
+        msg = '🎤 Micro non autorisé — ouvrez les permissions du navigateur puis appuyez sur « Réessayer micro ».';
+      } else if(e.error==='no-speech'){
+        msg = 'Je n\'ai rien entendu. Réessayez en parlant près du micro.';
+      } else {
+        msg = 'Erreur micro: '+e.error;
       }
-      if(finalText){ handleText(finalText.trim()); }
+      statusEl.textContent = msg; addLine('astra', msg);
+      document.getElementById('retryMic').style.display='inline-block';
     };
-    try{ rec.start(); }catch(e){}
+    try{ rec.start(); }catch(e){ addLine('astra','[Mic] Démarrage refusé par le navigateur. Autorisez le micro et réessayez.'); document.getElementById('retryMic').style.display='inline-block'; }
   }
 
   function setRecLangByPref(){
@@ -349,7 +353,7 @@
   }
 
   // ---------- GM controls & boot ----------
-  document.getElementById('gmStart').addEventListener('click', boot);
+  document.getElementById('gmStart')?.addEventListener('click', boot);
   document.getElementById('mute').addEventListener('click', ()=>{
     isMuted = !isMuted; document.getElementById('mute').textContent = isMuted? '🔇' : '🔈';
   });
@@ -360,6 +364,7 @@
   document.getElementById('testWake').addEventListener('click', ()=>{ handleText('okay astra'); });
   document.getElementById('testSpeak').addEventListener('click', ()=>{ sayQuip('fr'); });
   document.getElementById('langSel').addEventListener('change', (e)=>{ currentLangPref = e.target.value; setRecLangByPref(); addLine('astra', `[GM] Langue reco: ${currentLangPref}`); });
+  document.getElementById('retryMic').addEventListener('click', ()=>{ statusEl.textContent = 'Réessai micro…'; startRec(); });
 
   function togglePanel(show){
     const o = document.getElementById('overlay');
@@ -383,13 +388,12 @@
   // preload voices list on some browsers
   window.speechSynthesis?.addEventListener('voiceschanged', ()=>{});
 
-  // Auto-boot kiosk mode on load (no GM click required)
-window.addEventListener('load', ()=>{
-  boot();
-});
+  // Auto: panel visible + écoute démarrée
+  window.addEventListener('load', ()=>{
+    togglePanel(true);
+    boot();
   });
 
   </script>
 </body>
 </html>
-
