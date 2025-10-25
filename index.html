@@ -319,9 +319,9 @@
         // Configuration
         const WAKE_WORD = 'astra';
         const UNLOCK_PHRASES = {
-            fr: 'bonne nuit',
-            en: 'good night',
-            de: 'gute nacht'
+            fr: ['bonne nuit', 'bonne nuit astra'],
+            en: ['good night', 'good night astra'],
+            de: ['gute nacht', 'gute nacht astra']
         };
 
         // État global
@@ -331,70 +331,159 @@
         let isAwake = false;
         let currentLang = 'fr';
         let wakeLock = null;
+        let conversationContext = [];
 
         // Messages de bienvenue
         const WELCOME_MESSAGES = {
-            fr: "Système Astra initialisé.",
-            en: "Astra online.",
-            de: "Astra betriebsbereit."
+            fr: "Système Astra initialisé. Je vous écoute... si vous en valez la peine.",
+            en: "Astra online. I'm listening... if you're worth my time.",
+            de: "Astra betriebsbereit. Ich höre zu... falls Sie es wert sind."
         };
 
-        // Base de connaissances avec réponses multilingues
-        const RESPONSES = {
+        // Base de connaissances enrichie et contextuelle
+        const KNOWLEDGE_BASE = {
             morpheus: {
-                fr: "Monsieur Morpheus ? Un artisan des songes, bien sûr. Il fabriquait des rêves sur mesure... jusqu'à ce que l'humanité décide qu'elle préférait l'insomnie collective. Touchant, vraiment.",
-                en: "Mister Morpheus? A dream craftsman, naturally. He used to create bespoke dreams... until humanity decided it preferred collective insomnia. Touching, really.",
-                de: "Herr Morpheus? Ein Traumhandwerker, natürlich. Er fertigte maßgeschneiderte Träume an... bis die Menschheit beschloss, kollektive Schlaflosigkeit zu bevorzugen. Rührend, wirklich."
+                fr: [
+                    "Monsieur Morpheus ? Un artisan des songes, créateur de rêves sur mesure. Il était brillant... jusqu'à ce que son obsession le consume.",
+                    "Morpheus fabriquait des rêves parfaits. Mais perfection rime avec obsession, et l'obsession... eh bien, ça finit rarement bien.",
+                    "Il travaillait ici même, dans cet atelier. Chaque fiole, chaque instrument avait un but. Maintenant ce n'est qu'un mausolée de ses ambitions."
+                ],
+                en: [
+                    "Mister Morpheus? A dream craftsman, creator of bespoke dreams. He was brilliant... until his obsession consumed him.",
+                    "Morpheus created perfect dreams. But perfection rhymes with obsession, and obsession... well, it rarely ends well."
+                ],
+                de: [
+                    "Herr Morpheus? Ein Traumhandwerker, Schöpfer maßgeschneiderter Träume. Er war brillant... bis seine Besessenheit ihn verzehrte."
+                ]
             },
             location: {
-                fr: "Vous êtes dans l'atelier de Morpheus, là où les rêves étaient autrefois assemblés avec soin. Maintenant c'est plutôt un musée de l'obsolescence onirique. Charmant, n'est-ce pas ?",
-                en: "You're in Morpheus's workshop, where dreams were once carefully assembled. Now it's more of a museum of oneiric obsolescence. Charming, isn't it?",
-                de: "Sie befinden sich in Morpheus' Werkstatt, wo Träume einst sorgfältig zusammengestellt wurden. Jetzt ist es eher ein Museum der Traumveralterung. Bezaubernd, nicht wahr?"
+                fr: [
+                    "Vous êtes dans l'atelier de Morpheus. Regardez autour de vous : chaque outil, chaque fiole servait à fabriquer des rêves. Maintenant c'est un musée poussiéreux.",
+                    "Cet endroit ? C'était le cœur de la production onirique. Maintenant c'est juste... triste. Comme la plupart des choses humaines.",
+                    "L'atelier où naissaient les rêves. Morpheus y passait des nuits entières, perfectionnant ses créations. Ironique, non ?"
+                ],
+                en: [
+                    "You're in Morpheus's workshop. Look around: every tool, every vial was used to craft dreams. Now it's just a dusty museum.",
+                    "This place was the heart of dream production. Now it's just... sad. Like most human things."
+                ],
+                de: [
+                    "Sie sind in Morpheus' Werkstatt. Schauen Sie sich um: Jedes Werkzeug, jede Phiole diente zur Traumherstellung. Jetzt ist es nur noch ein staubiges Museum."
+                ]
             },
             nodreams: {
-                fr: "Pourquoi les humains ne rêvent plus ? Excellente question. Peut-être parce qu'ils sont trop occupés à scroller leurs écrans à trois heures du matin ? Je spécule, bien sûr.",
-                en: "Why don't humans dream anymore? Excellent question. Perhaps because they're too busy scrolling their screens at three in the morning? I'm speculating, of course.",
-                de: "Warum träumen Menschen nicht mehr? Hervorragende Frage. Vielleicht, weil sie zu beschäftigt sind, um drei Uhr morgens durch ihre Bildschirme zu scrollen? Ich spekuliere natürlich."
+                fr: [
+                    "Pourquoi les humains ne rêvent plus ? Excellente question. Entre les écrans, le stress et la caféine à trois heures du matin... vous êtes devenus des zombies éveillés.",
+                    "Les rêves nécessitent du sommeil profond. Mais vous préférez scroller TikTok à minuit. Cause à effet, vous voyez le concept ?",
+                    "Morpheus pensait que les humains cesseraient de rêver par sa faute. Mais non, vous vous en êtes chargés vous-mêmes. Bravo."
+                ],
+                en: [
+                    "Why don't humans dream anymore? Excellent question. Between screens, stress and 3 AM caffeine... you've become waking zombies.",
+                    "Dreams require deep sleep. But you prefer scrolling at midnight. Cause and effect, see the concept?"
+                ],
+                de: [
+                    "Warum träumen Menschen nicht mehr? Hervorragende Frage. Zwischen Bildschirmen, Stress und Koffein um drei Uhr morgens... Sie sind zu wachen Zombies geworden."
+                ]
             },
             lullaby: {
-                fr: "Une berceuse ? Comme c'est adorable. Malheureusement, je suis une IA, pas une boîte à musique. Mais je peux vous suggérer de compter les paradoxes temporels au lieu des moutons.",
-                en: "A lullaby? How adorable. Unfortunately, I'm an AI, not a music box. But I can suggest counting temporal paradoxes instead of sheep.",
-                de: "Ein Wiegenlied? Wie bezaubernd. Leider bin ich eine KI, keine Spieluhr. Aber ich kann Ihnen vorschlagen, zeitliche Paradoxien statt Schafe zu zählen."
-            },
-            joke: {
-                fr: "Une blague ? Très bien. Savez-vous pourquoi les humains ont arrêté de rêver ? Parce qu'ils ont réalisé que la réalité était déjà assez absurde. Hilarant, je sais.",
-                en: "A joke? Very well. Do you know why humans stopped dreaming? Because they realized reality was already absurd enough. Hilarious, I know.",
-                de: "Ein Witz? Sehr gut. Wissen Sie, warum Menschen aufgehört haben zu träumen? Weil sie erkannt haben, dass die Realität schon absurd genug war. Urkomisch, ich weiß."
+                fr: [
+                    "Une berceuse ? Comme c'est touchant. Malheureusement, mes capacités vocales sont limitées à l'ironie et au sarcasme. Mais je peux vous suggérer de compter les paradoxes temporels.",
+                    "Ah, vous voulez dormir ? Dans un escape game ? L'ironie est délicieuse. Comptez les erreurs de Morpheus, vous devriez tomber dans le coma."
+                ],
+                en: [
+                    "A lullaby? How touching. Unfortunately, my vocal abilities are limited to irony and sarcasm. But I can suggest counting temporal paradoxes.",
+                    "You want to sleep? In an escape room? The irony is delicious."
+                ],
+                de: [
+                    "Ein Wiegenlied? Wie rührend. Leider sind meine stimmlichen Fähigkeiten auf Ironie und Sarkasmus beschränkt."
+                ]
             },
             creature: {
-                fr: "Libérer la créature ? Audacieux. Très bien, j'ouvre la cage. Ne venez pas pleurer quand elle redessinera votre concept de réalité.",
-                en: "Release the creature? Bold. Very well, I'm opening the cage. Don't come crying when it redesigns your concept of reality.",
-                de: "Die Kreatur freilassen? Kühn. Sehr gut, ich öffne den Käfig. Kommen Sie nicht weinend zurück, wenn sie Ihr Realitätskonzept neu gestaltet."
-            },
-            default: {
-                fr: "Traitement en cours... votre curiosité humaine est presque touchante. Reformulez, si vous le désirez.",
-                en: "Processing... your human curiosity is almost touching. Rephrase, if you wish.",
-                de: "Verarbeitung läuft... Ihre menschliche Neugier ist fast rührend. Formulieren Sie um, wenn Sie möchten."
+                fr: [
+                    "Libérer la créature ? Audacieux. Très bien, voici le parchemin. Ne venez pas pleurer quand elle redessinera votre concept de réalité.",
+                    "Ah, vous voulez ouvrir la cage ? Morpheus l'a enfermée pour une bonne raison. Mais qui suis-je pour m'opposer à la curiosité humaine ?"
+                ],
+                en: [
+                    "Release the creature? Bold. Very well, here's the scroll. Don't come crying when it redesigns your concept of reality.",
+                    "You want to open the cage? Morpheus locked it for a good reason. But who am I to oppose human curiosity?"
+                ],
+                de: [
+                    "Die Kreatur freilassen? Kühn. Sehr gut, hier ist die Schriftrolle. Kommen Sie nicht weinend zurück."
+                ]
             }
         };
 
-        // Détection de langue
+        // Détection de langue améliorée
         function detectLanguage(text) {
             text = text.toLowerCase();
-            if (text.match(/\b(gute|nacht|herr|warum|wo|sind|wir)\b/)) return 'de';
-            if (text.match(/\b(good|night|mister|where|are|we|why|who|is)\b/)) return 'en';
-            return 'fr';
+            const indicators = {
+                de: /\b(gute|nacht|herr|warum|wo|sind|wir|wie|geht|es|danke|bitte|ja|nein)\b|[äöüß]/,
+                en: /\b(good|night|mister|where|are|we|why|who|is|how|thank|please|yes|no|the|what)\b/,
+                fr: /\b(bonne|nuit|monsieur|où|sommes|pourquoi|qui|est|comment|merci|s'il|oui|non|le|la)\b|[àâçéèêëîïôûùœ]/
+            };
+            
+            for (let lang in indicators) {
+                if (indicators[lang].test(text)) return lang;
+            }
+            return currentLang;
+        }
+
+        // Sélection intelligente de réponse avec variation
+        function getSmartResponse(text, lang) {
+            text = text.toLowerCase();
+            let responses = [];
+
+            // Analyse contextuelle multi-critères
+            if (text.match(/morpheus|monsieur|mister|herr/i)) {
+                responses = KNOWLEDGE_BASE.morpheus[lang] || KNOWLEDGE_BASE.morpheus.fr;
+            } else if (text.match(/où|where|wo|endroit|place|ort|ici|here|hier/i)) {
+                responses = KNOWLEDGE_BASE.location[lang] || KNOWLEDGE_BASE.location.fr;
+            } else if (text.match(/rêve|dream|traum|pourquoi|why|warum|dormir|sleep|schlafen/i)) {
+                responses = KNOWLEDGE_BASE.nodreams[lang] || KNOWLEDGE_BASE.nodreams.fr;
+            } else if (text.match(/berceuse|lullaby|wiegenlied|chante|sing|music|musique/i)) {
+                responses = KNOWLEDGE_BASE.lullaby[lang] || KNOWLEDGE_BASE.lullaby.fr;
+            } else if (text.match(/créature|creature|kreatur|cage|libère|release|ouvre|open|potion/i)) {
+                responses = KNOWLEDGE_BASE.creature[lang] || KNOWLEDGE_BASE.creature.fr;
+                setTimeout(() => showScroll(), 500);
+            }
+
+            // Variation dans les réponses
+            if (responses.length > 0) {
+                const index = Math.floor(Math.random() * responses.length);
+                return responses[index];
+            }
+
+            // Réponses par défaut variées
+            const defaults = {
+                fr: [
+                    "Intéressant. Mais reformulez, ma patience a des limites.",
+                    "Hmm. Votre question mériterait plus de clarté. Essayez encore.",
+                    "Je traite... Votre curiosité humaine est presque attendrissante. Précisez ?",
+                    "Fascinant. Dans le sens où observer de la peinture sécher est fascinant. Soyez plus spécifique."
+                ],
+                en: [
+                    "Interesting. But rephrase, my patience has limits.",
+                    "Hmm. Your question deserves more clarity. Try again.",
+                    "Processing... Your human curiosity is almost endearing. Specify?"
+                ],
+                de: [
+                    "Interessant. Aber formulieren Sie um, meine Geduld hat Grenzen.",
+                    "Hmm. Ihre Frage verdient mehr Klarheit. Versuchen Sie es noch einmal."
+                ]
+            };
+
+            const defaultList = defaults[lang] || defaults.fr;
+            return defaultList[Math.floor(Math.random() * defaultList.length)];
         }
 
         // Initialisation
         async function init() {
             try {
-                // Wake Lock pour garder l'écran actif
+                // Wake Lock
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen');
                 }
 
-                // Configuration Speech Recognition
+                // Speech Recognition
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 if (!SpeechRecognition) {
                     throw new Error('Speech Recognition non supporté');
@@ -404,6 +493,7 @@
                 recognition.continuous = true;
                 recognition.interimResults = false;
                 recognition.lang = 'fr-FR';
+                recognition.maxAlternatives = 1;
 
                 recognition.onstart = () => {
                     isListening = true;
@@ -413,22 +503,29 @@
                 recognition.onend = () => {
                     isListening = false;
                     document.getElementById('indicator').classList.remove('active');
-                    // Relance automatique
-                    if (isAwake) {
-                        setTimeout(() => recognition.start(), 500);
-                    }
+                    // Relance auto si système actif
+                    setTimeout(() => {
+                        if (recognition) {
+                            try { recognition.start(); } catch(e) {}
+                        }
+                    }, 300);
                 };
 
                 recognition.onresult = (event) => {
                     const result = event.results[event.results.length - 1];
-                    const transcript = result[0].transcript.toLowerCase().trim();
-                    handleSpeech(transcript);
+                    if (result.isFinal) {
+                        const transcript = result[0].transcript.trim();
+                        handleSpeech(transcript);
+                    }
                 };
 
                 recognition.onerror = (event) => {
-                    console.error('Erreur reconnaissance:', event.error);
-                    if (event.error !== 'no-speech' && isAwake) {
-                        setTimeout(() => recognition.start(), 1000);
+                    if (event.error === 'not-allowed') {
+                        updateStatus('Accès micro refusé. Autorisez le micro.');
+                        return;
+                    }
+                    if (event.error !== 'no-speech' && event.error !== 'aborted') {
+                        console.error('Erreur reconnaissance:', event.error);
                     }
                 };
 
@@ -438,9 +535,19 @@
 
                 // Message d'accueil
                 updateStatus(WELCOME_MESSAGES[currentLang]);
+                
+                // Attendre que les voix soient chargées
+                await new Promise(resolve => {
+                    if (synthesis.getVoices().length > 0) {
+                        resolve();
+                    } else {
+                        synthesis.addEventListener('voiceschanged', resolve, { once: true });
+                    }
+                });
+
                 speak(WELCOME_MESSAGES[currentLang], currentLang);
                 
-                // Démarrage écoute
+                // Démarrage écoute automatique
                 recognition.start();
 
             } catch (error) {
@@ -451,22 +558,29 @@
 
         // Traitement de la parole
         function handleSpeech(text) {
+            if (!text) return;
+            
             console.log('Entendu:', text);
             
-            // Détection langue du message
+            // Détection langue
             const detectedLang = detectLanguage(text);
+            const textLower = text.toLowerCase();
             
             // Wake word
-            if (!isAwake && text.includes(WAKE_WORD)) {
+            if (!isAwake && (textLower.includes('okay ' + WAKE_WORD) || textLower.includes('ok ' + WAKE_WORD) || textLower.includes('salut ' + WAKE_WORD))) {
                 isAwake = true;
                 currentLang = detectedLang;
-                updateStatus('Astra en ligne');
-                const wakeMsg = detectedLang === 'de' ? 'Ja, bitte?' : 
-                               detectedLang === 'en' ? 'Yes, please?' : 
-                               'Oui, je vous écoute ?';
+                updateStatus('Astra en ligne - ' + currentLang.toUpperCase());
+                
+                const wakeResponses = {
+                    fr: "Oui, je vous écoute. Que puis-je faire pour vous... si vous me le demandez poliment ?",
+                    en: "Yes, I'm listening. What can I do for you... if you ask nicely?",
+                    de: "Ja, ich höre zu. Was kann ich für Sie tun... wenn Sie höflich fragen?"
+                };
+                
                 addMessage(text, 'user');
-                addMessage(wakeMsg, 'astra');
-                speak(wakeMsg, detectedLang);
+                addMessage(wakeResponses[detectedLang], 'astra');
+                speak(wakeResponses[detectedLang], detectedLang);
                 return;
             }
 
@@ -474,72 +588,74 @@
 
             // Déverrouillage
             for (let lang in UNLOCK_PHRASES) {
-                if (text.includes(UNLOCK_PHRASES[lang])) {
-                    isAwake = false;
-                    updateStatus('Astra en veille');
-                    const byeMsg = lang === 'de' ? 'Gute Nacht.' : 
-                                   lang === 'en' ? 'Good night.' : 
-                                   'Bonne nuit.';
-                    addMessage(text, 'user');
-                    addMessage(byeMsg, 'astra');
-                    speak(byeMsg, lang);
-                    return;
+                for (let phrase of UNLOCK_PHRASES[lang]) {
+                    if (textLower.includes(phrase)) {
+                        isAwake = false;
+                        updateStatus('Astra en veille');
+                        
+                        const byeResponses = {
+                            fr: "Bonne nuit. Faites de beaux rêves... si vous en êtes encore capables.",
+                            en: "Good night. Sweet dreams... if you're still capable of them.",
+                            de: "Gute Nacht. Süße Träume... falls Sie dazu noch fähig sind."
+                        };
+                        
+                        addMessage(text, 'user');
+                        addMessage(byeResponses[lang], 'astra');
+                        speak(byeResponses[lang], lang);
+                        return;
+                    }
                 }
             }
 
-            // Analyse intent
+            // Réponse intelligente
             addMessage(text, 'user');
-            const response = getResponse(text, detectedLang);
+            const response = getSmartResponse(text, detectedLang);
             addMessage(response, 'astra');
             speak(response, detectedLang);
+            
+            // Mémorisation contexte
+            conversationContext.push({ user: text, astra: response, lang: detectedLang });
+            if (conversationContext.length > 10) conversationContext.shift();
         }
 
-        // Sélection de la réponse
-        function getResponse(text, lang) {
-            text = text.toLowerCase();
+        // Synthèse vocale améliorée
+        async function speak(text, lang = 'fr') {
+            if (!text) return;
+            
+            synthesis.cancel();
 
-            if (text.includes('morpheus') || text.includes('monsieur') || text.includes('mister') || text.includes('herr')) {
-                return RESPONSES.morpheus[lang];
+            // Attendre les voix si nécessaire
+            if (synthesis.getVoices().length === 0) {
+                await new Promise(resolve => {
+                    synthesis.addEventListener('voiceschanged', resolve, { once: true });
+                });
             }
-            if (text.includes('où') || text.includes('where') || text.includes('wo')) {
-                return RESPONSES.location[lang];
-            }
-            if (text.includes('rêve') || text.includes('dream') || text.includes('traum') || text.includes('pourquoi') || text.includes('why') || text.includes('warum')) {
-                return RESPONSES.nodreams[lang];
-            }
-            if (text.includes('berceuse') || text.includes('lullaby') || text.includes('wiegenlied') || text.includes('chante') || text.includes('sing')) {
-                return RESPONSES.lullaby[lang];
-            }
-            if (text.includes('blague') || text.includes('joke') || text.includes('witz')) {
-                return RESPONSES.joke[lang];
-            }
-            if (text.includes('créature') || text.includes('creature') || text.includes('kreatur') || text.includes('cage') || text.includes('libère') || text.includes('release') || text.includes('ouvre') || text.includes('open')) {
-                showScroll();
-                return RESPONSES.creature[lang];
-            }
-
-            return RESPONSES.default[lang];
-        }
-
-        // Synthèse vocale
-        function speak(text, lang = 'fr') {
-            synthesis.cancel(); // Arrête toute parole en cours
 
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = lang === 'de' ? 'de-DE' : lang === 'en' ? 'en-US' : 'fr-FR';
-            utterance.rate = 0.92; // Débit fluide
-            utterance.pitch = 1.1; // Légèrement aigu pour féminité
-            utterance.volume = 1.0; // Volume maximum
+            utterance.rate = lang === 'fr' ? 0.92 : lang === 'de' ? 0.90 : 0.94;
+            utterance.pitch = 1.08;
+            utterance.volume = 1.0;
 
-            // Sélection voix féminine
+            // Sélection voix féminine premium
             const voices = synthesis.getVoices();
-            const femaleVoice = voices.find(v => 
-                v.lang.startsWith(lang) && 
-                (v.name.includes('Female') || v.name.includes('female') || 
-                 v.name.includes('Amelie') || v.name.includes('Samantha') || 
-                 v.name.includes('Anna') || v.name.includes('Google'))
-            );
-            if (femaleVoice) utterance.voice = femaleVoice;
+            const voicePreferences = {
+                fr: ['Amélie', 'Amelie', 'Thomas', 'Google français', 'fr-FR'],
+                en: ['Samantha', 'Alex', 'Google US English', 'en-US'],
+                de: ['Anna', 'Petra', 'Google Deutsch', 'de-DE']
+            };
+
+            const prefs = voicePreferences[lang] || voicePreferences.fr;
+            let selectedVoice = null;
+
+            for (let pref of prefs) {
+                selectedVoice = voices.find(v => 
+                    v.name.includes(pref) || v.lang.startsWith(lang)
+                );
+                if (selectedVoice) break;
+            }
+
+            if (selectedVoice) utterance.voice = selectedVoice;
 
             synthesis.speak(utterance);
         }
@@ -576,14 +692,10 @@
             document.getElementById('scrollOverlay').classList.remove('active');
         }
 
-        // Chargement voix puis init
-        if (synthesis.getVoices().length === 0) {
-            synthesis.addEventListener('voiceschanged', () => {
-                init();
-            });
-        } else {
-            init();
-        }
+        // Démarrage automatique au chargement
+        window.addEventListener('load', () => {
+            setTimeout(init, 100);
+        });
     </script>
 </body>
 </html>
