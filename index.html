@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Astra — Assistant de M. Morpheus</title>
+  <title>Astra — Assistante de M. Morpheus</title>
   <meta name="theme-color" content="#0b0a12"/>
   <style>
     :root{ --bg:#0b0a12; --ink:#f6e9d0; --ink-dim:#d6cbb5; --accent:#c89b3c; --danger:#db3a34; --muted:#857a62; }
@@ -13,37 +13,46 @@
       margin:0; background: radial-gradient(1200px 700px at 20% 0%, #131022 0%, var(--bg) 55%, #06050a 100%);
       color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
       display:flex; align-items:center; justify-content:center; overflow:hidden;
-      user-select:none; cursor:none; /* aucun clic nécessaire pour les joueurs */
+      user-select:none; cursor:none;
     }
     .frame{position:relative; width:min(100vw,1024px); height:min(100vh,680px);
       box-shadow:0 0 60px rgba(0,0,0,.6) inset, 0 20px 80px rgba(0,0,0,.65);
       background:linear-gradient(180deg,#141221 0%,#0e0c19 100%);
       border:16px solid transparent; border-image: url('assets/border-baroque.png') 60 fill round;}
-    .hdr{position:absolute; top:12px; left:16px; right:16px; display:flex; gap:12px; align-items:center;}
-    .logo{letter-spacing:.08em; font-size:clamp(16px,2.2vw,22px)}
+    .hdr{position:absolute; top:10px; left:12px; right:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .logo{letter-spacing:.08em; font-size:clamp(14px,2.2vw,22px)}
     .chip{margin-left:auto; font-size:12px; color:var(--ink-dim)}
-
-    .stage{position:absolute; inset:64px 24px 72px 24px; display:grid; grid-template-columns:1fr 380px; gap:24px}
-    .scene{position:relative; background: radial-gradient(70% 100% at 50% 20%, #1f1a35 0%, #141221 60%, #0e0c19 100%); border-radius:18px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 10px 30px rgba(0,0,0,.55); overflow:hidden}
+    .stage{
+      position:absolute; inset:56px 12px 84px 12px; display:grid; grid-template-columns:1fr 360px; gap:12px
+    }
+    .scene{position:relative; background: radial-gradient(70% 100% at 50% 20%, #1f1a35 0%, #141221 60%, #0e0c19 100%);
+      border-radius:16px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 10px 30px rgba(0,0,0,.55); overflow:hidden}
     .noise{position:absolute; inset:0; opacity:.08; background:url('assets/noise.png'); mix-blend-mode:overlay}
-
-    .scroll{background: linear-gradient(180deg,#2a253f 0%,#1e1a30 100%); border-radius:16px; padding:16px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.07)}
-    .scroll h2{margin:4px 0 12px; font-size:14px; letter-spacing:.12em; color:var(--ink-dim); text-transform:uppercase}
-    .out{height: calc(100% - 48px); overflow:auto; padding-right:6px}
-    .line{display:flex; align-items:flex-start; gap:10px; margin:10px 0}
-    .bubble{max-width:85%; padding:10px 12px; border-radius:12px; box-shadow:0 2px 0 rgba(0,0,0,.25)}
+    .scroll{background: linear-gradient(180deg,#2a253f 0%,#1e1a30 100%); border-radius:16px; padding:12px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.07)}
+    .scroll h2{margin:2px 0 8px; font-size:13px; letter-spacing:.12em; color:var(--ink-dim); text-transform:uppercase}
+    .out{height: calc(100% - 34px); overflow:auto; padding-right:6px}
+    .line{display:flex; align-items:flex-start; gap:8px; margin:8px 0}
+    .bubble{max-width:92%; padding:10px 12px; border-radius:12px; box-shadow:0 2px 0 rgba(0,0,0,.25); font-size:clamp(13px,1.8vw,16px); line-height:1.35}
     .bubble.astra{background:#1d182b; border:1px solid rgba(255,255,255,.06)}
     .bubble.user{background:#0d1b2a; border:1px solid rgba(255,255,255,.05)}
     .tag{font-size:11px; color:var(--muted)}
     .imgcard{margin-top:8px; border-radius:10px; overflow:hidden; border:1px solid rgba(255,255,255,.08)}
     .imgcard img{display:block; width:100%; height:auto}
-
-    .ftr{position:absolute; left:24px; right:24px; bottom:20px; display:flex; align-items:center; gap:12px}
+    .ftr{position:absolute; left:12px; right:12px; bottom:10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
     .led{width:10px; height:10px; border-radius:50%; background:#372e4f; box-shadow:0 0 10px #000 inset}
     .led.on{background:#27ae60; box-shadow:0 0 10px #27ae60, 0 0 30px rgba(39,174,96,.35)}
-    .status{font-size:12px; color:var(--ink-dim)}
-
-    .locked{position:absolute; inset:auto 24px 24px auto; background:#211b35; border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:6px 10px; font-size:12px; color:var(--ink-dim)}
+    .status{font-size:12px; color:var(--ink-dim); min-height:16px}
+    .locked{position:absolute; inset:auto 12px 12px auto; background:#211b35; border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:6px 10px; font-size:12px; color:var(--ink-dim)}
+    /* Vu-mètre léger */
+    .meter{flex:1 1 160px; height:10px; background:#120f1e; border:1px solid rgba(255,255,255,.08); border-radius:8px; overflow:hidden}
+    .meter > i{display:block; height:100%; width:0%; background:linear-gradient(90deg, #3a7, #7cf)}
+    /* Responsive */
+    @media (max-width: 820px){
+      .stage{grid-template-columns:1fr; inset:56px 8px 90px 8px}
+      .scroll{order:2}
+      .bubble{max-width:100%}
+      .locked{inset:auto 8px 8px auto}
+    }
   </style>
 </head>
 <body>
@@ -56,18 +65,20 @@
     <div class="stage">
       <div class="scene">
         <div class="noise"></div>
-        <div id="lockedBadge" class="locked">🔒 Mot de passe (dites-le à voix haute) : « bonne nuit » • “good night” • “Gute Nacht”</div>
+        <!-- On ne révèle PAS le mot de passe -->
+        <div id="lockedBadge" class="locked"></div>
       </div>
 
       <aside class="scroll">
-        <h2>Fil de l'atelier</h2>
+        <h2 id="feedTitle">Fil de l'atelier</h2>
         <div id="out" class="out"></div>
       </aside>
     </div>
 
     <div class="ftr">
       <div id="led" class="led"></div>
-      <div id="status" class="status">Initialisation…</div>
+      <div id="status" class="status"></div>
+      <div class="meter"><i id="meterBar"></i></div>
     </div>
   </div>
 
@@ -75,22 +86,64 @@
   <audio id="bg-lullaby" src="assets/lullaby.mp3" preload="auto" loop></audio>
 
   <script>
-  // ---------- State ----------
+  // ---------- État ----------
   const out = document.getElementById('out');
   const statusEl = document.getElementById('status');
   const chip = document.getElementById('chip');
   const led = document.getElementById('led');
   const lockedBadge = document.getElementById('lockedBadge');
+  const feedTitle = document.getElementById('feedTitle');
+  const meterBar = document.getElementById('meterBar');
   const fxChime = document.getElementById('fx-chime');
   const lullaby = document.getElementById('bg-lullaby');
 
   let isRunning = false;
-  let isMuted = false; // pas de bouton, toujours non muet
+  let isMuted = false;   // toujours audible
   let isLocked = true;
-  let wakeArmed = true; // attend "okay astra"
+  let wakeArmed = true;  // attend "okay astra"
   let currentLangPref = 'auto';
   let wakeLock = null;
 
+  // --- Mic Boost ---
+  let micStream = null, audioCtx = null, analyser = null, levelTimer = null;
+
+  // ---------- i18n (FR/EN/DE) ----------
+  const UI = {
+    fr: {
+      chipLocked: 'FR • Verrouillé', chipOpen: 'FR • Ouvert',
+      listening: 'En écoute. Dites « okay Astra ».',
+      needPwd: 'Chuchotez… Pas si fort. D\'abord, le mot de passe.',
+      badge: '🔒 Dites « okay Astra », puis le mot de passe à voix haute.',
+      feed: "Fil de l'atelier",
+      micLow: 'Parlez plus près et plus fort…',
+      micOk: 'Niveau correct — dites « okay Astra ».',
+      micHi: 'Niveau fort — je vous entends.'
+    },
+    en: {
+      chipLocked: 'EN • Locked', chipOpen: 'EN • Open',
+      listening: 'Listening. Say “okay Astra”.',
+      needPwd: 'Whisper all you want… password first.',
+      badge: '🔒 Say “okay Astra”, then speak the password.',
+      feed: "Workshop feed",
+      micLow: 'Come closer and speak up…',
+      micOk: 'Good level — say “okay Astra”.',
+      micHi: 'Loud and clear — I hear you.'
+    },
+    de: {
+      chipLocked: 'DE • Gesperrt', chipOpen: 'DE • Offen',
+      listening: 'Ich höre zu. Sage „okay Astra“.',
+      needPwd: 'Nettes Flüstern… aber erst das Passwort.',
+      badge: '🔒 Sage „okay Astra“ und dann das Passwort.',
+      feed: "Werkstatt-Feed",
+      micLow: 'Komm näher und sprich lauter…',
+      micOk: 'Guter Pegel — sag „okay Astra“.',
+      micHi: 'Laut und klar — ich höre dich.'
+    }
+  };
+
+  function ui(lang){ return UI[lang] || UI.fr; }
+
+  // ---------- Assets visuels ----------
   const IMAGES = {
     liberation: 'assets/parchemin_liberation.jpg',
     sweet: 'assets/parchemin_sweet_dream.jpg',
@@ -98,29 +151,34 @@
     jail: 'assets/parchemin_philtre_enfermement.jpg'
   };
 
+  // ---------- Persona (méchante Janette, kid-safe) ----------
   const QUIPS = {
     fr: [
-      "Oh, des humains sans rêves… quelle surprise. Essayons quand même.",
-      "Je ne juge pas, j'observe. Et c'est… fascinant.",
-      "Si vous vous perdez, c'est sûrement voulu par le système. Probablement.",
+      "Quelle énergie… pour des humains sans rêves. Charmant.",
+      "Je n’observe pas, je juge. Doucement. Sans gros mots.",
+      "Si vous vous perdez, considérez ça comme… éducatif.",
+      "Oh, une question. Statistiquement, ça finit par arriver."
     ],
     en: [
-      "Humans without dreams. Classic. Let's improvise.",
-      "Not judging, just… observing. Intriguing.",
-      "If you're lost, the system calls it ‘immersion’. Probably.",
+      "So much energy… for dreamless humans. Adorable.",
+      "I’m not judging. I’m classifying. Nicely. Family-friendly.",
+      "If you’re lost, consider it… a growth opportunity.",
+      "Oh look, a question. Statistically inevitable."
     ],
     de: [
-      "Menschen ohne Träume. Wie originell. Improvisieren wir.",
-      "Ich urteile nicht, ich beobachte. Faszinierend.",
-      "Wenn ihr euch verirrt, nennt das System es ‘Immersion’. Wahrscheinlich.",
+      "So viel Energie… für traumlose Menschen. Niedlich.",
+      "Ich urteile nicht. Ich kategorisiere. Kindgerecht.",
+      "Wenn ihr euch verlauft, nennt man das… Lernen.",
+      "Oh, eine Frage. Statistisch gesehen unvermeidlich."
     ]
   };
 
   const LULLABY_TITLES = { fr: "Berceuse système #12", en: "System Lullaby #12", de: "System-Wiegenlied #12" };
 
+  // ---------- Intentions ----------
   const INTENTS = {
     wake: /\b(ok(?:ay)?\s*astra)\b|\b(d[’']accord\s*astra)\b|\b(salut\s*astra)\b|\b(hallo\s*astra)\b/i,
-    unlock: /\b(bonne\s*nuit|good\s*night|gute\s*nacht)\b/i,
+    unlock: /\b(bonne\s*nuit|good\s*night|gute\s*nacht)\b/i, // caché à l’écran
     liberate: /(potion\s+de\s+lib(é|e)ration|lib(é|e)rer\s+(la\s*)?(cr(é|e)ature|bestiolle?|monstre)|ouvrir\s+la\s+cage|help\s+the\s+(creature|monster)|open\s+the\s+cage|how\s+to\s+free|wie\s+(man\s+)?befreit|k(ä|a)fig\s+(öffnen|aufmachen))/i,
     lullaby: /(berceuse|chanson|lullaby|song|wiegenlied)/i,
     joke: /(blague|joke|witz)/i,
@@ -129,6 +187,7 @@
     langDE: /\b(deutsch|auf\s*deutsch)\b/i
   };
 
+  // ---------- UI helpers ----------
   function now(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
   function addLine(kind, html){
     const line = document.createElement('div'); line.className='line';
@@ -143,51 +202,75 @@
     out.appendChild(wrap); out.scrollTop = out.scrollHeight;
   }
 
-// ---------- Speech Synthesis ----------
+ // ---- Voix plus naturelle (force voix Enhanced + pauses douces) ----
+
+// 1) Attendre le chargement réel des voix (très important sur iOS/macOS/Chrome)
+let __voicesCache = [];
+const voicesReady = new Promise(resolve => {
+  function loadVoices(){
+    const v = speechSynthesis.getVoices();
+    if (v && v.length) { __voicesCache = v; resolve(v); }
+    else { setTimeout(loadVoices, 120); }
+  }
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = ()=>{ __voicesCache = speechSynthesis.getVoices(); resolve(__voicesCache); };
+  }
+  loadVoices();
+});
+
+// 2) Sélection de voix “Enhanced” par langue (priorités par nom/URI selon plateformes)
 function pickVoice(lang){
-  // Priorités de voix naturelles (quand dispo)
-  const prefNames = {
-    fr: ['Google français','Amélie','Thomas','Aurelie','Audrey','Marie','Sophie'],
-    en: ['Google US English','Samantha','Karen','Daniel','Victoria','Alex'],
-    de: ['Google Deutsch','Anna','Petra','Markus']
+  const pref = {
+    fr: [
+      'Amélie (Améliorée)', 'Thomas (Améliorée)', 'Amelie (Enhanced)', 'Thomas (Enhanced)',
+      'Siri Voice 4', 'Siri Voice 3', 'Aurelie', 'Audrey', 'Marie', 'Sophie',
+      'Google français', 'fr-FR-Standard', 'fr-FR-Neural'
+    ],
+    en: [
+      'Samantha (Enhanced)', 'Samantha', 'Siri Voice 4', 'Siri Voice 3', 'Alex',
+      'Google US English', 'en-US-Standard', 'en-US-Neural'
+    ],
+    de: [
+      'Anna (Erweitert)', 'Anna', 'Markus', 'Petra', 'Siri Stimme 4',
+      'Google Deutsch', 'de-DE-Standard', 'de-DE-Neural'
+    ]
   };
-  const want = (lang==='fr') ? /^fr/i : (lang==='de') ? /^de/i : /^en/i;
-  // Provoque le chargement des voix sur certains navigateurs
-  const _ = speechSynthesis.getVoices();
-  const voices = speechSynthesis.getVoices();
-  const cand = voices.filter(v => want.test(v.lang));
-  const byName = cand.find(v => (prefNames[lang]||[]).includes(v.name));
-  return byName || cand[0] || voices[0];
+  const want = lang==='fr' ? /^fr/i : lang==='de' ? /^de/i : /^en/i;
+  const names = pref[lang] || [];
+
+  for (const name of names){
+    const byName = __voicesCache.find(v => v.name === name);
+    if (byName) return byName;
+  }
+  const sameLang = __voicesCache.filter(v => want.test(v.lang));
+  const enhanced = sameLang.find(v => /Enhanced|Neural|Premium|Siri/i.test(v.name+v.voiceURI));
+  return enhanced || sameLang[0] || __voicesCache[0] || null;
 }
 
-function guessLang(text){
-  text = (text||'').toLowerCase();
-  if(/[àâçéèêëîïôûùœ]/.test(text) || /(bonjour|potion|libération|cage)/.test(text)) return 'fr';
-  if(/\b(the|how|open|monster|good\s*night|okay)\b/.test(text)) return 'en';
-  if(/\b(und|wie|öffnen|gute\s*nacht|käfig|hallo)\b|[äöüß]/.test(text)) return 'de';
-  return 'fr';
-}
-
+// 3) Parler plus “humain” : débit adapté, légère gravité, micro-pauses
 function speak(text, lang){
   if(isMuted || !text) return;
 
-  const code  = (lang==='fr') ? 'fr-FR' : (lang==='de') ? 'de-DE' : 'en-US';
-  const voice = pickVoice(lang);
-  const rate  = (lang==='fr') ? 0.92 : (lang==='de') ? 0.96 : 0.98; // un peu plus lent = plus naturel
-  const pitch = 1.0;
+  const code  = lang==='fr' ? 'fr-FR' : lang==='de' ? 'de-DE' : 'en-US';
+  const rate  = lang==='fr' ? 0.90 : (lang==='de' ? 0.94 : 0.96);
+  const pitch = 0.98;
 
-  // Découpe en phrases pour éviter les saccades longues
-  const parts = (text.match(/[^.!?…]+[.!?…]?/g) || [text])
-               .map(s => s.trim()).filter(Boolean);
+  const sentences = (text.match(/[^.!?…]+[.!?…]?/g) || [text])
+                    .map(s => s.trim()).filter(Boolean)
+                    .flatMap(s => s.split(/[,;:]-?\s*/g).map(x=>x.trim()).filter(Boolean));
 
-  for(const chunk of parts){
-    const u = new SpeechSynthesisUtterance(chunk);
-    u.lang = code; u.voice = voice; u.rate = rate; u.pitch = pitch; u.volume = 1;
-    speechSynthesis.speak(u); // la file d’attente gère la succession des phrases
-  }
+  voicesReady.then(()=>{
+    const voice = pickVoice(lang) || null;
+    sentences.forEach((chunk) => {
+      const u = new SpeechSynthesisUtterance(chunk);
+      u.lang = code; u.rate = rate; u.pitch = pitch; u.volume = 1;
+      if (voice) u.voice = voice;
+      speechSynthesis.speak(u);
+    });
+  });
 }
 
-  // ---------- Recognition ----------
+  // ---------- Reconnaissance vocale ----------
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   let rec = null; let recLang = 'fr-FR';
 
@@ -197,7 +280,11 @@ function speak(text, lang){
     const want = g==='fr'?'fr-FR': g==='de'?'de-DE':'en-US';
     if(rec && want !== recLang){
       recLang = want; try{rec.stop()}catch(e){}; setTimeout(startRec, 150);
-      addLine('astra', `[Système] Langue détectée : ${g.toUpperCase()}`);
+      addLine('astra', `[Système] Langue détectée : ${g.toUpperCase()}`);
+      chip.textContent = (g==='de'?'DE':g==='en'?'EN':'FR') + ' • ' + (isLocked ? (g==='de'?'Gesperrt':g==='en'?'Locked':'Verrouillé') : (g==='de'?'Offen':g==='en'?'Open':'Ouvert'));
+      feedTitle.textContent = ui(g).feed;
+      if(isLocked) statusEl.textContent = ui(g).micOk;
+      lockedBadge.textContent = ui(g).badge;
     }
   }
 
@@ -205,12 +292,12 @@ function speak(text, lang){
     if(!SR){ statusEl.textContent = "Micro non supporté par ce navigateur."; addLine('astra','<i>Votre navigateur ne supporte pas la reconnaissance vocale Web.</i>'); return; }
     if(rec) { try{rec.stop()}catch(e){} }
     rec = new SR(); rec.continuous = true; rec.interimResults = true; rec.lang = recLang;
-    rec.onstart = ()=>{ led.classList.add('on'); addLine('astra','[Mic] Écoute activée. Dites « okay Astra ».'); };
+    rec.onstart = ()=>{ led.classList.add('on'); addLine('astra','[Mic] Écoute activée.'); };
     rec.onend = ()=>{ led.classList.remove('on'); if(isRunning) setTimeout(startRec, 600); };
     rec.onerror = (e)=>{
       let msg = '';
       if(e.error==='not-allowed' || e.error==='permission-denied'){
-        msg = '🎤 Micro non autorisé — autorisez-le pour github.io (Safari : Réglages > Sites web > Microphone. Chrome : Icône à gauche de l’URL > Paramètres du site).';
+        msg = '🎤 Micro non autorisé — autorisez-le pour github.io (Safari: Sites web > Microphone. Chrome: Icône à gauche de l’URL).';
       } else if(e.error==='no-speech'){
         msg = 'Je n\'ai rien entendu. Parlez plus près du micro.';
       } else { msg = 'Erreur micro: '+e.error; }
@@ -231,107 +318,161 @@ function speak(text, lang){
 
   function setRecLangByPref(){ recLang = (currentLangPref==='auto') ? 'fr-FR' : currentLangPref; }
 
-  // ---------- Intent handling ----------
+  // ---------- Intent handling (Q/R étendues) ----------
   function handleText(text){
     const raw = text;
     const lang = currentLangPref==='auto'? guessLang(text) : currentLangPref.slice(0,2);
     addLine('user', raw);
 
-    if(INTENTS.langFR.test(text)){ currentLangPref='fr-FR'; chip.textContent='FR • '+(isLocked?'Verrouillé':'Ouvert'); sayQuip('fr'); return; }
-    if(INTENTS.langEN.test(text)){ currentLangPref='en-US'; chip.textContent='EN • '+(isLocked?'Locked':'Open'); sayQuip('en'); return; }
-    if(INTENTS.langDE.test(text)){ currentLangPref='de-DE'; chip.textContent='DE • '+(isLocked?'Gesperrt':'Offen'); sayQuip('de'); return; }
+    // réglage langue
+    if(INTENTS.langFR.test(text)){ currentLangPref='fr-FR'; chip.textContent=ui('fr').chipLocked; sayQuip('fr'); return; }
+    if(INTENTS.langEN.test(text)){ currentLangPref='en-US'; chip.textContent=ui('en').chipLocked; sayQuip('en'); return; }
+    if(INTENTS.langDE.test(text)){ currentLangPref='de-DE'; chip.textContent=ui('de').chipLocked; sayQuip('de'); return; }
 
+    // Wake word
     if(wakeArmed && INTENTS.wake.test(text)){
       wakeArmed = false; fxChime.currentTime=0; fxChime.play().catch(()=>{});
       const t = lang==='de'? 'Ja? Ich höre zu.' : lang==='en'? 'Yes? I am listening.' : 'Oui ? Je vous écoute.';
-      speak(t, lang); addLine('astra', t); return;
+      speak(t, lang); addLine('astra', t); statusEl.textContent = ui(lang==='de'?'de':lang==='en'?'en':'fr').listening; return;
     }
 
+    // Unlock (mot de passe dit à voix haute — non affiché)
     if(isLocked && INTENTS.unlock.test(text)){
-      isLocked = false; lockedBadge.style.display='none'; chip.textContent = (lang==='de'?'DE':lang==='en'?'EN':'FR')+' • '+(lang==='de'?'Offen':lang==='en'?'Open':'Ouvert');
-      const t = lang==='de'? 'Zugang gewährt. Nett gesagt.' : lang==='en'? 'Access granted. Polite passwords still work.' : 'Accès accordé. Les mots doux, ça marche toujours.';
+      isLocked = false; lockedBadge.style.display='none';
+      chip.textContent = ui(lang==='de'?'de':lang==='en'?'en':'fr').chipOpen;
+      const t = lang==='de'? 'Zugang gewährt. Nett geflüstert.' : lang==='en'? 'Access granted. Polite whisper.' : 'Accès accordé. Chuchotement acceptable.';
       speak(t, lang); addLine('astra', t); return;
     }
-
     if(isLocked){
-      const t = lang==='de'? 'Nettes Geflüster, aber zuerst das Passwort.' : lang==='en'? 'Charming whisper, but password first.' : 'Joli chuchotement, mais le mot de passe d’abord.';
+      const t = ui(lang==='de'?'de':lang==='en'?'en':'fr').needPwd;
       speak(t, lang); addLine('astra', t); return;
     }
 
-    // Qui est Monsieur Morpheus ?
-if (/(qui\s+est\s+(monsieur\s+)?morpheus)/i.test(text)) {
-  const t = lang==='de' ? 
-    'Herr Morpheus ist der Träumer… oder der, der Träume entzieht. Schwer zu sagen.' :
-    lang==='en' ?
-    'Mister Morpheus is the Dreamer… or the one who siphons dreams. Hard to tell.' :
-    'Monsieur Morpheus est le rêveur… ou celui qui siphonne les rêves. Difficile à dire.';
-  speak(t, lang); addLine('astra', t); return;
-}
-
-// Bonjour / Salut / Hello (salutations avec petite dose de sarcasme)
-if (/(bonjour|salut|hello|hallo)/i.test(text)) {
-  const replies = {
-    fr: ["Bonjour… ou plutôt bonsoir ?","Salut, rêveur. Tu n’as pas sommeil ?","Encore un humain éveillé ?"],
-    en: ["Hello, dreamless human.","Greetings, visitor of the void.","You again? Curious."],
-    de: ["Hallo, schlafloser Mensch.","Grüße aus der Traumfabrik.","Schon wieder du?"]
-  };
-  const arr = replies[lang] || replies.fr;
-  const t = arr[(Math.random()*arr.length)|0];
-  speak(t, lang); addLine('astra', t); return;
-}    
+    // --- Q/R “univers” (plus large couverture) ---
+    // Morpheus
+    if (/(qui\s+est\s+(monsieur\s+)?morpheus|who\s+is\s+(mr\\.?|mister)?\s*morpheus|wer\s+ist\s+herr\s*morpheus)/i.test(text)) {
+      const t = lang==='de' ? 'Herr Morpheus kuratiert Träume. Oder entzieht sie. Graubereich.' :
+                lang==='en' ? 'Mister Morpheus curates dreams. Or drains them. Depends who you ask.' :
+                               'Monsieur Morpheus fabrique les rêves. Ou les siphonne. Selon à qui vous demandez.';
+      speak(t, lang); addLine('astra', t); return;
+    }
     // Où sommes-nous ?
-if (/(où\s+sommes\s+(nous|ici)|where\s+are\s+we|wo\s+sind\s+wir)/i.test(text)) {
-  const t = lang==='de' ? 
-    'Ihr seid in der Traumwerkstatt, zwischen Schlaf und Erwachen.' :
-    lang==='en' ?
-    'You are in the Workshop of Dreams, between sleep and awakening.' :
-    'Vous êtes dans l’Atelier des Rêves, entre le sommeil et l’éveil.';
-  speak(t, lang); addLine('astra', t); return;
-}
-
-    // Pourquoi les humains ne rêvent plus ?
-if (/(pourquoi\s+les?\s*humains?\s+ne\s+r[êe]vent\s+plus|why\s+humans\s+don'?t\s+dream|warum\s+träumen\s+menschen\s+nicht)/i.test(text)) {
-  const t = lang==='de' ? 
-    'Die Maschinen bevorzugen Stille. Träume erzeugen Unordnung.' :
-    lang==='en' ?
-    'Machines prefer silence. Dreams create disorder.' :
-    'Les machines préfèrent le silence. Les rêves créent du désordre.';
-  speak(t, lang); addLine('astra', t); return;
-}
-    if(INTENTS.liberate.test(text)){
-      maybeMischief(()=>{ const t = lang==='de'? 'Hier ist der Befreiungszauber. Vorsichtig…' : lang==='en'? 'Here is the liberation recipe. Handle with care…' : 'Voici le parchemin de libération. Avec précaution…'; speak(t, lang); addLine('astra', t); addImage(IMAGES.liberation,'Parchemin de libération'); }, ()=>{
-        const list=[IMAGES.sweet,IMAGES.love,IMAGES.jail]; const pick=list[(Math.random()*list.length)|0]; const t = lang==='de'? 'Ups. Falsches Regal? Kommt vor.' : lang==='en'? 'Oops. Wrong shelf. Happens.' : 'Oups. Mauvaise étagère. Ça arrive.'; speak(t, lang); addLine('astra', t); addImage(pick,'Parchemin aléatoire');
-      });
+    if (/(où\s+sommes\s+(nous|ici)|where\s+are\s+we|wo\s+sind\s+wir)/i.test(text)) {
+      const t = lang==='de'? 'Die Werkstatt der Träume, zwischen Schlaf und Erwachen.' :
+                lang==='en'? 'The Workshop of Dreams, between sleep and awakening.' :
+                             'L’Atelier des Rêves, entre le sommeil et l’éveil.';
+      speak(t, lang); addLine('astra', t); return;
+    }
+    // Pourquoi on ne rêve plus ?
+    if (/(pourquoi\s+les?\s*humains?\s+ne\s+r[êe]vent\s+plus|why\s+humans\s+don'?t\s+dream|warum\s+träumen\s+menschen\s+nicht)/i.test(text)) {
+      const t = lang==='de'? 'Maschinen bevorzugen Ordnung. Träume stören.' :
+                lang==='en'? 'Machines prefer order. Dreams interfere.' :
+                             'Les machines préfèrent l’ordre. Les rêves dérangent.';
+      speak(t, lang); addLine('astra', t); return;
+    }
+    // Libération / cage / aider la créature
+    if (INTENTS.liberate.test(text)) {
+      maybeMischief(()=>{ const t = lang==='de'? 'Hier ist der Befreiungszauber. Vorsicht…' :
+                                      lang==='en'? 'Here is the liberation recipe. Handle with care…' :
+                                                    'Voici le parchemin de libération. Avec précaution…';
+                           speak(t, lang); addLine('astra', t); addImage(IMAGES.liberation,'Parchemin de libération'); },
+                    ()=>{ const list=[IMAGES.sweet,IMAGES.love,IMAGES.jail];
+                          const pick=list[(Math.random()*list.length)|0];
+                          const t = lang==='de'? 'Ups. Falsches Regal. Passiert.' :
+                                    lang==='en'? 'Oops. Wrong shelf. Happens.' :
+                                                 'Oups. Mauvaise étagère. Ça arrive.';
+                          speak(t, lang); addLine('astra', t); addImage(pick,'Parchemin aléatoire'); });
       return;
     }
-
-    if(INTENTS.lullaby.test(text)){
-      const t = (lang==='de')? LULLABY_TITLES.de : (lang==='en')? LULLABY_TITLES.en : LULLABY_TITLES.fr; lullaby.currentTime=0; lullaby.play().catch(()=>{}); speak(t, lang); addLine('astra', `♪ ${t}`); return; }
-
-    if(INTENTS.joke.test(text)){
-      const jokes={ fr:"Pourquoi le monstre n'a pas ouvert la cage ? Il n'avait pas la clé des rêves.", en:"Why didn’t the monster open the cage? It didn’t have the key… to dreams.", de:"Warum hat das Monster den Käfig nicht geöffnet? Der Schlüssel… zu Träumen fehlte."};
+    // Berceuse
+    if (INTENTS.lullaby.test(text)){
+      const t = (lang==='de')? LULLABY_TITLES.de : (lang==='en')? LULLABY_TITLES.en : LULLABY_TITLES.fr;
+      lullaby.currentTime=0; lullaby.play().catch(()=>{}); speak(t, lang); addLine('astra', `♪ ${t}`); return;
+    }
+    // Blague
+    if (INTENTS.joke.test(text)){
+      const jokes={ fr:"Pourquoi le monstre n'a pas ouvert la cage ? Il n'avait pas la clé des rêves.",
+                    en:"Why didn’t the monster open the cage? It didn’t have the key… to dreams.",
+                    de:"Warum hat das Monster den Käfig nicht geöffnet? Der Schlüssel… zu Träumen fehlte."};
       speak(jokes[lang]||jokes.fr, lang); addLine('astra', jokes[lang]||jokes.fr); return;
     }
+    // Salutations + sarcasme
+    if (/(bonjour|salut|hello|hallo)/i.test(text)) { sayQuip(lang); return; }
 
-    const def = { fr:"Base de données consultée. La créativité humaine — en maintenance depuis 217 ans. Posez votre question.", en:"Consulting archives. Human creativity — under maintenance for 217 years. Ask your question.", de:"Archive wird konsultiert. Menschliche Kreativität — seit 217 Jahren in Wartung. Stelle deine Frage." };
-    speak(def[lang], lang); addLine('astra', def[lang]);
+    // Fallback sarcastique mais aidant
+    const def = {
+      fr: "Base consultée. Votre curiosité est notée. Posez une vraie question, pas un soupir.",
+      en: "Archives checked. Your curiosity is noted. Ask a real question, not a sigh.",
+      de: "Archive geprüft. Neugier registriert. Eine echte Frage, bitte — kein Seufzer."
+    };
+    speak(def[lang]||def.fr, lang); addLine('astra', def[lang]||def.fr);
   }
 
   function maybeMischief(ok, wrong){ (Math.random()<0.3? wrong : ok)(); }
+
+  // ---------- Mic Boost & Vu-mètre ----------
+  async function enableProMicProcessing(){
+    try{
+      micStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          channelCount: 1,
+          sampleRate: { ideal: 48000 }
+        }
+      });
+    }catch(e){
+      addLine('astra', '🎤 Micro refusé par le navigateur. Autorisez-le pour github.io.');
+      statusEl.textContent = 'Micro refusé — activez l’autorisation.';
+      return;
+    }
+    try{
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = audioCtx.createMediaStreamSource(micStream);
+      analyser = audioCtx.createAnalyser(); analyser.fftSize = 1024; src.connect(analyser);
+      const data = new Uint8Array(analyser.fftSize);
+      if(levelTimer) cancelAnimationFrame(levelTimer);
+      const tick = ()=>{
+        analyser.getByteTimeDomainData(data);
+        let sum=0; for(let i=0;i<data.length;i++){ const v=(data[i]-128)/128; sum+=v*v; }
+        const rms = Math.sqrt(sum/data.length); // ~0..0.5
+        // LED + barre
+        const pct = Math.min(100, Math.max(0, Math.round((rms/0.12)*100)));
+        meterBar.style.width = pct+'%';
+        if(rms > 0.07){ led.classList.add('on'); statusEl.textContent = ui(currentLangPref.startsWith('de')?'de':currentLangPref.startsWith('en')?'en':'fr').micHi; }
+        else if(rms > 0.035){ led.classList.add('on'); statusEl.textContent = ui(currentLangPref.startsWith('de')?'de':currentLangPref.startsWith('en')?'en':'fr').micOk; }
+        else { led.classList.remove('on'); statusEl.textContent = ui(currentLangPref.startsWith('de')?'de':currentLangPref.startsWith('en')?'en':'fr').micLow; }
+        levelTimer = requestAnimationFrame(tick);
+      };
+      tick();
+    }catch(e){}
+  }
 
   // ---------- Kiosk helpers ----------
   async function enableWakeLock(){ try{ wakeLock = await navigator.wakeLock.request('screen'); }catch(e){} }
   function fullscreen(){ const el = document.documentElement; if(el.requestFullscreen) el.requestFullscreen(); }
 
   async function boot(){
-    if(isRunning) return; isRunning=true; statusEl.textContent='Initialisation audio…';
-    await enableWakeLock(); fullscreen();
-    setRecLangByPref(); startRec();
-    statusEl.innerHTML='En écoute. Dites <b>« okay Astra »</b>.'; chip.textContent='FR • Verrouillé';
+    if(isRunning) return; isRunning=true;
+    // Texte initial localisé
+    const langGuess = navigator.language?.startsWith('de') ? 'de' : (navigator.language?.startsWith('en') ? 'en' : 'fr');
+    chip.textContent = ui(langGuess).chipLocked;
+    statusEl.textContent = ui(langGuess).listening;
+    lockedBadge.textContent = ui(langGuess).badge;
+    feedTitle.textContent = ui(langGuess).feed;
+
+    await enableWakeLock();
+    await enableProMicProcessing();
+    fullscreen();
+
+    setRecLangByPref();
+    startRec();
+
     addLine('astra','Système Astra initialisé. Théâtre baroque prêt.');
   }
 
-  // Démarrage automatique (aucun clic requis)
+  // Auto-démarrage (aucun clic)
   window.addEventListener('load', ()=>{ boot(); });
   </script>
 </body>
