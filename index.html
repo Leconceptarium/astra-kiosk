@@ -93,12 +93,19 @@
       qui: "qui_es_tu.mp3",
       ou: "ou_sommes_nous.mp3",
       mdp: "mdp_confirme.mp3",
-      mdp_faux: "mdp_faux.mp3",
+      mdp_faux: [
+        "mdp_faux.mp3",
+        "mdp_faux2.mp3",
+        "mdp_faux3.mp3"
+      ],
       invite_mdp: "invite_mdp.mp3",
-     pas_compris: [
-  "phrase_non_reconnue.mp3",
-  "phrase_non_reconnue2.mp3"
-],
+      pas_compris: [
+        "phrase_non_reconnue.mp3",
+        "phrase_non_reconnue2.mp3",
+        "phrase_non_reconnue3.mp3",
+        "phrase_non_reconnue4.mp3",
+        "phrase_non_reconnue5.mp3"
+      ],
       ca_va: "ca_va.mp3",
       tu_es_la: "tu_es_la.mp3",
       berceuse: "berceuse.mp3",
@@ -117,87 +124,82 @@
     };
 
     const detectPhrase = (text) => {
-  const t = text.toLowerCase();
+      const t = text.toLowerCase();
 
-  if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") || t.includes("wesh") || t.includes("bonsoir"))
-    return audioFiles.bonjour;
+      // --- Salutations ---
+      if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") || t.includes("wesh") || t.includes("bonsoir"))
+        return audioFiles.bonjour;
 
-  if (
-    t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
-    t.includes("c’est quoi toi") || t.includes("tu es qui") || t.includes("tu es astra") || t.includes("c'est quoi ca") || t.includes("c'est quoi ce truc") 
-    return audioFiles.qui;
+      // --- Qui es-tu ---
+      if (
+        t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
+        t.includes("c’est quoi toi") || t.includes("tu es qui") || t.includes("tu es astra") || 
+        t.includes("c'est quoi ca") || t.includes("c'est quoi ce truc")
+      )
+        return audioFiles.qui;
 
-  if (
-    t.includes("où sommes") || t.includes("où est-ce qu’on est") || t.includes("on est où") ||
-    t.includes("où ça") || t.includes("quel est cet endroit") || t.includes("c’est quoi cette endroit")
-  )
-    return audioFiles.ou;
+      // --- Où sommes-nous ---
+      if (
+        t.includes("où sommes") || t.includes("où est-ce qu’on est") || t.includes("on est où") ||
+        t.includes("où ça") || t.includes("quel est cet endroit") || t.includes("c’est quoi cette endroit")
+      )
+        return audioFiles.ou;
 
-  if (
-    t.includes("le mot de passe") && t.includes("bonne nuit")
-  ) {
-    if (!mdpValid) {
-      mdpValid = true;
-      document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
-      orb.style.background = "radial-gradient(circle at center, #88ffd2 0%, #004444 80%)";
-      orb.style.boxShadow = "0 0 40px #88ffd2";
+      // --- Mot de passe ---
+      if (t.includes("le mot de passe") && t.includes("bonne nuit")) {
+        if (!mdpValid) {
+          mdpValid = true;
+          document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
+          orb.style.background = "radial-gradient(circle at center, #88ffd2 0%, #004444 80%)";
+          orb.style.boxShadow = "0 0 40px #88ffd2";
 
-      playSound(audioFiles.notif, () => {
-        playAudio(audioFiles.mdp);
-      });
-    } else {
-      return audioFiles.mdp;
-    }
-    return null;
-  }
+          playSound(audioFiles.notif, () => {
+            playAudio(audioFiles.mdp);
+          });
+        } else {
+          return audioFiles.mdp;
+        }
+        return null;
+      }
 
-  if (!mdpValid) {
-    return audioFiles.mdp_faux;
-  }
+      // --- Avant mot de passe ---
+      if (!mdpValid) {
+        const randomFaux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
+        return randomFaux;
+      }
 
-  if (
-    t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe") || t.includes("code d'accès")
-  )
-    return audioFiles.invite_mdp;
+      // --- Autres interactions ---
+      if (t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe") || t.includes("code d'accès"))
+        return audioFiles.invite_mdp;
 
-  if (
-    t.includes("ça va") || t.includes("ca va ma gueule") || t.includes("comment tu vas") || t.includes("tu vas bien")
-  )
-    return audioFiles.ca_va;
+      if (t.includes("ça va") || t.includes("ca va ma gueule") || t.includes("comment tu vas") || t.includes("tu vas bien"))
+        return audioFiles.ca_va;
 
-  if (
-    t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là") ||
-    t.includes("hé ho") || t.includes("tu m'entends") || t.includes("astra t'es là")
-  )
-    return audioFiles.tu_es_la;
+      if (
+        t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là") ||
+        t.includes("hé ho") || t.includes("tu m'entends") || t.includes("astra t'es là")
+      )
+        return audioFiles.tu_es_la;
 
-  if (
-    t.includes("berceuse") || t.includes("musique pour dormir") || t.includes("chanson douce")
-  )
-    return audioFiles.berceuse;
+      if (t.includes("berceuse") || t.includes("musique pour dormir") || t.includes("chanson douce"))
+        return audioFiles.berceuse;
 
-  if (
-    t.includes("tu crois en nous") || t.includes("on va réussir") || t.includes("on va y arriver")
-  )
-    return audioFiles.reve_croire;
+      if (t.includes("tu crois en nous") || t.includes("on va réussir") || t.includes("on va y arriver"))
+        return audioFiles.reve_croire;
 
-  if (
-    t.includes("pourquoi les humains ne rêvent plus") || t.includes("les humains rêvent plus") || t.includes("les gens ne rêvent plus")
-  )
-    return audioFiles.pq_reve_plus;
+      if (t.includes("pourquoi les humains ne rêvent plus") || t.includes("les humains rêvent plus") || t.includes("les gens ne rêvent plus"))
+        return audioFiles.pq_reve_plus;
 
-  if (
-    t.includes("qui est morpheus") || t.includes("c’est qui morpheus") || t.includes("c’est qui monsieur morpheus")
-  )
-    return audioFiles.qui_morpheus;
+      if (t.includes("qui est morpheus") || t.includes("c’est qui morpheus") || t.includes("c’est qui monsieur morpheus"))
+        return audioFiles.qui_morpheus;
 
-  if (
-    t.includes("parchemin de libération") || t.includes("parchemin pour libérer") || t.includes("comment on libère")
-  )
-    return audioFiles.parchemin;
+      if (t.includes("parchemin de libération") || t.includes("parchemin pour libérer") || t.includes("comment on libère"))
+        return audioFiles.parchemin;
 
-  return audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)];
-};
+      // --- Réponse aléatoire si non reconnu ---
+      return audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)];
+    };
+
     recognition.onstart = () => {
       playSound("notification_debut.mp3");
     };
