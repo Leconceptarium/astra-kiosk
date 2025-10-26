@@ -6,35 +6,37 @@
   <title>Astra – Assistant de M. Morpheus</title>
   <style>
     body {
-      background-color: #000;
       margin: 0;
       overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      background: linear-gradient(135deg, #0d0020, #1b003b);
+      font-family: 'Georgia', serif;
+      transition: background 1s ease;
     }
+
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
     }
+
     .orb {
-      width: 150px;
-      height: 150px;
+      width: 180px;
+      height: 180px;
       border-radius: 50%;
       background: radial-gradient(circle at center, #aa88ff 0%, #220044 80%);
-      box-shadow: 0 0 30px #aa88ff;
+      box-shadow: 0 0 40px #aa88ff;
       animation: idleGlow 3s ease-in-out infinite;
-      transition: all 1s ease;
+      transition: background 1s ease, box-shadow 1s ease;
     }
-    .orb.unlocked {
-      background: radial-gradient(circle at center, #00ffc6 0%, #004d40 80%);
-      box-shadow: 0 0 50px #00ffc6;
-    }
+
     .talking {
       animation: pulseTalk 0.3s ease-in-out infinite;
     }
+
     .pulse {
       width: 20px;
       height: 20px;
@@ -50,10 +52,12 @@
       0%, 100% { box-shadow: 0 0 20px #aa88ff; }
       50% { box-shadow: 0 0 60px #aa88ff; }
     }
+
     @keyframes pulseTalk {
       0%, 100% { transform: scale(1); box-shadow: 0 0 30px #fff; }
       50% { transform: scale(1.1); box-shadow: 0 0 60px #fff; }
     }
+
     @keyframes pulse {
       0% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.6); opacity: 0.3; }
@@ -69,13 +73,20 @@
 
   <script>
     const orb = document.getElementById("orb");
-    let unlocked = false; // verrouillé au départ
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.continuous = true;
     recognition.interimResults = false;
     recognition.lang = 'fr-FR';
 
-    const beep = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
+    let mdpValid = false;
+
+    const playSound = (file, callback) => {
+      const audio = new Audio(file);
+      audio.onended = () => {
+        if (callback) callback();
+      };
+      audio.play();
+    };
 
     const audioFiles = {
       bonjour: "salutation_bonjour.mp3",
@@ -86,7 +97,9 @@
       invite_mdp: "invite_mdp.mp3",
       pas_compris: "phrase_non_reconnue.mp3",
       ca_va: "ca_va.mp3",
-      tu_es_la: "tu_es_la.mp3"
+      tu_es_la: "tu_es_la.mp3",
+      berceuse: "berceuse.mp3",
+      notif: "notification_mdp_valide.mp3"
     };
 
     const playAudio = (filename) => {
@@ -99,7 +112,6 @@
     const detectPhrase = (text) => {
       const t = text.toLowerCase();
 
-      // 1️⃣ Accessible à tous, même verrouillé
       if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") || t.includes("wesh") || t.includes("bonsoir"))
         return audioFiles.bonjour;
 
@@ -111,55 +123,84 @@
 
       if (
         t.includes("où sommes") || t.includes("où est-ce qu’on est") || t.includes("on est où") ||
-        t.includes("où ça") || t.includes("quel est cet endroit") || t.includes("c’est quoi cet endroit")
+        t.includes("où ça") || t.includes("quel est cet endroit") || t.includes("c’est quoi cette endroit")
       )
         return audioFiles.ou;
 
-      // 2️⃣ Mot de passe correct
-      if (t.includes("bonne nuit") || t.includes("bon nuit")) {
-        unlocked = true;
-        orb.classList.add("unlocked");
-        return audioFiles.mdp;
+      if (
+        t.includes("le mot de passe") && t.includes("bonne nuit")
+      ) {
+        if (!mdpValid) {
+          mdpValid = true;
+          document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
+          orb.style.background = "radial-gradient(circle at center, #88ffd2 0%, #004444 80%)";
+          orb.style.boxShadow = "0 0 40px #88ffd2";
+
+          playSound(audioFiles.notif, () => {
+            playAudio(audioFiles.mdp);
+          });
+        } else {
+          return audioFiles.mdp;
+        }
+        return null;
       }
 
-      // 3️⃣ Mauvais mot de passe
-      if (t.includes("pizza") || t.includes("strasbourg") || t.includes("morpheus") || t.includes("astra"))
+      if (!mdpValid) {
         return audioFiles.mdp_faux;
+      }
 
-      // 4️⃣ Le joueur dit qu’il connaît le mot de passe
-      if (t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe") || t.includes("j'ai trouvé le code d'accès"))
+      if (
+        t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe") || t.includes("code d'accès")
+      )
         return audioFiles.invite_mdp;
 
-      // 5️⃣ Interactions disponibles uniquement une fois déverrouillé
-      if (unlocked) {
-        if (t.includes("ça va") || t.includes("ca va") || t.includes("comment tu vas") || t.includes("tu vas bien"))
-          return audioFiles.ca_va;
+      if (
+        t.includes("ça va") || t.includes("ca va ma gueule") || t.includes("comment tu vas") || t.includes("tu vas bien")
+      )
+        return audioFiles.ca_va;
 
-        if (t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là") ||
-            t.includes("hé ho") || t.includes("tu m'entends") || t.includes("astra t'es là"))
-          return audioFiles.tu_es_la;
-      }
+      if (
+        t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là") ||
+        t.includes("hé ho") || t.includes("tu m'entends") || t.includes("astra t'es là")
+      )
+        return audioFiles.tu_es_la;
 
-      // 6️⃣ Si non reconnue
+      if (
+        t.includes("berceuse") || t.includes("musique pour dormir") || t.includes("chanson douce")
+      )
+        return audioFiles.berceuse;
+
       return audioFiles.pas_compris;
     };
 
-    recognition.onstart = () => beep.play();
+    recognition.onstart = () => {
+      playSound("notification_debut.mp3");
+    };
 
     recognition.onresult = (event) => {
       const text = event.results[event.results.length - 1][0].transcript.trim();
       const audioFile = detectPhrase(text);
-      playAudio(audioFile);
+      if (audioFile) playAudio(audioFile);
     };
 
-    recognition.onerror = (event) => console.error("Erreur vocale :", event.error);
+    recognition.onerror = (event) => {
+      console.error("Erreur vocale :", event.error);
+    };
 
-    recognition.onend = () => setTimeout(() => recognition.start(), 1000);
+    recognition.onend = () => {
+      setTimeout(() => {
+        try {
+          recognition.start();
+        } catch (e) {
+          console.warn("Erreur redémarrage :", e);
+        }
+      }, 1000);
+    };
 
     window.onload = () => {
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(() => recognition.start())
-        .catch(err => console.error("Permission micro refusée :", err));
+        .catch(err => console.error("Micro refusé :", err));
     };
   </script>
 </body>
