@@ -1,423 +1,66 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Astra — L'Atelier de M. Morpheus</title>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box;cursor:none}
-    body{
-      font-family:'Cinzel','Georgia',serif;
-      background:linear-gradient(135deg,#1a0033 0%,#0d001a 50%,#1a0033 100%);
-      color:#d4af37; overflow:hidden; height:100vh;
-    }
-    .container{display:flex;height:100vh;position:relative}
-
-    /* Scène gauche */
-    .scene{
-      flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-      padding:2rem; background:radial-gradient(ellipse at center,rgba(75,0,130,.3) 0%,transparent 70%);
-      position:relative; overflow:hidden;
-    }
-    .scene::before{
-      content:''; position:absolute; inset:0;
-      background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="rgba(212,175,55,0.1)"/></svg>') repeat;
-      background-size:50px 50px; opacity:.3; animation:stars 20s linear infinite;
-    }
-    @keyframes stars{from{transform:translateY(0)} to{transform:translateY(-50px)}}
-
-    .astra-logo{font-size:4rem;font-weight:bold;text-shadow:0 0 20px #8b00ff,0 0 40px #8b00ff;margin-bottom:2rem;animation:glow 2s ease-in-out infinite alternate;z-index:1}
-    @keyframes glow{from{ text-shadow:0 0 20px #8b00ff,0 0 40px #8b00ff } to{ text-shadow:0 0 30px #d4af37,0 0 60px #8b00ff,0 0 90px #8b00ff }}
-
-    .status{font-size:1.1rem;padding:1rem 1.5rem;background:rgba(139,0,255,.2);border:2px solid #8b00ff;border-radius:10px;box-shadow:0 0 20px rgba(139,0,255,.4);z-index:1;text-align:center}
-    .indicator{width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,#8b00ff 0%,transparent 70%);animation:pulse 1.5s ease-in-out infinite;margin-top:1.2rem;opacity:0;transition:opacity .3s;z-index:1}
-    .indicator.active{opacity:1}
-    @keyframes pulse{0%,100%{transform:scale(1);opacity:.6} 50%{transform:scale(1.2);opacity:1}}
-
-    /* Fil à droite */
-    .chat-panel{
-      width:420px;background:linear-gradient(180deg,rgba(13,0,26,.95) 0%,rgba(26,0,51,.95) 100%);
-      border-left:3px solid #8b00ff; display:flex; flex-direction:column; box-shadow:-10px 0 30px rgba(139,0,255,.3)
-    }
-    .chat-header{padding:1.2rem;background:rgba(139,0,255,.2);border-bottom:2px solid #8b00ff;text-align:center;font-weight:700}
-    .chat-messages{flex:1;overflow-y:auto;padding:1.2rem;display:flex;flex-direction:column;gap:1rem}
-    .chat-messages::-webkit-scrollbar{width:8px}
-    .chat-messages::-webkit-scrollbar-track{background:rgba(139,0,255,.1)}
-    .chat-messages::-webkit-scrollbar-thumb{background:#8b00ff;border-radius:4px}
-    .message{padding:1rem;border-radius:15px;max-width:85%;animation:slideIn .25s ease-out;box-shadow:0 4px 10px rgba(0,0,0,.3)}
-    @keyframes slideIn{from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)}}
-    .message.user{background:rgba(212,175,55,.2);border:1px solid #d4af37;align-self:flex-end;margin-left:auto}
-    .message.astra{background:rgba(139,0,255,.2);border:1px solid #8b00ff;align-self:flex-start}
-    .message-label{font-size:.8rem;opacity:.7;margin-bottom:.3rem;font-style:italic}
-    .message-text{font-size:1rem;line-height:1.4}
-
-    /* Overlay Parchemin */
-    .scroll-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:1000;animation:fadeIn .35s}
-    .scroll-overlay.active{display:flex}
-    @keyframes fadeIn{from{opacity:0} to{opacity:1}}
-    .scroll-box{max-width:680px;padding:2rem;background:linear-gradient(180deg,#f4e4c1 0%,#e8d4a8 100%);border:5px solid #8b4513;border-radius:12px;box-shadow:0 0 50px rgba(139,0,255,.6),inset 0 0 30px rgba(139,69,19,.3);animation:unfold .6s ease-out}
-    @keyframes unfold{from{transform:scale(.3) rotateX(90deg);opacity:0} to{transform:scale(1) rotateX(0);opacity:1}}
-    .scroll-box img{max-width:100%;height:auto;border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.5)}
-    .scroll-close{margin-top:1rem;display:block;margin-inline:auto;padding:.7rem 1.4rem;background:#8b4513;color:#f4e4c1;border:none;border-radius:8px;font-weight:700}
-
-    /* Overlay Staff permission micro */
-    .permit{position:fixed;inset:0;background:rgba(0,0,0,.85);color:#d4af37;display:none;align-items:center;justify-content:center;z-index:2000}
-    .permit .box{max-width:560px;text-align:center;padding:24px;border:2px solid #8b00ff;border-radius:12px;background:rgba(26,0,51,.7);box-shadow:0 0 30px rgba(139,0,255,.4)}
-    .permit h3{margin-bottom:10px}
-    .permit p{opacity:.9;line-height:1.5;margin-bottom:16px}
-    .permit button{padding:12px 18px;font-size:16px;font-weight:700;border:2px solid #8b00ff;background:rgba(139,0,255,.2);color:#d4af37;border-radius:10px}
-    .permit button:active{transform:translateY(1px)}
-
-    /* Responsive tablette */
-    @media (max-width:1024px){.chat-panel{width:360px}.astra-logo{font-size:3rem}}
-    @media (max-width:768px){.container{flex-direction:column}.scene{flex:0 0 40%}.chat-panel{width:100%;flex:1}}
-  </style>
+  <title>Astra</title>
 </head>
-<body>
-  <div class="container">
-    <div class="scene">
-      <div class="astra-logo">ASTRA</div>
-      <div class="status" id="status">Initialisation…</div>
-      <div class="indicator" id="indicator"></div>
-    </div>
+<body style="background-color:#000; margin:0; overflow:hidden;">
+<script>
+  const credentials = {
+    project_id: "ia-morpheus",
+    token_uri: "https://oauth2.googleapis.com/token"
+    // ⚠️ On ne met PAS les clés privées ici : version test uniquement
+  };
 
-    <div class="chat-panel">
-      <div class="chat-header">Fil de l'Atelier</div>
-      <div class="chat-messages" id="messages"></div>
-    </div>
-  </div>
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.lang = 'fr-FR';
 
-  <!-- Parchemin -->
-  <div class="scroll-overlay" id="scrollOverlay">
-    <div class="scroll-box" id="scrollBox">
-      <!-- image injectée par JS -->
-      <button class="scroll-close" onclick="closeScroll()">Fermer</button>
-    </div>
-  </div>
+  function detectLang(text) {
+    const hasGerman = /[ßäöü]/i.test(text);
+    const hasEnglish = /\b(the|you|hello|hi|what|is|are)\b/i.test(text);
+    if (hasGerman) return 'de-DE';
+    if (hasEnglish) return 'en-US';
+    return 'fr-FR';
+  }
 
-  <!-- Overlay STAFF pour autoriser le micro une seule fois -->
-  <div class="permit" id="permit">
-    <div class="box">
-      <h3>Activation du microphone</h3>
-      <p>
-        Étape staff (une seule fois) :<br/>
-        appuyez sur le bouton pour autoriser le micro pour ce site.<br/>
-        Ensuite, les joueurs n’auront plus rien à toucher.
-      </p>
-      <button id="grantMic">Autoriser le micro</button>
-      <p style="font-size:12px;opacity:.7;margin-top:10px">
-        Si une fenêtre n’apparaît pas :<br/>
-        Safari : Réglages → Safari → Sites web → Microphone → Autoriser pour github.io<br/>
-        Chrome : Icône à gauche de l’URL → Paramètres du site → Micro → Autoriser
-      </p>
-    </div>
-  </div>
+  function speak(text) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = recognition.lang;
+    speechSynthesis.speak(utterance);
+  }
 
-  <script>
-    // ===== Config & État =====
-    const WAKE_WORD = 'astra';
-    const UNLOCK_PHRASES = {
-      fr: ['bonne nuit','bonne nuit astra'],
-      en: ['good night','good night astra'],
-      de: ['gute nacht','gute nacht astra']
-    };
-    const SCROLLS = {
-      liberation: 'assets/parchemin_liberation.jpg',
-      sweet: 'assets/parchemin_sweet_dream.jpg',
-      love:  'assets/parchemin_reve_d_amour.jpg',
-      jail:  'assets/parchemin_philtre_enfermement.jpg'
-    };
-    const lullabyAudio = new Audio('assets/lullaby.mp3'); lullabyAudio.loop = true;
-
-    let recognition = null, synthesis = window.speechSynthesis;
-    let isListening = false, isAwake = false, isUnlocked = false;
-    let currentLang = 'fr', wakeLock = null;
-    let conversationContext = [];
-
-    // ===== UI Helpers =====
-    const statusEl = document.getElementById('status');
-    const indicator = document.getElementById('indicator');
-    const messagesDiv = document.getElementById('messages');
-    function updateStatus(t){ statusEl.textContent = t; }
-    function addMessage(text, sender){
-      const m = document.createElement('div'); m.className = `message ${sender}`;
-      const lab = document.createElement('div'); lab.className = 'message-label'; lab.textContent = sender==='user'?'Vous':'Astra';
-      const content = document.createElement('div'); content.className='message-text'; content.textContent=text;
-      m.appendChild(lab); m.appendChild(content); messagesDiv.appendChild(m); messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  function mockDialogflow(text) {
+    const lower = text.toLowerCase();
+    if (lower.includes("bonjour") || lower.includes("hello") || lower.includes("guten")) {
+      speak("Bonjour Monsieur Morpheus ! Veuillez me donner votre mot de passe.");
+    } else if (lower.includes("bonne nuit")) {
+      speak("Mot de passe confirmé. Bienvenue dans l’atelier.");
+    } else {
+      speak("Je ne comprends pas, pouvez-vous répéter ?");
     }
+  }
 
-    // ===== Permission micro (staff 1x) =====
-    async function requestMicOnce(){
-      try{
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true, channelCount:1 }
-        });
-        stream.getTracks().forEach(t=>t.stop());
-        localStorage.setItem('astra_mic_ok','1');
-        return true;
-      }catch(e){ console.warn('getUserMedia refused:', e); return false; }
-    }
-    async function ensureMicPermission(){
-      if(localStorage.getItem('astra_mic_ok')==='1'){ await requestMicOnce(); return true; }
-      const permit = document.getElementById('permit'), btn = document.getElementById('grantMic');
-      permit.style.display='flex';
-      return new Promise(resolve=>{
-        btn.onclick = async ()=>{
-          const ok = await requestMicOnce();
-          if(ok){ permit.style.display='none'; resolve(true); }
-          else { alert("Autorisation refusée. Vérifiez les réglages du micro pour ce site, puis réessayez."); }
-        };
-      });
-    }
+  recognition.onresult = (event) => {
+    const text = event.results[event.results.length - 1][0].transcript.trim();
+    recognition.lang = detectLang(text);
+    console.log("✨ Langue détectée :", recognition.lang, "Texte :", text);
+    mockDialogflow(text); // version test (hors connexion à Dialogflow réel)
+  };
 
-    // ===== Détection de langue =====
-    function detectLanguage(text){
-      text = (text||'').toLowerCase();
-      const rx = {
-        de: /\b(gute|nacht|herr|warum|wo|sind|wir|wie|bitte|danke|ja|nein)\b|[äöüß]/,
-        en: /\b(good|night|mister|where|are|we|why|who|how|please|thank|yes|no|the|what)\b/,
-        fr: /\b(bonne|nuit|monsieur|où|sommes|pourquoi|qui|comment|merci|oui|non|le|la)\b|[àâçéèêëîïôûùœ]/
-      };
-      if(rx.de.test(text)) return 'de';
-      if(rx.en.test(text)) return 'en';
-      if(rx.fr.test(text)) return 'fr';
-      return currentLang;
-    }
+  recognition.onerror = (event) => {
+    console.error("Erreur vocale :", event.error);
+  };
 
-    // ===== Base de réponses =====
-    const WELCOME = {
-      fr: "Système Astra initialisé. Je vous écoute... si vous en valez la peine.",
-      en: "Astra online. I'm listening... if you're worth my time.",
-      de: "Astra betriebsbereit. Ich höre zu... falls Sie es wert sind."
-    };
+  recognition.onend = () => {
+    recognition.start();
+  };
 
-    const KB = {
-      morpheus:{
-        fr:[
-          "Monsieur Morpheus ? Artisan des songes, brillant — puis consumé par l’obsession.",
-          "Il créait des rêves parfaits. Et la perfection… est un piège poli."
-        ],
-        en:["Mister Morpheus? A dream craftsman, brilliant — then eaten by obsession."],
-        de:["Herr Morpheus? Ein Traumhandwerker, brillant — von Besessenheit verzehrt."]
-      },
-      location:{
-        fr:[
-          "Vous êtes dans l’atelier de Morpheus. Les fioles chuchotent encore.",
-          "Le cœur de la production onirique. Maintenant, un musée poussiéreux."
-        ],
-        en:["You’re in Morpheus’s workshop. Tools, vials, and unfinished dreams."],
-        de:["Sie sind in Morpheus’ Werkstatt. Werkzeuge, Phiolen und unfertige Träume."]
-      },
-      nodreams:{
-        fr:[
-          "Pourquoi vous ne rêvez plus ? Écrans, stress, caféine… Voilà.",
-          "Le sommeil profond a besoin de silence. Vous avez choisi le bruit."
-        ],
-        en:["Why no dreams? Screens, stress, caffeine. Congratulations."],
-        de:["Warum keine Träume? Bildschirme, Stress, Koffein. Gratuliere."]
-      },
-      lullaby:{
-        fr:["Berceuse système enclenchée. Essayez de ne pas ronfler."],
-        en:["System lullaby engaged. Try not to snore."],
-        de:["System-Wiegenlied aktiviert. Bitte nicht schnarchen."]
-      },
-      creature:{
-        fr:["Voici votre précieux parchemin. Essayez de ne pas tout gâcher."],
-        en:["Here’s your precious scroll. Try not to mess it up."],
-        de:["Hier ist eure Schriftrolle. Bitte nicht vermasseln."]
-      },
-      defaults:{
-        fr:[
-          "Traitement en cours… votre curiosité humaine est presque touchante.",
-          "Précisez. Je ne lis pas encore dans vos silences — hélas."
-        ],
-        en:["Processing… your human curiosity is almost adorable.","Clarify. I don’t read silence — yet."],
-        de:["Verarbeitung… eure Neugier ist fast rührend.","Bitte präzisieren."]
-      }
-    };
-
-    function getResponse(text, lang){
-      const t = text.toLowerCase();
-      if(/morpheus|monsieur|mister|herr/.test(t)) return pick(KB.morpheus[lang]||KB.morpheus.fr);
-      if(/où|where|wo|ici|here|hier|endroit|place|ort/.test(t)) return pick(KB.location[lang]||KB.location.fr);
-      if(/rêve|dream|traum|pourquoi|why|warum|dormir|sleep|schlafen/.test(t)) return pick(KB.nodreams[lang]||KB.nodreams.fr);
-      if(/berceuse|lullaby|wiegenlied|chante|sing|musique|music/.test(t)){
-        setTimeout(()=>{ lullabyAudio.currentTime=0; lullabyAudio.play().catch(()=>{}); }, 150);
-        return pick(KB.lullaby[lang]||KB.lullaby.fr);
-      }
-      if(/créature|creature|kreatur|cage|lib(é|e)rer|release|ouvre|open|potion/.test(t)){
-        setTimeout(()=>showScroll(true), 350);
-        return pick(KB.creature[lang]||KB.creature.fr);
-      }
-      return pick(KB.defaults[lang]||KB.defaults.fr);
-    }
-    function pick(arr){ return arr[Math.floor(Math.random()*arr.length)] }
-
-    // ===== Parchemin =====
-    function showScroll(correct=true){
-      const mischief = Math.random() < 0.3; // petite erreur 30%
-      const src = (correct && !mischief) ? SCROLLS.liberation
-        : [SCROLLS.sweet, SCROLLS.love, SCROLLS.jail][Math.floor(Math.random()*3)];
-      const box = document.getElementById('scrollBox');
-      box.innerHTML = `<img src="${src}" alt="Parchemin">` + box.innerHTML;
-      document.getElementById('scrollOverlay').classList.add('active');
-    }
-    function closeScroll(){ document.getElementById('scrollOverlay').classList.remove('active'); }
-
-    // ===== TTS rapide & naturel =====
-    async function speak(text, lang='fr'){
-      if(!text) return;
-      const synth = window.speechSynthesis;
-      const code = lang==='de'?'de-DE':lang==='en'?'en-US':'fr-FR';
-      const rate = lang==='fr'?0.90:(lang==='de'?0.92:0.94);
-      const pitch = 0.98;
-      const parts = (text.match(/[^.!?…]+[.!?…]?/g)||[text]).map(s=>s.trim()).filter(Boolean);
-
-      let voices = synth.getVoices();
-      const pickVoice = (voices, lang)=>{
-        const pref = {fr:['Amélie','Amelie','Thomas','Google français','Enhanced','Siri'],
-                      en:['Samantha','Alex','Google US English','Enhanced','Siri'],
-                      de:['Anna','Petra','Markus','Google Deutsch','Enhanced','Siri']}[lang]||[];
-        const want = lang==='de'?/^de/i:lang==='en'?/^en/i:/^fr/i;
-        for(const n of pref){ const v = voices.find(v=>v.name.includes(n)); if(v) return v; }
-        const same = voices.filter(v=>want.test(v.lang));
-        const enh  = same.find(v=>/Enhanced|Neural|Premium|Siri/i.test(v.name+v.voiceURI));
-        return enh || same[0] || voices[0] || null;
-      };
-
-      let used=false;
-      const say=(voice)=>{
-        if(used) return; used=true;
-        for(const chunk of parts){
-          const u = new SpeechSynthesisUtterance(chunk);
-          u.lang = code; u.rate = rate; u.pitch = pitch; u.volume = 1;
-          if(voice) u.voice = voice;
-          synth.speak(u);
-        }
-      };
-
-      const timer = setTimeout(()=>say(null), 250);
-      if(!voices.length){
-        await new Promise(res=>{
-          const on=()=>{voices=synth.getVoices(); res(); synth.removeEventListener('voiceschanged',on);};
-          synth.addEventListener('voiceschanged', on, {once:true});
-        });
-      }
-      clearTimeout(timer);
-      say(pickVoice(voices, lang));
-    }
-
-    // ===== Reconnaissance =====
-    function bindRecognitionHandlers(SpeechRecognition){
-      recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true; // plus réactif
-      recognition.lang = 'fr-FR';
-      recognition.maxAlternatives = 1;
-
-      recognition.onstart = ()=>{ isListening=true; indicator.classList.add('active'); };
-      recognition.onend   = ()=>{ isListening=false; indicator.classList.remove('active'); setTimeout(()=>{ if(recognition){ try{ recognition.start(); }catch(e){} } }, 150); };
-      recognition.onerror = (event)=>{
-        if(event.error==='not-allowed'||event.error==='permission-denied'){
-          updateStatus('Accès micro refusé. Autorisez le micro pour github.io.');
-          localStorage.removeItem('astra_mic_ok');
-          document.getElementById('permit').style.display = 'flex';
-          return;
-        }
-      };
-      recognition.onresult = (event)=>{
-        for(let i=event.resultIndex;i<event.results.length;i++){
-          const res = event.results[i];
-          const transcript = (res[0]?.transcript || '').trim();
-          const low = transcript.toLowerCase();
-
-          // Wake word — sur intermédiaire
-          if(!isAwake && /(ok(?:ay)?|salut|hallo)\s*astra/.test(low)){
-            isAwake = true;
-            const L = detectLanguage(low);
-            const msg = { fr:"Oui, je vous écoute. Poliment, de préférence.",
-                          en:"Yes, I’m listening. Preferably politely.",
-                          de:"Ja, ich höre zu. Möglichst höflich." };
-            addMessage(transcript,'user'); addMessage(msg[L]||msg.fr,'astra'); speak(msg[L]||msg.fr,L);
-            continue;
-          }
-          // Mot de passe — sur intermédiaire
-          if(!isUnlocked && /(bonne\s*nuit|good\s*night|gute\s*nacht)/i.test(low)){
-            isUnlocked = true;
-            const L = detectLanguage(low);
-            const ok = { fr:"Accès accordé. Quelle politesse.", en:"Access granted. How polite.", de:"Zugang gewährt. Sehr höflich." };
-            addMessage(transcript,'user'); addMessage(ok[L]||ok.fr,'astra'); speak(ok[L]||ok.fr,L);
-            continue;
-          }
-
-          if(res.isFinal) handleSpeech(transcript);
-        }
-      };
-    }
-
-    // ===== Traitement final =====
-    function handleSpeech(text){
-      if(!text) return;
-      const L = detectLanguage(text);
-      currentLang = L;
-      addMessage(text,'user');
-
-      if(!isUnlocked){
-        const need = { fr:"Chut. Le mot de passe d’abord.",
-                       en:"Hush. Password first.",
-                       de:"Pst. Zuerst das Passwort." };
-        addMessage(need[L]||need.fr,'astra'); speak(need[L]||need.fr,L);
-        return;
-      }
-
-      // Salut Astra
-      if(/(ok|okay|salut|hallo|bonjour)\s*astra/.test(text.toLowerCase())){
-        const t = L==='en'?'Yes, I’m listening. Probably.': L==='de'?'Ja, ich höre zu. Wahrscheinlich.':'Oui, je vous écoute. Peut-être.';
-        addMessage(t,'astra'); speak(t,L); return;
-      }
-
-      const resp = getResponse(text, L);
-      addMessage(resp,'astra'); speak(resp,L);
-      conversationContext.push({user:text, astra:resp, lang:L}); if(conversationContext.length>10) conversationContext.shift();
-    }
-
-    // ===== Boot =====
-    async function init(){
-      try{
-        if('wakeLock' in navigator){ try{ wakeLock = await navigator.wakeLock.request('screen'); }catch(_){} }
-
-        // 1) Micro prêt (overlay staff si besoin)
-        const micOK = await ensureMicPermission();
-        if(!micOK){ updateStatus('Micro non autorisé.'); return; }
-
-        // 2) Reco
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if(!SR) throw new Error('Speech Recognition non supporté');
-        bindRecognitionHandlers(SR);
-
-        // 3) Langue + accueil
-        currentLang = navigator.language?.startsWith('de') ? 'de'
-                     : navigator.language?.startsWith('en') ? 'en' : 'fr';
-        updateStatus(WELCOME[currentLang] || WELCOME.fr);
-
-        // 4) Parler dès le départ
-        await new Promise(resolve=>{
-          if(synthesis.getVoices().length) resolve();
-          else synthesis.addEventListener('voiceschanged', resolve, {once:true});
-        });
-        speak(WELCOME[currentLang] || WELCOME.fr, currentLang);
-        addMessage(WELCOME[currentLang] || WELCOME.fr, 'astra');
-
-        // 5) GO écoute
-        recognition.start();
-
-      }catch(err){
-        console.error('Init error:', err);
-        updateStatus('Erreur: '+err.message);
-      }
-    }
-
-    window.addEventListener('load', ()=>{ setTimeout(init, 80); });
-  </script>
+  recognition.start();
+</script>
 </body>
 </html>
