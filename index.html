@@ -165,7 +165,7 @@
         return audioFiles.ou;
 
       // Mot de passe correct
-      if (t.includes("le mot de passe") && t.includes("bonne nuit")) {
+      if (t.includes("le mot de passe c(est bonne nuit") || t.includes("bonne nuit")) {
         if (!mdpValid) {
           mdpValid = true;
           bandeau.style.display = "none";
