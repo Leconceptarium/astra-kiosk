@@ -9,6 +9,7 @@
       margin: 0;
       overflow: hidden;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
@@ -64,31 +65,39 @@
       100% { transform: scale(1); opacity: 1; }
     }
 
-    /* Bandeau défilant */
     #bandeau {
       position: fixed;
       bottom: 0;
       width: 100%;
-      background: rgba(0, 0, 0, 0.4);
-      color: #e0d0ff;
-      font-size: 3rem;
-      padding: 12px 0;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 1.2rem;
+      font-family: sans-serif;
+      padding: 10px;
+      text-align: center;
       white-space: nowrap;
       overflow: hidden;
-      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.4);
-      font-family: 'Georgia', serif;
-      z-index: 9999;
     }
 
     #bandeau span {
       display: inline-block;
-      padding-left: 100%;
-      animation: defilement 15s linear infinite;
+      animation: defilement 12s linear infinite;
     }
 
     @keyframes defilement {
-      0% { transform: translateX(0); }
+      0% { transform: translateX(100%); }
       100% { transform: translateX(-100%); }
+    }
+
+    #parcheminImage {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 80%;
+      max-height: 80%;
+      z-index: 10;
+      display: none;
     }
   </style>
 </head>
@@ -98,13 +107,14 @@
     <div class="orb" id="orb"></div>
   </div>
 
-  <!-- Bandeau défilant -->
-  <div id="bandeau">
-    <span>ASTRA vous écoute… mais elle attend un mot de passe.</span>
-  </div>
+  <div id="bandeau"><span>L’assistante vous écoute… mais elle attend un mot de passe</span></div>
+  <img id="parcheminImage" src="parchemin.png" alt="Parchemin de libération" />
 
   <script>
     const orb = document.getElementById("orb");
+    const bandeau = document.getElementById("bandeau");
+    const parcheminImage = document.getElementById("parcheminImage");
+
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.continuous = true;
     recognition.interimResults = false;
@@ -114,9 +124,7 @@
 
     const playSound = (file, callback) => {
       const audio = new Audio(file);
-      audio.onended = () => {
-        if (callback) callback();
-      };
+      audio.onended = () => { if (callback) callback(); };
       audio.play();
     };
 
@@ -134,9 +142,7 @@
       pas_compris: [
         "phrase_non_reconnue.mp3",
         "phrase_non_reconnue2.mp3",
-        "phrase_non_reconnue3.mp3",
-        "phrase_non_reconnue4.mp3",
-        "phrase_non_reconnue5.mp3"
+        "phrase_non_reconnue3.mp3"
       ],
       ca_va: "ca_va.mp3",
       tu_es_la: "tu_es_la.mp3",
@@ -158,34 +164,27 @@
     const detectPhrase = (text) => {
       const t = text.toLowerCase();
 
-      // Salutations
       if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") || t.includes("wesh") || t.includes("bonsoir"))
         return audioFiles.bonjour;
 
-      // Qui es-tu
       if (
         t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
-        t.includes("c’est quoi toi") || t.includes("tu es qui") || t.includes("tu es astra") || 
-        t.includes("c'est quoi ca") || t.includes("c'est quoi ce truc")
+        t.includes("c’est quoi toi") || t.includes("tu es qui") || t.includes("c'est quoi ce truc")
       )
         return audioFiles.qui;
 
-      // Où sommes-nous
       if (
-        t.includes("où sommes") || t.includes("où est-ce qu’on est") || t.includes("on est où") ||
-        t.includes("où ça") || t.includes("quel est cet endroit") || t.includes("c’est quoi cette endroit")
+        t.includes("où sommes") || t.includes("on est où") || t.includes("quel est cet endroit")
       )
         return audioFiles.ou;
 
-      // Mot de passe correct
       if (t.includes("le mot de passe") && t.includes("bonne nuit")) {
         if (!mdpValid) {
           mdpValid = true;
+          bandeau.style.display = "none";
           document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
           orb.style.background = "radial-gradient(circle at center, #88ffd2 0%, #004444 80%)";
           orb.style.boxShadow = "0 0 40px #88ffd2";
-          document.getElementById("bandeau").style.display = "none";
-
           playSound(audioFiles.notif, () => {
             playAudio(audioFiles.mdp);
           });
@@ -195,22 +194,15 @@
         return null;
       }
 
-      // Avant mot de passe
-      if (!mdpValid) {
-        const randomFaux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
-        return randomFaux;
-      }
-
-      // Interactions débloquées
       if (t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe") || t.includes("code d'accès"))
         return audioFiles.invite_mdp;
 
-      if (t.includes("ça va") || t.includes("ca va ma gueule") || t.includes("comment tu vas") || t.includes("tu vas bien"))
+      if (t.includes("ça va") || t.includes("comment tu vas") || t.includes("tu vas bien"))
         return audioFiles.ca_va;
 
       if (
         t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là") ||
-        t.includes("hé ho") || t.includes("tu m'entends") || t.includes("astra t'es là")
+        t.includes("hé ho") || t.includes("tu m'entends")
       )
         return audioFiles.tu_es_la;
 
@@ -220,16 +212,28 @@
       if (t.includes("tu crois en nous") || t.includes("on va réussir") || t.includes("on va y arriver"))
         return audioFiles.reve_croire;
 
-      if (t.includes("pourquoi les humains ne rêvent plus") || t.includes("les humains rêvent plus") || t.includes("les gens ne rêvent plus"))
+      if (t.includes("pourquoi les humains ne rêvent plus") || t.includes("les gens ne rêvent plus"))
         return audioFiles.pq_reve_plus;
 
-      if (t.includes("qui est morpheus") || t.includes("c’est qui morpheus") || t.includes("c’est qui monsieur morpheus"))
+      if (t.includes("qui est morpheus") || t.includes("monsieur morpheus"))
         return audioFiles.qui_morpheus;
 
-      if (t.includes("parchemin de libération") || t.includes("parchemin pour libérer") || t.includes("comment on libère"))
-        return audioFiles.parchemin;
+      if (
+        t.includes("parchemin de libération") || t.includes("parchemin pour libérer") || t.includes("comment on libère")
+      ) {
+        if (mdpValid) {
+          // Affiche l'image 15 secondes
+          parcheminImage.style.display = "block";
+          setTimeout(() => {
+            parcheminImage.style.display = "none";
+          }, 15000);
+          return audioFiles.parchemin;
+        } else {
+          const randomFaux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
+          return randomFaux;
+        }
+      }
 
-      // Réponse aléatoire si non reconnu
       return audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)];
     };
 
