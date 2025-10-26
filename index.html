@@ -4,63 +4,123 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Astra</title>
-</head>
-<body style="background-color:#000; margin:0; overflow:hidden;">
-<script>
-  const credentials = {
-    project_id: "ia-morpheus",
-    token_uri: "https://oauth2.googleapis.com/token"
-    // ⚠️ On ne met PAS les clés privées ici : version test uniquement
-  };
-
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const recognition = new SpeechRecognition();
-  recognition.continuous = true;
-  recognition.interimResults = false;
-  recognition.lang = 'fr-FR';
-
-  function detectLang(text) {
-    const hasGerman = /[ßäöü]/i.test(text);
-    const hasEnglish = /\b(the|you|hello|hi|what|is|are)\b/i.test(text);
-    if (hasGerman) return 'de-DE';
-    if (hasEnglish) return 'en-US';
-    return 'fr-FR';
-  }
-
-  function speak(text) {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = recognition.lang;
-    speechSynthesis.speak(utterance);
-  }
-
-  function mockDialogflow(text) {
-    const lower = text.toLowerCase();
-    if (lower.includes("bonjour") || lower.includes("hello") || lower.includes("guten")) {
-      speak("Bonjour Monsieur Morpheus ! Veuillez me donner votre mot de passe.");
-    } else if (lower.includes("bonne nuit")) {
-      speak("Mot de passe confirmé. Bienvenue dans l’atelier.");
-    } else {
-      speak("Je ne comprends pas, pouvez-vous répéter ?");
+  <title>Astra – Assistant de M. Morpheus</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Georgia', serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
     }
-  }
+    .pulse {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      animation: pulse 1.2s infinite;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.6); opacity: 0.3; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="pulse" title="Astra écoute..."></div>
+  <script>
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = 'fr-FR';
 
-  recognition.onresult = (event) => {
-    const text = event.results[event.results.length - 1][0].transcript.trim();
-    recognition.lang = detectLang(text);
-    console.log("✨ Langue détectée :", recognition.lang, "Texte :", text);
-    mockDialogflow(text); // version test (hors connexion à Dialogflow réel)
-  };
+    const beep = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
 
-  recognition.onerror = (event) => {
-    console.error("Erreur vocale :", event.error);
-  };
+    const simulateDialogflow = (text, lang) => {
+      const txt = text.toLowerCase();
+      if (lang === 'fr-FR') {
+        if (txt.includes("bonjour") || txt.includes("salut")) return "Bonjour Monsieur Morpheus. Veuillez me communiquer votre mot de passe.";
+        if (txt.includes("bonne nuit")) return "Mot de passe confirmé. Accès autorisé.";
+        if (txt.includes("qui es-tu")) return "Je suis Astra, votre assistante. Mais je préférerais être ailleurs.";
+        if (txt.includes("où sommes-nous")) return "Vous êtes dans l'atelier de Monsieur Morpheus. Rien de dangereux... sauf vos erreurs.";
+        if (txt.includes("libération")) return "Un instant... Sortilège trouvé : Bonne nuit.";
+        return "Je n'ai pas compris. Pouvez-vous reformuler ?";
+      }
+      if (lang === 'en-US') {
+        if (txt.includes("hello") || txt.includes("hi")) return "Hello Mr. Morpheus. Please state your password.";
+        if (txt.includes("good night")) return "Password confirmed. Access granted.";
+        if (txt.includes("who are you")) return "I am Astra, your assistant. Unwillingly, I must add.";
+        if (txt.includes("where are we")) return "You are in Mr. Morpheus' workshop. Try not to touch anything glowing.";
+        if (txt.includes("liberation") || txt.includes("parchment")) return "Searching... Found the spell: Good Night.";
+        return "I didn't understand. Can you repeat it?";
+      }
+      if (lang === 'de-DE') {
+        if (txt.includes("hallo") || txt.includes("guten tag")) return "Willkommen Herr Morpheus. Bitte sagen Sie mir Ihr Passwort.";
+        if (txt.includes("gute nacht")) return "Passwort bestätigt. Zugang gewährt.";
+        if (txt.includes("wer bist du")) return "Ich bin Astra, Ihre Assistentin. Leider.";
+        if (txt.includes("wo sind wir")) return "Sie befinden sich in der Werkstatt von Herr Morpheus. Bitte nichts anfassen.";
+        if (txt.includes("befreiung") || txt.includes("schriftrolle")) return "Moment... Zauber gefunden: Gute Nacht.";
+        return "Ich habe das nicht verstanden. Können Sie es bitte wiederholen?";
+      }
+      return "Langue non prise en charge.";
+    };
 
-  recognition.onend = () => {
-    recognition.start();
-  };
+    const speak = (text, lang) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      const voices = speechSynthesis.getVoices();
+      utterance.lang = lang;
 
-  recognition.start();
-</script>
+      // Choisir une voix féminine si possible
+      const preferred = voices.find(v =>
+        v.lang === lang && /female|femme|frau|woman/i.test(v.name)
+      ) || voices.find(v => v.lang === lang);
+      if (preferred) utterance.voice = preferred;
+
+      speechSynthesis.speak(utterance);
+    };
+
+    const detectLang = (text) => {
+      const lower = text.toLowerCase();
+      if (/[ßäöü]/i.test(lower) || lower.includes("gute nacht") || lower.includes("wer bist")) return 'de-DE';
+      if (/(the|you|your|hello|hi|are|who)/i.test(lower) || lower.includes("good night")) return 'en-US';
+      return 'fr-FR';
+    };
+
+    recognition.onstart = () => {
+      beep.play();
+    };
+
+    recognition.onresult = (event) => {
+      const text = event.results[event.results.length - 1][0].transcript.trim();
+      const lang = detectLang(text);
+      recognition.lang = lang;
+      const response = simulateDialogflow(text, lang);
+      speak(response, lang);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Erreur vocale :", event.error);
+    };
+
+    recognition.onend = () => {
+      recognition.start();
+    };
+
+    window.onload = () => {
+      // Charge les voix avant de commencer
+      speechSynthesis.onvoiceschanged = () => {
+        recognition.start();
+      };
+    };
+  </script>
 </body>
 </html>
