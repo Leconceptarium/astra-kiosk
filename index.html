@@ -100,6 +100,10 @@
       tu_es_la: "tu_es_la.mp3",
       berceuse: "berceuse.mp3",
       notif: "notification_mdp_valide.mp3"
+      reve_croire: "reve_croire.mp3",
+      pq_reve_plus: "pq_les_humains_reve_plus.mp3",
+      qui_morpheus: "c_qui_morpheus.mp3",
+      parchemin: "parchemin_liberation.mp3",
     };
 
     const playAudio = (filename) => {
@@ -173,6 +177,25 @@
       return audioFiles.pas_compris;
     };
 
+      if (
+    t.includes("tu crois aux rêves") || t.includes("tu rêves encore") || t.includes("est-ce que tu rêves")
+  )
+    return audioFiles.reve_croire;
+
+  if (
+    t.includes("pourquoi les humains ne rêvent plus") || t.includes("les humains rêvent plus") || t.includes("les gens ne rêvent plus")
+  )
+    return audioFiles.pq_reve_plus;
+
+  if (
+    t.includes("qui est morpheus") || t.includes("c’est qui morpheus") || t.includes("c’est qui monsieur morpheus")
+  )
+    return audioFiles.qui_morpheus;
+
+  if (
+    t.includes("parchemin de libération") || t.includes("parchemin pour libérer") || t.includes("comment on libère")
+  )
+    return audioFiles.parchemin;
     recognition.onstart = () => {
       playSound("notification_debut.mp3");
     };
