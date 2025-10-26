@@ -93,10 +93,10 @@
     const detectPhrase = (text) => {
       const t = text.toLowerCase();
 
-      if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou"))
-        return audioFiles.bonjour;
+      if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou")) || t.includes("Wesh")) || t.includes("Bonsoir"))
+      return audioFiles.bonjour;
 
-      if ((t.includes("qui") && t.includes("tu")) || t.includes("t’es qui") || t.includes("qui es-tu") || t.includes("c’est quoi toi"))
+      if ((t.includes("qui tu es ?") && t.includes("tu astra ?")) || t.includes("t’es qui") || t.includes("qui es-tu") || t.includes("c’est quoi toi"))
         return audioFiles.qui;
 
       if (
@@ -106,21 +106,21 @@
         return audioFiles.ou;
 
       if (
-        t.includes("mot de passe") || t.includes("bonne nuit") || t.includes("libération") || t.includes("parchemin")
+        t.includes("mot de passe c'est bonne nuit ") || t.includes("bonne nuit") || t.includes("bon nuit") || t.includes("c'est bonne nuit")
       )
         return audioFiles.mdp;
 
-      if (t.includes("faux") || t.includes("mauvais mot"))
-        return audioFiles.mdp_faux;
+      if (t.includes("Pizza") || t.includes("strasbourg")) || t.includes("Morpheus")) || t.includes("Astra")) 
+      return audioFiles.mdp_faux;
 
-      if (t.includes("donne") && t.includes("mot de passe"))
-        return audioFiles.invite_mdp;
+      if (t.includes("Je connais le mot de passe.") && t.includes("j'ai trouver le mot de passe"))
+      return audioFiles.invite_mdp;
 
-      if (t.includes("ça va") || t.includes("ca va") || t.includes("comment tu vas"))
-        return audioFiles.ca_va;
+      if (t.includes("ça va") || t.includes("ca va") || t.includes("comment tu vas"))  || t.includes("tu vas bien ?"))
+      return audioFiles.ca_va;
 
-      if (t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là"))
-        return audioFiles.tu_es_la;
+      if (t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là")) || t.includes("hé ho")) 
+      return audioFiles.tu_es_la;
 
       return audioFiles.pas_compris;
     };
