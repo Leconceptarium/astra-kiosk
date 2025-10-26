@@ -16,11 +16,13 @@
       font-family: 'Georgia', serif;
       transition: background 1s ease;
     }
+
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
     }
+
     .orb {
       width: 180px;
       height: 180px;
@@ -30,9 +32,11 @@
       animation: idleGlow 3s ease-in-out infinite;
       transition: background 1s ease, box-shadow 1s ease;
     }
+
     .talking {
       animation: pulseTalk 0.3s ease-in-out infinite;
     }
+
     .pulse {
       width: 20px;
       height: 20px;
@@ -43,18 +47,48 @@
       top: 20px;
       right: 20px;
     }
+
     @keyframes idleGlow {
       0%, 100% { box-shadow: 0 0 20px #aa88ff; }
       50% { box-shadow: 0 0 60px #aa88ff; }
     }
+
     @keyframes pulseTalk {
       0%, 100% { transform: scale(1); box-shadow: 0 0 30px #fff; }
       50% { transform: scale(1.1); box-shadow: 0 0 60px #fff; }
     }
+
     @keyframes pulse {
       0% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.6); opacity: 0.3; }
       100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Bandeau défilant */
+    #bandeau {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      color: #e0d0ff;
+      font-size: 1rem;
+      padding: 8px 0;
+      white-space: nowrap;
+      overflow: hidden;
+      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.4);
+      font-family: 'Georgia', serif;
+      z-index: 9999;
+    }
+
+    #bandeau span {
+      display: inline-block;
+      padding-left: 100%;
+      animation: defilement 15s linear infinite;
+    }
+
+    @keyframes defilement {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
     }
   </style>
 </head>
@@ -62,6 +96,11 @@
   <div class="pulse" title="Astra écoute..."></div>
   <div class="container">
     <div class="orb" id="orb"></div>
+  </div>
+
+  <!-- Bandeau défilant -->
+  <div id="bandeau">
+    <span>🟣 L’assistante vous écoute… mais elle attend un mot de passe.</span>
   </div>
 
   <script>
@@ -86,7 +125,11 @@
       qui: "qui_es_tu.mp3",
       ou: "ou_sommes_nous.mp3",
       mdp: "mdp_confirme.mp3",
-      mdp_faux: ["mdp_faux.mp3", "mdp_faux2.mp3", "mdp_faux3.mp3"],
+      mdp_faux: [
+        "mdp_faux.mp3",
+        "mdp_faux2.mp3",
+        "mdp_faux3.mp3"
+      ],
       invite_mdp: "invite_mdp.mp3",
       pas_compris: [
         "phrase_non_reconnue.mp3",
@@ -114,42 +157,34 @@
 
     const detectPhrase = (text) => {
       const t = text.toLowerCase();
-      console.log("Phrase détectée :", t); // 👈 journal console utile
 
-      // --- Salutations ---
+      // Salutations
       if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") || t.includes("wesh") || t.includes("bonsoir"))
         return audioFiles.bonjour;
 
-      // --- Qui es-tu ---
+      // Qui es-tu
       if (
         t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
-        t.includes("c’est quoi toi") || t.includes("tu es qui") || t.includes("tu es astra") ||
+        t.includes("c’est quoi toi") || t.includes("tu es qui") || t.includes("tu es astra") || 
         t.includes("c'est quoi ca") || t.includes("c'est quoi ce truc")
       )
         return audioFiles.qui;
 
-      // --- Où sommes-nous ---
+      // Où sommes-nous
       if (
         t.includes("où sommes") || t.includes("où est-ce qu’on est") || t.includes("on est où") ||
         t.includes("où ça") || t.includes("quel est cet endroit") || t.includes("c’est quoi cette endroit")
       )
         return audioFiles.ou;
 
-      // --- Mot de passe : "bonne nuit" ---
-      if (
-        (
-          t.includes("bonne nuit") &&
-          (
-            t.includes("mot de passe") || t.includes("le mot") || t.includes("code d'accès") || t.includes("code") ||
-            t.startsWith("bonne nuit") || t.endsWith("bonne nuit")
-          )
-        ) || t.trim() === "bonne nuit"
-      ) {
+      // Mot de passe correct
+      if (t.includes("le mot de passe") && t.includes("bonne nuit")) {
         if (!mdpValid) {
           mdpValid = true;
           document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
           orb.style.background = "radial-gradient(circle at center, #88ffd2 0%, #004444 80%)";
           orb.style.boxShadow = "0 0 40px #88ffd2";
+          document.getElementById("bandeau").style.display = "none";
 
           playSound(audioFiles.notif, () => {
             playAudio(audioFiles.mdp);
@@ -160,25 +195,17 @@
         return null;
       }
 
-      // Si déjà activé, ignorer répétition "bonne nuit"
-      if (mdpValid && t.includes("bonne nuit")) {
-        return null;
-      }
-
       // Avant mot de passe
       if (!mdpValid) {
-        const faux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
-        return faux;
+        const randomFaux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
+        return randomFaux;
       }
 
-      // --- Autres interactions ---
+      // Interactions débloquées
       if (t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe") || t.includes("code d'accès"))
         return audioFiles.invite_mdp;
 
-      if (
-        t.includes("ça va") || t.includes("ca va") || t.includes("ca va ma gueule") ||
-        t.includes("comment tu vas") || t.includes("tu vas bien") || t.includes("comment vas-tu")
-      )
+      if (t.includes("ça va") || t.includes("ca va ma gueule") || t.includes("comment tu vas") || t.includes("tu vas bien"))
         return audioFiles.ca_va;
 
       if (
@@ -202,7 +229,7 @@
       if (t.includes("parchemin de libération") || t.includes("parchemin pour libérer") || t.includes("comment on libère"))
         return audioFiles.parchemin;
 
-      // --- Réponse aléatoire si non reconnu ---
+      // Réponse aléatoire si non reconnu
       return audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)];
     };
 
