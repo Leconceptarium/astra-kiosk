@@ -95,9 +95,9 @@ const detectPhrase = (text) => {
     return audioFiles.qui;
 
   if (
-    t.includes("où sommes") || t.includes("où est-ce qu’on est") ||
-    t.includes("on est où") || t.includes("où ça") || t.includes("quel est cet endroit")
-  ) return audioFiles.ou;
+    t.includes("où sommes") || t.includes("où est-ce qu’on est") || t.includes(“où sommes-nous ?”)
+    t.includes("on est où") || t.includes("où ça") || t.includes("quel est cet endroit") || t.includes("C’est quoi cet endroit ?")) 
+    return audioFiles.ou;
 
   if (
     t.includes("mot de passe") || t.includes("bonne nuit") || t.includes("libération") || t.includes("parchemin")
