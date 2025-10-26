@@ -86,14 +86,25 @@
       audio.play();
     };
 
-    const detectPhrase = (text) => {
-      const t = text.toLowerCase();
-      if (t.includes("bonjour") || t.includes("salut")) return audioFiles.bonjour;
-      if (t.includes("qui") && t.includes("tu")) return audioFiles.qui;
-      if (t.includes("où") || t.includes("sommes")) return audioFiles.ou;
-      if (t.includes("bonne nuit") || t.includes("mot de passe")) return audioFiles.mdp;
-      return audioFiles.inconnu;
-    };
+const detectPhrase = (text) => {
+  const t = text.toLowerCase();
+
+  if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou")) return audioFiles.bonjour;
+
+  if ((t.includes("qui") && t.includes("tu")) || t.includes("t’es qui") || t.includes("qui es-tu") || t.includes("c’est quoi toi"))
+    return audioFiles.qui;
+
+  if (
+    t.includes("où sommes") || t.includes("où est-ce qu’on est") ||
+    t.includes("on est où") || t.includes("où ça") || t.includes("quel est cet endroit")
+  ) return audioFiles.ou;
+
+  if (
+    t.includes("mot de passe") || t.includes("bonne nuit") || t.includes("libération") || t.includes("parchemin")
+  ) return audioFiles.mdp;
+
+  return audioFiles.inconnu;
+};
 
     recognition.onstart = () => beep.play();
 
