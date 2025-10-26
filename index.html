@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Astra – Assistant de M. Morpheus (Audio)</title>
+  <title>Astra – Assistant de M. Morpheus</title>
   <style>
     body {
       background-color: #000;
@@ -76,7 +76,11 @@
       qui: "qui_es_tu.mp3",
       ou: "ou_sommes_nous.mp3",
       mdp: "mdp_confirme.mp3",
-      inconnu: "phrase_non_reconnue.mp3"
+      mdp_faux: "mdp_faux.mp3",
+      invite_mdp: "invite_mdp.mp3",
+      pas_compris: "phrase_non_reconnue.mp3",
+      ca_va: "ca_va.mp3",
+      tu_es_la: "tu_es_la.mp3"
     };
 
     const playAudio = (filename) => {
@@ -86,25 +90,40 @@
       audio.play();
     };
 
-const detectPhrase = (text) => {
-  const t = text.toLowerCase();
+    const detectPhrase = (text) => {
+      const t = text.toLowerCase();
 
-  if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou")) return audioFiles.bonjour;
+      if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou"))
+        return audioFiles.bonjour;
 
-  if ((t.includes("qui") && t.includes("tu")) || t.includes("t’es qui") || t.includes("qui es-tu") || t.includes("c’est quoi toi"))
-    return audioFiles.qui;
+      if ((t.includes("qui") && t.includes("tu")) || t.includes("t’es qui") || t.includes("qui es-tu") || t.includes("c’est quoi toi"))
+        return audioFiles.qui;
 
-  if (
-    t.includes("où sommes") || t.includes("où est-ce qu’on est") || t.includes(“où sommes-nous ?”)
-    t.includes("on est où") || t.includes("où ça") || t.includes("quel est cet endroit") || t.includes("C’est quoi cet endroit ?")) 
-    return audioFiles.ou;
+      if (
+        t.includes("où sommes") || t.includes("où est-ce qu’on est") || t.includes("on est où") ||
+        t.includes("où ça") || t.includes("quel est cet endroit") || t.includes("c’est quoi cet endroit")
+      )
+        return audioFiles.ou;
 
-  if (
-    t.includes("mot de passe") || t.includes("bonne nuit") || t.includes("libération") || t.includes("parchemin")
-  ) return audioFiles.mdp;
+      if (
+        t.includes("mot de passe") || t.includes("bonne nuit") || t.includes("libération") || t.includes("parchemin")
+      )
+        return audioFiles.mdp;
 
-  return audioFiles.inconnu;
-};
+      if (t.includes("faux") || t.includes("mauvais mot"))
+        return audioFiles.mdp_faux;
+
+      if (t.includes("donne") && t.includes("mot de passe"))
+        return audioFiles.invite_mdp;
+
+      if (t.includes("ça va") || t.includes("ca va") || t.includes("comment tu vas"))
+        return audioFiles.ca_va;
+
+      if (t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là"))
+        return audioFiles.tu_es_la;
+
+      return audioFiles.pas_compris;
+    };
 
     recognition.onstart = () => beep.play();
 
@@ -118,14 +137,24 @@ const detectPhrase = (text) => {
       console.error("Erreur vocale :", event.error);
     };
 
-    recognition.onend = () => recognition.start();
+    recognition.onend = () => {
+      setTimeout(() => {
+        try {
+          recognition.start();
+        } catch (e) {
+          console.warn("Erreur lors du redémarrage :", e);
+        }
+      }, 1000);
+    };
 
     window.onload = () => {
-      try {
-        recognition.start();
-      } catch (e) {
-        console.warn("Erreur au démarrage automatique :", e);
-      }
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(() => {
+          recognition.start();
+        })
+        .catch(err => {
+          console.error("Permission micro refusée :", err);
+        });
     };
   </script>
 </body>
