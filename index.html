@@ -38,17 +38,6 @@
       animation: pulseTalk 0.3s ease-in-out infinite;
     }
 
-    .pulse {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #fff;
-      animation: pulse 1.2s infinite;
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
-
     @keyframes idleGlow {
       0%, 100% { box-shadow: 0 0 20px #aa88ff; }
       50% { box-shadow: 0 0 60px #aa88ff; }
@@ -59,21 +48,16 @@
       50% { transform: scale(1.1); box-shadow: 0 0 60px #fff; }
     }
 
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.6); opacity: 0.3; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
+    /* Bandeau défilant */
     #bandeau {
       position: fixed;
       bottom: 0;
       width: 100%;
       background: rgba(255, 255, 255, 0.1);
       color: #fff;
-      font-size: 3rem;
+      font-size: 4rem;
       font-family: sans-serif;
-      padding: 18px;
+      padding: 20px;
       text-align: center;
       white-space: nowrap;
       overflow: hidden;
@@ -89,6 +73,7 @@
       100% { transform: translateX(-100%); }
     }
 
+    /* Image du parchemin */
     #parcheminImage {
       position: fixed;
       top: 50%;
@@ -102,7 +87,6 @@
   </style>
 </head>
 <body>
-  <div class="pulse" title="Astra écoute..."></div>
   <div class="container">
     <div class="orb" id="orb"></div>
   </div>
@@ -138,6 +122,7 @@
         "mdp_faux2.mp3",
         "mdp_faux3.mp3"
       ],
+      petunia: "mdp_faux_petunia.mp3", /* 🔸 à placer dans le dossier */
       invite_mdp: "invite_mdp.mp3",
       pas_compris: [
         "phrase_non_reconnue.mp3",
@@ -164,21 +149,23 @@
     const detectPhrase = (text) => {
       const t = text.toLowerCase();
 
+      // Salutations
       if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") || t.includes("wesh") || t.includes("bonsoir"))
         return audioFiles.bonjour;
 
+      // Qui es-tu
       if (
         t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
         t.includes("c’est quoi toi") || t.includes("tu es qui") || t.includes("c'est quoi ce truc")
       )
         return audioFiles.qui;
 
-      if (
-        t.includes("où sommes") || t.includes("on est où") || t.includes("quel est cet endroit")
-      )
+      // Où sommes-nous
+      if (t.includes("où sommes") || t.includes("on est où") || t.includes("quel est cet endroit"))
         return audioFiles.ou;
 
-      if (t.includes("le mot de passe c'est bonne nuit") || t.includes("bonne nuit")) {
+      // Mot de passe correct
+      if (t.includes("le mot de passe") && t.includes("bonne nuit")) {
         if (!mdpValid) {
           mdpValid = true;
           bandeau.style.display = "none";
@@ -188,22 +175,23 @@
           playSound(audioFiles.notif, () => {
             playAudio(audioFiles.mdp);
           });
-        } else {
-          return audioFiles.mdp;
-        }
+        } else return audioFiles.mdp;
         return null;
       }
 
+      // 🔸 Fausse réponse : "Pétunia"
+      if (t.includes("pétunia") || t.includes("petunia")) {
+        return audioFiles.petunia; 
+      }
+
+      // Autres interactions accessibles sans mot de passe
       if (t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe") || t.includes("code d'accès"))
         return audioFiles.invite_mdp;
 
       if (t.includes("ça va") || t.includes("comment tu vas") || t.includes("tu vas bien"))
         return audioFiles.ca_va;
 
-      if (
-        t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là") ||
-        t.includes("hé ho") || t.includes("tu m'entends")
-      )
+      if (t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là") || t.includes("hé ho") || t.includes("tu m'entends"))
         return audioFiles.tu_es_la;
 
       if (t.includes("berceuse") || t.includes("musique pour dormir") || t.includes("chanson douce"))
@@ -218,15 +206,11 @@
       if (t.includes("qui est morpheus") || t.includes("monsieur morpheus"))
         return audioFiles.qui_morpheus;
 
-      if (
-        t.includes("parchemin de libération") || t.includes("parchemin pour libérer") || t.includes("comment on libère")
-      ) {
+      // Parchemin de libération
+      if (t.includes("parchemin de libération") || t.includes("parchemin pour libérer") || t.includes("comment on libère")) {
         if (mdpValid) {
-          // Affiche l'image 15 secondes
           parcheminImage.style.display = "block";
-          setTimeout(() => {
-            parcheminImage.style.display = "none";
-          }, 15000);
+          setTimeout(() => { parcheminImage.style.display = "none"; }, 15000);
           return audioFiles.parchemin;
         } else {
           const randomFaux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
@@ -234,12 +218,11 @@
         }
       }
 
+      // Non reconnu
       return audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)];
     };
 
-    recognition.onstart = () => {
-      playSound("notification_debut.mp3");
-    };
+    recognition.onstart = () => playSound("notification_debut.mp3");
 
     recognition.onresult = (event) => {
       const text = event.results[event.results.length - 1][0].transcript.trim();
@@ -247,19 +230,12 @@
       if (audioFile) playAudio(audioFile);
     };
 
-    recognition.onerror = (event) => {
-      console.error("Erreur vocale :", event.error);
-    };
+    recognition.onerror = (event) => console.error("Erreur vocale :", event.error);
 
-    recognition.onend = () => {
-      setTimeout(() => {
-        try {
-          recognition.start();
-        } catch (e) {
-          console.warn("Erreur redémarrage :", e);
-        }
-      }, 1000);
-    };
+    recognition.onend = () => setTimeout(() => {
+      try { recognition.start(); } 
+      catch (e) { console.warn("Erreur redémarrage :", e); }
+    }, 1000);
 
     window.onload = () => {
       navigator.mediaDevices.getUserMedia({ audio: true })
