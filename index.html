@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -78,11 +76,11 @@
       qui: "qui_es_tu.mp3",
       ou: "ou_sommes_nous.mp3",
       mdp: "mdp_confirme.mp3",
-      inconnu: "phrase_non _reconnue.mp3"
+      inconnu: "phrase_non_reconnue.mp3"
     };
 
     const playAudio = (filename) => {
-      const audio = new Audio("audio/" + filename);
+      const audio = new Audio(filename);
       orb.classList.add("talking");
       audio.onended = () => orb.classList.remove("talking");
       audio.play();
