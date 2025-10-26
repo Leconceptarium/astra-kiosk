@@ -93,10 +93,13 @@
     const detectPhrase = (text) => {
       const t = text.toLowerCase();
 
-      if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou")) || t.includes("Wesh")) || t.includes("Bonsoir"))
-      return audioFiles.bonjour;
+      if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") || t.includes("wesh") || t.includes("bonsoir"))
+        return audioFiles.bonjour;
 
-      if ((t.includes("qui tu es ?") && t.includes("tu astra ?")) || t.includes("t’es qui") || t.includes("qui es-tu") || t.includes("c’est quoi toi"))
+      if (
+        t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
+        t.includes("c’est quoi toi") || t.includes("tu es qui") || t.includes("tu es astra")
+      )
         return audioFiles.qui;
 
       if (
@@ -106,21 +109,30 @@
         return audioFiles.ou;
 
       if (
-        t.includes("mot de passe c'est bonne nuit ") || t.includes("bonne nuit") || t.includes("bon nuit") || t.includes("c'est bonne nuit")
+        t.includes("mot de passe") && (t.includes("bonne nuit") || t.includes("bon nuit") || t.includes("c'est bonne nuit"))
       )
         return audioFiles.mdp;
 
-      if (t.includes("Pizza") || t.includes("strasbourg")) || t.includes("Morpheus")) || t.includes("Astra")) 
-      return audioFiles.mdp_faux;
+      if (
+        t.includes("pizza") || t.includes("strasbourg") || t.includes("morpheus") || t.includes("astra")
+      )
+        return audioFiles.mdp_faux;
 
-      if (t.includes("Je connais le mot de passe.") && t.includes("j'ai trouver le mot de passe"))
-      return audioFiles.invite_mdp;
+      if (
+        t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe") || t.includes("j'ai trouvé le parchemin")
+      )
+        return audioFiles.invite_mdp;
 
-      if (t.includes("ça va") || t.includes("ca va") || t.includes("comment tu vas"))  || t.includes("tu vas bien ?"))
-      return audioFiles.ca_va;
+      if (
+        t.includes("ça va") || t.includes("ca va ma gueule") || t.includes("comment tu vas") || t.includes("tu vas bien")
+      )
+        return audioFiles.ca_va;
 
-      if (t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là")) || t.includes("hé ho")) 
-      return audioFiles.tu_es_la;
+      if (
+        t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là") ||
+        t.includes("hé ho") || t.includes("tu m'entends") || t.includes("astra t'es là")
+      )
+        return audioFiles.tu_es_la;
 
       return audioFiles.pas_compris;
     };
@@ -149,9 +161,7 @@
 
     window.onload = () => {
       navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(() => {
-          recognition.start();
-        })
+        .then(() => recognition.start())
         .catch(err => {
           console.error("Permission micro refusée :", err);
         });
