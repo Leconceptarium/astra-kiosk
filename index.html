@@ -95,7 +95,10 @@
       mdp: "mdp_confirme.mp3",
       mdp_faux: "mdp_faux.mp3",
       invite_mdp: "invite_mdp.mp3",
-      pas_compris: "phrase_non_reconnue.mp3",
+     pas_compris: [
+  "phrase_non_reconnue.mp3",
+  "phrase_non_reconnue2.mp3"
+],
       ca_va: "ca_va.mp3",
       tu_es_la: "tu_es_la.mp3",
       berceuse: "berceuse.mp3",
@@ -194,7 +197,7 @@
   )
     return audioFiles.parchemin;
 
-  return audioFiles.pas_compris;
+  return audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)];
 };
     recognition.onstart = () => {
       playSound("notification_debut.mp3");
