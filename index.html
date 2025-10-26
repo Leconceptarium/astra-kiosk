@@ -109,7 +109,7 @@
         return audioFiles.ou;
 
       if (
-        t.includes("mot de passe") && (t.includes("bonne nuit") || t.includes("bon nuit") || t.includes("c'est bonne nuit"))
+        t.includes("le mot de passe c'est bonne nuit") && (t.includes("bonne nuit") || t.includes("bon nuit") || t.includes("c'est bonne nuit"))
       )
         return audioFiles.mdp;
 
@@ -119,7 +119,7 @@
         return audioFiles.mdp_faux;
 
       if (
-        t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe") || t.includes("j'ai trouvé le parchemin")
+        t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe") || t.includes("j'ai trouvé le code d'acces")
       )
         return audioFiles.invite_mdp;
 
