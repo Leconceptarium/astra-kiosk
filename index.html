@@ -16,13 +16,11 @@
       font-family: 'Georgia', serif;
       transition: background 1s ease;
     }
-
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-
     .orb {
       width: 180px;
       height: 180px;
@@ -32,11 +30,9 @@
       animation: idleGlow 3s ease-in-out infinite;
       transition: background 1s ease, box-shadow 1s ease;
     }
-
     .talking {
       animation: pulseTalk 0.3s ease-in-out infinite;
     }
-
     .pulse {
       width: 20px;
       height: 20px;
@@ -47,17 +43,14 @@
       top: 20px;
       right: 20px;
     }
-
     @keyframes idleGlow {
       0%, 100% { box-shadow: 0 0 20px #aa88ff; }
       50% { box-shadow: 0 0 60px #aa88ff; }
     }
-
     @keyframes pulseTalk {
       0%, 100% { transform: scale(1); box-shadow: 0 0 30px #fff; }
       50% { transform: scale(1.1); box-shadow: 0 0 60px #fff; }
     }
-
     @keyframes pulse {
       0% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.6); opacity: 0.3; }
@@ -93,11 +86,7 @@
       qui: "qui_es_tu.mp3",
       ou: "ou_sommes_nous.mp3",
       mdp: "mdp_confirme.mp3",
-      mdp_faux: [
-        "mdp_faux.mp3",
-        "mdp_faux2.mp3",
-        "mdp_faux3.mp3"
-      ],
+      mdp_faux: ["mdp_faux.mp3", "mdp_faux2.mp3", "mdp_faux3.mp3"],
       invite_mdp: "invite_mdp.mp3",
       pas_compris: [
         "phrase_non_reconnue.mp3",
@@ -125,6 +114,7 @@
 
     const detectPhrase = (text) => {
       const t = text.toLowerCase();
+      console.log("Phrase détectée :", t); // 👈 journal console utile
 
       // --- Salutations ---
       if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") || t.includes("wesh") || t.includes("bonsoir"))
@@ -133,7 +123,7 @@
       // --- Qui es-tu ---
       if (
         t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
-        t.includes("c’est quoi toi") || t.includes("tu es qui") || t.includes("tu es astra") || 
+        t.includes("c’est quoi toi") || t.includes("tu es qui") || t.includes("tu es astra") ||
         t.includes("c'est quoi ca") || t.includes("c'est quoi ce truc")
       )
         return audioFiles.qui;
@@ -145,8 +135,16 @@
       )
         return audioFiles.ou;
 
-      // --- Mot de passe ---
-      if (t.includes("le mot de passe") && t.includes("bonne nuit")) {
+      // --- Mot de passe : "bonne nuit" ---
+      if (
+        (
+          t.includes("bonne nuit") &&
+          (
+            t.includes("mot de passe") || t.includes("le mot") || t.includes("code d'accès") || t.includes("code") ||
+            t.startsWith("bonne nuit") || t.endsWith("bonne nuit")
+          )
+        ) || t.trim() === "bonne nuit"
+      ) {
         if (!mdpValid) {
           mdpValid = true;
           document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
@@ -162,17 +160,25 @@
         return null;
       }
 
-      // --- Avant mot de passe ---
+      // Si déjà activé, ignorer répétition "bonne nuit"
+      if (mdpValid && t.includes("bonne nuit")) {
+        return null;
+      }
+
+      // Avant mot de passe
       if (!mdpValid) {
-        const randomFaux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
-        return randomFaux;
+        const faux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
+        return faux;
       }
 
       // --- Autres interactions ---
       if (t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe") || t.includes("code d'accès"))
         return audioFiles.invite_mdp;
 
-      if (t.includes("ça va") || t.includes("ca va ma gueule") || t.includes("comment tu vas") || t.includes("tu vas bien"))
+      if (
+        t.includes("ça va") || t.includes("ca va") || t.includes("ca va ma gueule") ||
+        t.includes("comment tu vas") || t.includes("tu vas bien") || t.includes("comment vas-tu")
+      )
         return audioFiles.ca_va;
 
       if (
