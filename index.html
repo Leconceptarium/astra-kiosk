@@ -99,7 +99,7 @@
       ca_va: "ca_va.mp3",
       tu_es_la: "tu_es_la.mp3",
       berceuse: "berceuse.mp3",
-      notif: "notification_mdp_valide.mp3"
+      notif: "notification_mdp_valide.mp3",
       reve_croire: "reve_croire.mp3",
       pq_reve_plus: "pq_les_humains_reve_plus.mp3",
       qui_morpheus: "c_qui_morpheus.mp3",
@@ -114,71 +114,68 @@
     };
 
     const detectPhrase = (text) => {
-      const t = text.toLowerCase();
+  const t = text.toLowerCase();
 
-      if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") || t.includes("wesh") || t.includes("bonsoir"))
-        return audioFiles.bonjour;
+  if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") || t.includes("wesh") || t.includes("bonsoir"))
+    return audioFiles.bonjour;
 
-      if (
-        t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
-        t.includes("c’est quoi toi") || t.includes("tu es qui") || t.includes("tu es astra")
-      )
-        return audioFiles.qui;
+  if (
+    t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
+    t.includes("c’est quoi toi") || t.includes("tu es qui") || t.includes("tu es astra")
+  )
+    return audioFiles.qui;
 
-      if (
-        t.includes("où sommes") || t.includes("où est-ce qu’on est") || t.includes("on est où") ||
-        t.includes("où ça") || t.includes("quel est cet endroit") || t.includes("c’est quoi cette endroit")
-      )
-        return audioFiles.ou;
+  if (
+    t.includes("où sommes") || t.includes("où est-ce qu’on est") || t.includes("on est où") ||
+    t.includes("où ça") || t.includes("quel est cet endroit") || t.includes("c’est quoi cette endroit")
+  )
+    return audioFiles.ou;
 
-      if (
-        t.includes("le mot de passe") && t.includes("bonne nuit")
-      ) {
-        if (!mdpValid) {
-          mdpValid = true;
-          document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
-          orb.style.background = "radial-gradient(circle at center, #88ffd2 0%, #004444 80%)";
-          orb.style.boxShadow = "0 0 40px #88ffd2";
+  if (
+    t.includes("le mot de passe") && t.includes("bonne nuit")
+  ) {
+    if (!mdpValid) {
+      mdpValid = true;
+      document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
+      orb.style.background = "radial-gradient(circle at center, #88ffd2 0%, #004444 80%)";
+      orb.style.boxShadow = "0 0 40px #88ffd2";
 
-          playSound(audioFiles.notif, () => {
-            playAudio(audioFiles.mdp);
-          });
-        } else {
-          return audioFiles.mdp;
-        }
-        return null;
-      }
+      playSound(audioFiles.notif, () => {
+        playAudio(audioFiles.mdp);
+      });
+    } else {
+      return audioFiles.mdp;
+    }
+    return null;
+  }
 
-      if (!mdpValid) {
-        return audioFiles.mdp_faux;
-      }
+  if (!mdpValid) {
+    return audioFiles.mdp_faux;
+  }
 
-      if (
-        t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe") || t.includes("code d'accès")
-      )
-        return audioFiles.invite_mdp;
+  if (
+    t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe") || t.includes("code d'accès")
+  )
+    return audioFiles.invite_mdp;
 
-      if (
-        t.includes("ça va") || t.includes("ca va ma gueule") || t.includes("comment tu vas") || t.includes("tu vas bien")
-      )
-        return audioFiles.ca_va;
+  if (
+    t.includes("ça va") || t.includes("ca va ma gueule") || t.includes("comment tu vas") || t.includes("tu vas bien")
+  )
+    return audioFiles.ca_va;
 
-      if (
-        t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là") ||
-        t.includes("hé ho") || t.includes("tu m'entends") || t.includes("astra t'es là")
-      )
-        return audioFiles.tu_es_la;
+  if (
+    t.includes("tu es là") || t.includes("t'es là") || t.includes("vous êtes là") ||
+    t.includes("hé ho") || t.includes("tu m'entends") || t.includes("astra t'es là")
+  )
+    return audioFiles.tu_es_la;
 
-      if (
-        t.includes("berceuse") || t.includes("musique pour dormir") || t.includes("chanson douce")
-      )
-        return audioFiles.berceuse;
+  if (
+    t.includes("berceuse") || t.includes("musique pour dormir") || t.includes("chanson douce")
+  )
+    return audioFiles.berceuse;
 
-      return audioFiles.pas_compris;
-    };
-
-      if (
-    t.includes("tu crois en nous ? ") || t.includes("on vas reussir") || t.includes("on vas y arriver")
+  if (
+    t.includes("tu crois en nous") || t.includes("on va réussir") || t.includes("on va y arriver")
   )
     return audioFiles.reve_croire;
 
@@ -196,6 +193,9 @@
     t.includes("parchemin de libération") || t.includes("parchemin pour libérer") || t.includes("comment on libère")
   )
     return audioFiles.parchemin;
+
+  return audioFiles.pas_compris;
+};
     recognition.onstart = () => {
       playSound("notification_debut.mp3");
     };
