@@ -18,11 +18,7 @@
       transition: background 1s ease;
     }
 
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+    .container { display: flex; flex-direction: column; align-items: center; }
 
     .orb {
       width: 180px;
@@ -34,9 +30,7 @@
       transition: background 1s ease, box-shadow 1s ease;
     }
 
-    .talking {
-      animation: pulseTalk 0.3s ease-in-out infinite;
-    }
+    .talking { animation: pulseTalk 0.3s ease-in-out infinite; }
 
     @keyframes idleGlow {
       0%, 100% { box-shadow: 0 0 20px #aa88ff; }
@@ -89,7 +83,7 @@
     <div class="orb" id="orb"></div>
   </div>
 
-  <div id="bandeau"><span>ASTRA VOUS ECOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
+  <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
   <img id="parcheminImage" src="parchemin.png" alt="Parchemin de libération" />
 
   <script>
@@ -119,11 +113,7 @@
       qui: "qui_es_tu.mp3",
       ou: "ou_sommes_nous.mp3",
       mdp: "mdp_confirme.mp3",
-      mdp_faux: [
-        "mdp_faux.mp3",
-        "mdp_faux2.mp3",
-        "mdp_faux3.mp3"
-      ],
+      mdp_faux: ["mdp_faux.mp3", "mdp_faux2.mp3", "mdp_faux3.mp3"],
       petunia: "mdp_faux_petunia.mp3",
       invite_mdp: "invite_mdp.mp3",
       pas_compris: [
@@ -139,8 +129,6 @@
       pq_reve_plus: "pq_les_humains_reve_plus.mp3",
       qui_morpheus: "c_qui_morpheus.mp3",
       parchemin: "parchemin_liberation.mp3",
-
-      // 🟣 Nouveaux fichiers
       faire_quoi_mtn: "faire_quoi_mtn.mp3",
       rire: "rire.mp3",
       c_toi_qui_controles: "c_toi_qui_controles.mp3",
@@ -164,16 +152,14 @@
       const t = text.toLowerCase();
 
       // === Salutations ===
-      if (
-        t.includes("bonjour") || t.includes("salut") || t.includes("coucou") || 
-        t.includes("bonsoir") || t.includes("wesh") || t.includes("yo")
-      ) return audioFiles.bonjour;
+      if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") ||
+          t.includes("bonsoir") || t.includes("wesh") || t.includes("yo"))
+        return audioFiles.bonjour;
 
       // === Qui es-tu ===
-      if (
-        t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
-        t.includes("c’est quoi toi") || t.includes("astra") || t.includes("c'est quoi ce truc")
-      ) return audioFiles.qui;
+      if (t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
+          t.includes("c’est quoi toi") || t.includes("astra") || t.includes("c'est quoi ce truc"))
+        return audioFiles.qui;
 
       // === Où sommes-nous ===
       if (t.includes("où sommes") || t.includes("on est où") || t.includes("quel est cet endroit"))
@@ -196,7 +182,8 @@
         return audioFiles.mdp_oublie;
 
       // === Fausse réponse Pétunia ===
-      if (t.includes("pétunia") || t.includes("petunia")) return audioFiles.petunia;
+      if (t.includes("pétunia") || t.includes("petunia"))
+        return audioFiles.petunia;
 
       // === Autres interactions sans mdp ===
       if (t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe"))
@@ -238,13 +225,26 @@
         return null;
       }
 
-      if (t.includes("tu aimes morpheus"))|| t.includes("tu nous aimes")) return audioFiles.tu_aime_morpheus;
-      if (t.includes("solution")) return audioFiles.la_solution;
-      if (t.includes("contrôles") || t.includes("c’est toi qui contrôles"))|| t.includes("qui contrôles")) return audioFiles.c_toi_qui_controles;
-      if (t.includes("faut faire quoi") || t.includes("on fait quoi maintenant")) return audioFiles.faire_quoi_mtn;
-      if (t.includes("préenregistrée") || t.includes("c'est enregistrée"))|| t.includes("c'est preenregistrée")) return audioFiles.voix_preenregistree;
-      if (t.includes("ressemble morpheus") || t.includes("à quoi ressemble morpheus")) return audioFiles.morpheus_apparence;
-      if (t.includes("indice") || t.includes("aide")) return audioFiles.indice_aide;
+      if (t.includes("tu aimes morpheus") || t.includes("tu nous aimes"))
+        return audioFiles.tu_aime_morpheus;
+
+      if (t.includes("solution"))
+        return audioFiles.la_solution;
+
+      if (t.includes("contrôles") || t.includes("c’est toi qui contrôles") || t.includes("qui contrôles"))
+        return audioFiles.c_toi_qui_controles;
+
+      if (t.includes("faut faire quoi") || t.includes("on fait quoi maintenant"))
+        return audioFiles.faire_quoi_mtn;
+
+      if (t.includes("préenregistrée") || t.includes("c'est enregistrée") || t.includes("c'est preenregistrée"))
+        return audioFiles.voix_preenregistree;
+
+      if (t.includes("ressemble morpheus") || t.includes("à quoi ressemble morpheus"))
+        return audioFiles.morpheus_apparence;
+
+      if (t.includes("indice") || t.includes("aide"))
+        return audioFiles.indice_aide;
 
       // === Non reconnu ===
       return audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)];
@@ -254,18 +254,26 @@
 
     recognition.onresult = (event) => {
       const text = event.results[event.results.length - 1][0].transcript.trim();
+      console.log("🎙️ Entendu :", text);
       const audioFile = detectPhrase(text);
       if (audioFile) playAudio(audioFile);
     };
 
     recognition.onerror = (event) => console.error("Erreur vocale :", event.error);
-    recognition.onend = () => setTimeout(() => {
-      try { recognition.start(); } catch (e) { console.warn("Erreur redémarrage :", e); }
-    }, 1000);
+
+    recognition.onend = () => {
+      console.warn("🎧 Redémarrage de l’écoute...");
+      setTimeout(() => {
+        try { recognition.start(); } catch (e) { console.warn("Erreur redémarrage :", e); }
+      }, 1000);
+    };
 
     window.onload = () => {
       navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(() => recognition.start())
+        .then(() => {
+          console.log("✅ Micro autorisé, lancement de l’écoute");
+          recognition.start();
+        })
         .catch(err => console.error("Micro refusé :", err));
     };
   </script>
