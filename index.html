@@ -8,281 +8,168 @@
     body {
       margin: 0;
       overflow: hidden;
+      height: 100vh;
+      background: radial-gradient(circle at center, #0d0020, #1b003b);
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background: linear-gradient(135deg, #0d0020, #1b003b);
-      font-family: 'Unica One', serif;
-      transition: background 1s ease;
+      flex-direction: column;
     }
 
-    .container { display: flex; flex-direction: column; align-items: center; }
-
-    .orb {
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      background: radial-gradient(circle at center, #aa88ff 0%, #220044 80%);
-      box-shadow: 0 0 40px #aa88ff;
-      animation: idleGlow 3s ease-in-out infinite;
-      transition: background 1s ease, box-shadow 1s ease;
-    }
-
-    .talking { animation: pulseTalk 0.3s ease-in-out infinite; }
-
-    @keyframes idleGlow {
-      0%, 100% { box-shadow: 0 0 20px #aa88ff; }
-      50% { box-shadow: 0 0 60px #aa88ff; }
-    }
-
-    @keyframes pulseTalk {
-      0%, 100% { transform: scale(1); box-shadow: 0 0 30px #fff; }
-      50% { transform: scale(1.1); box-shadow: 0 0 60px #fff; }
+    video {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 20px;
+      box-shadow: 0 0 50px #aa88ff;
+      transition: opacity 0.5s ease-in-out;
     }
 
     #bandeau {
       position: fixed;
       bottom: 0;
       width: 100%;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.08);
       color: #fff;
-      font-size: 4rem;
-      font-family: 'Unica One';
-      padding: 20px;
+      font-family: 'Unica One', sans-serif;
+      font-size: 2.2rem;
+      padding: 12px;
       text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-
-    #bandeau span {
-      display: inline-block;
-      animation: defilement 12s linear infinite;
-    }
-
-    @keyframes defilement {
-      0% { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
-    }
-
-    #parcheminImage {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      max-width: 80%;
-      max-height: 80%;
-      z-index: 10;
-      display: none;
+      letter-spacing: 1px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="orb" id="orb"></div>
-  </div>
+  <video id="astraVideo" src="marche.mp4" autoplay loop muted playsinline></video>
+  <div id="bandeau">ASTRA VOUS ÉCOUTE...</div>
 
-  <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
-  <img id="parcheminImage" src="parchemin.png" alt="Parchemin de libération" />
+ <script>
+  const video = document.getElementById("astraVideo");
+  const bandeau = document.getElementById("bandeau");
 
-  <script>
-    const orb = document.getElementById("orb");
-    const bandeau = document.getElementById("bandeau");
-    const parcheminImage = document.getElementById("parcheminImage");
+  // 🎬 Durée max des animations (en secondes)
+  const MAX_REACTION_DURATION = 5;
+  const MAX_MARCHE_DURATION = 10;
 
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.lang = 'fr-FR';
+  // --- ASSOCIATION AUDIO -> VIDÉO ---
+  const reactions = {
+    "salutation_bonjour.mp3": "joie.mp4",
+    "mdp_confirme.mp3": "joie.mp4",
+    "ca_va.mp3": "joie.mp4",
+    "mdp_faux.mp3": "colere.mp4",
+    "mdp_faux2.mp3": "colere.mp4",
+    "mdp_faux3.mp3": "colere.mp4",
+    "phrase_non_reconnue.mp3": "suspicion.mp4",
+    "phrase_non_reconnue2.mp3": "suspicion.mp4",
+    "phrase_non_reconnue3.mp3": "suspicion.mp4",
+    "phrase_non_reconnue4.mp3": "suspicion.mp4",
+    "indice_aide.mp3": "confiante.mp4",
+    "c_qui_morpheus.mp3": "confiante.mp4",
+    "ou_sommes_nous.mp3": "confiante.mp4",
+    "tu_es_la.mp3": "confiante.mp4"
+  };
 
-    let mdpValid = false;
+  // --- GESTION DES AUDIOS + VIDÉOS ---
+  function playSoundWithReaction(file) {
+    const audio = new Audio(file);
+    const reactionVideo = reactions[file] || "marche.mp4";
 
-    const playSound = (file, callback) => {
-      const audio = new Audio(file);
-      orb.classList.add("talking");
-      audio.onended = () => {
-        orb.classList.remove("talking");
-        if (callback) callback();
-      };
-      audio.play();
+    // 🔁 Change la vidéo selon la réaction
+    video.src = reactionVideo;
+    video.loop = false;
+    video.muted = true;
+    video.currentTime = 0;
+    video.play();
+    bandeau.textContent = "ASTRA RÉPOND...";
+
+    // ⏱️ Coupe la vidéo après 5s max
+    const stopTimer = setTimeout(() => {
+      returnToIdle();
+    }, MAX_REACTION_DURATION * 1000);
+
+    // 🔊 Joue le son
+    audio.play();
+    audio.onended = () => {
+      clearTimeout(stopTimer);
+      returnToIdle();
     };
+  }
 
-    const audioFiles = {
-      bonjour: "salutation_bonjour.mp3",
-      qui: "qui_es_tu.mp3",
-      ou: "ou_sommes_nous.mp3",
-      mdp: "mdp_confirme.mp3",
-      mdp_faux: ["mdp_faux.mp3", "mdp_faux2.mp3", "mdp_faux3.mp3"],
-      petunia: "mdp_faux_petunia.mp3",
-      invite_mdp: "invite_mdp.mp3",
-      pas_compris: [
-        "phrase_non_reconnue.mp3",
-        "phrase_non_reconnue2.mp3",
-        "phrase_non_reconnue3.mp3",
-        "phrase_non_reconnue4.mp3"
-      ],
-      ca_va: "ca_va.mp3",
-      tu_es_la: "tu_es_la.mp3",
-      berceuse: "berceuse.mp3",
-      notif: "notification_mdp_valide.mp3",
-      reve_croire: "reve_croire.mp3",
-      pq_reve_plus: "pq_les_humains_reve_plus.mp3",
-      qui_morpheus: "c_qui_morpheus.mp3",
-      parchemin: "parchemin_liberation.mp3",
-      faire_quoi_mtn: "faire_quoi_mtn.mp3",
-      rire: "rire.mp3",
-      c_toi_qui_controles: "c_toi_qui_controles.mp3",
-      blague: "blague.mp3",
-      tu_aime_morpheus: "tu_aime_morpheus.mp3",
-      la_solution: "la_solution.mp3",
-      voix_preenregistree: "voix_preenregistree.mp3",
-      mdp_oublie: "mdp_oublie.mp3",
-      morpheus_apparence: "morpheus_apparence.mp3",
-      indice_aide: "indice_aide.mp3"
-    };
+  // --- FONCTION RETOUR À LA MARCHE ---
+  function returnToIdle() {
+    video.src = "marche.mp4";
+    video.loop = true;
+    video.muted = true;
+    video.currentTime = 0;
+    video.play();
+    bandeau.textContent = "ASTRA VOUS ÉCOUTE...";
+  }
 
-    const playAudio = (filename) => {
-      const audio = new Audio(filename);
-      orb.classList.add("talking");
-      audio.onended = () => orb.classList.remove("talking");
-      audio.play();
-    };
+  // --- RECONNAISSANCE VOCALE ---
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.lang = 'fr-FR';
 
-    const detectPhrase = (text) => {
-      const t = text.toLowerCase();
+  let mdpValid = false;
 
-      // === Salutations ===
-      if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") ||
-          t.includes("bonsoir") || t.includes("wesh") || t.includes("yo"))
-        return audioFiles.bonjour;
+  const detectPhrase = (text) => {
+    const t = text.toLowerCase();
 
-      // === Qui es-tu ===
-      if (t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
-          t.includes("c’est quoi toi") || t.includes("astra") || t.includes("c'est quoi ce truc"))
-        return audioFiles.qui;
+    if (t.includes("bonjour") || t.includes("salut")) return "salutation_bonjour.mp3";
+    if (t.includes("qui es-tu") || t.includes("astra")) return "c_qui_morpheus.mp3";
+    if (t.includes("on est où") || t.includes("où sommes-nous")) return "ou_sommes_nous.mp3";
+    if (t.includes("ça va")) return "ca_va.mp3";
+    if (t.includes("tu es là")) return "tu_es_la.mp3";
+    if (t.includes("indice") || t.includes("aide")) return "indice_aide.mp3";
 
-      // === Où sommes-nous ===
-      if (t.includes("où sommes") || t.includes("on est où") || t.includes("quel est cet endroit"))
-        return audioFiles.ou;
+    // --- Mot de passe ---
+    if (t.includes("bonne nuit")) {
+      if (!mdpValid) {
+        mdpValid = true;
+        document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
+        playSoundWithReaction("mdp_confirme.mp3");
+      } else playSoundWithReaction("mdp_confirme.mp3");
+      return;
+    }
 
-      // === Mot de passe ===
-      if (t.includes("le mot de passe c'est bonne nuit") || t.includes("bonne nuit")) {
-        if (!mdpValid) {
-          mdpValid = true;
-          bandeau.style.display = "none";
-          document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
-          orb.style.background = "radial-gradient(circle at center, #88ffd2 0%, #004444 80%)";
-          orb.style.boxShadow = "0 0 40px #88ffd2";
-          playSound(audioFiles.notif, () => playAudio(audioFiles.mdp));
-        } else return audioFiles.mdp;
-        return null;
-      }
-// === Mot de passe oublié ===
-if (
-  t.includes("mot de passe oublié") ||
-  t.includes("j'ai oublié le mot de passe") ||
-  t.includes("comment trouver le mot de passe") ||
-  t.includes("c'est quoi le mot de passe") ||
-  t.includes("où je peux trouver le mot de passe")
-)
-  return audioFiles.mdp_oublie;
+    if (t.includes("pétunia")) return "mdp_faux.mp3";
 
-      // === Fausse réponse Pétunia ===
-      if (t.includes("pétunia") || t.includes("petunia"))
-        return audioFiles.petunia;
+    // --- Réponses non reconnues ---
+    const randomFaux = [
+      "phrase_non_reconnue.mp3",
+      "phrase_non_reconnue2.mp3",
+      "phrase_non_reconnue3.mp3",
+      "phrase_non_reconnue4.mp3"
+    ];
+    return randomFaux[Math.floor(Math.random() * randomFaux.length)];
+  };
 
-      // === Autres interactions sans mdp ===
-      if (t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe"))
-        return audioFiles.invite_mdp;
+  recognition.onresult = (event) => {
+    const text = event.results[event.results.length - 1][0].transcript.trim();
+    console.log("🎙️ Entendu :", text);
+    const audioFile = detectPhrase(text);
+    if (audioFile) playSoundWithReaction(audioFile);
+  };
 
-      if (t.includes("ça va") || t.includes("comment tu vas") || t.includes("tu vas bien"))
-        return audioFiles.ca_va;
+  recognition.onerror = (event) => console.error("Erreur vocale :", event.error);
+  recognition.onend = () => setTimeout(() => recognition.start(), 1000);
 
-      if (t.includes("tu es là") || t.includes("t'es là") || t.includes("hé ho") || t.includes("tu m'entends"))
-        return audioFiles.tu_es_la;
+  window.onload = () => {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(() => {
+        console.log("✅ Micro autorisé, écoute en cours");
+        recognition.start();
+      })
+      .catch(err => console.error("Micro refusé :", err));
+  };
 
-      if (t.includes("berceuse") || t.includes("musique pour dormir"))
-        return audioFiles.berceuse;
-
-      if (t.includes("tu crois en nous") || t.includes("on va réussir"))
-        return audioFiles.reve_croire;
-
-      if (t.includes("pourquoi les humains ne rêvent plus"))
-        return audioFiles.pq_reve_plus;
-
-      if (t.includes("qui est morpheus") || t.includes("monsieur morpheus"))
-        return audioFiles.qui_morpheus;
-
-      // === Parchemin ===
-      if (t.includes("parchemin de libération") || t.includes("potion liberation")) {
-        if (mdpValid) {
-          parcheminImage.style.display = "block";
-          setTimeout(() => { parcheminImage.style.display = "none"; }, 15000);
-          return audioFiles.parchemin;
-        } else {
-          const randomFaux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
-          return randomFaux;
-        }
-      }
-
-      // === Nouveaux fichiers ajoutés ===
-      if (t.includes("blague") || t.includes("raconte une blague")) {
-        playSound(audioFiles.blague, () => setTimeout(() => playSound(audioFiles.rire), 1000));
-        return null;
-      }
-
-      if (t.includes("tu aimes morpheus") || t.includes("tu nous aimes"))
-        return audioFiles.tu_aime_morpheus;
-
-      if (t.includes("solution"))
-        return audioFiles.la_solution;
-
-      if (t.includes("contrôles") || t.includes("c’est toi qui contrôles") || t.includes("qui contrôles"))
-        return audioFiles.c_toi_qui_controles;
-
-      if (t.includes("faut faire quoi") || t.includes("on fait quoi maintenant"))
-        return audioFiles.faire_quoi_mtn;
-
-      if (t.includes("préenregistrée") || t.includes("c'est enregistrée") || t.includes("c'est preenregistrée"))
-        return audioFiles.voix_preenregistree;
-
-      if (t.includes("ressemble morpheus") || t.includes("à quoi ressemble morpheus"))
-        return audioFiles.morpheus_apparence;
-
-      if (t.includes("indice") || t.includes("aide"))
-        return audioFiles.indice_aide;
-
-      // === Non reconnu ===
-      return audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)];
-    };
-
-    recognition.onstart = () => playSound("notification_debut.mp3");
-
-    recognition.onresult = (event) => {
-      const text = event.results[event.results.length - 1][0].transcript.trim();
-      console.log("🎙️ Entendu :", text);
-      const audioFile = detectPhrase(text);
-      if (audioFile) playAudio(audioFile);
-    };
-
-    recognition.onerror = (event) => console.error("Erreur vocale :", event.error);
-
-    recognition.onend = () => {
-      console.warn("🎧 Redémarrage de l’écoute...");
-      setTimeout(() => {
-        try { recognition.start(); } catch (e) { console.warn("Erreur redémarrage :", e); }
-      }, 1000);
-    };
-
-    window.onload = () => {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(() => {
-          console.log("✅ Micro autorisé, lancement de l’écoute");
-          recognition.start();
-        })
-        .catch(err => console.error("Micro refusé :", err));
-    };
-  </script>
+  // --- TEST CLAVIER ---
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "1") playSoundWithReaction("mdp_confirme.mp3");
+    if (e.key === "2") playSoundWithReaction("mdp_faux.mp3");
+    if (e.key === "3") playSoundWithReaction("phrase_non_reconnue.mp3");
+    if (e.key === "4") playSoundWithReaction("indice_aide.mp3");
+  });
+</script>
 </body>
 </html>
