@@ -119,7 +119,8 @@
       pas_compris: [
         "phrase_non_reconnue.mp3",
         "phrase_non_reconnue2.mp3",
-        "phrase_non_reconnue3.mp3"
+        "phrase_non_reconnue3.mp3",
+        "phrase_non_reconnue4.mp3"
       ],
       ca_va: "ca_va.mp3",
       tu_es_la: "tu_es_la.mp3",
@@ -178,8 +179,8 @@
         return null;
       }
 
-      if (t.includes("oublié le mot de passe") || t.includes("j'ai oublié le mot de passe"))
-        return audioFiles.mdp_oublie;
+      if (t.includes("mot de passe oublié") || t.includes("j'ai oublié mot de passe")) || t.includes("comment trouver mot de passe")) || t.includes("c'est quoi mot de passe")) || t.includes("où je peux trouver mot de passe")) 
+      return audioFiles.mdp_oublie;
 
       // === Fausse réponse Pétunia ===
       if (t.includes("pétunia") || t.includes("petunia"))
