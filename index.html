@@ -18,6 +18,12 @@
       transition: background 1s ease;
     }
 
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
     .orb {
       width: 180px;
       height: 180px;
@@ -79,8 +85,11 @@
   </style>
 </head>
 <body>
-  <div class="orb" id="orb"></div>
-  <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
+  <div class="container">
+    <div class="orb" id="orb"></div>
+  </div>
+
+  <div id="bandeau"><span>ASTRA VOUS ECOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
   <img id="parcheminImage" src="parchemin.png" alt="Parchemin de libération" />
 
   <script>
@@ -110,19 +119,28 @@
       qui: "qui_es_tu.mp3",
       ou: "ou_sommes_nous.mp3",
       mdp: "mdp_confirme.mp3",
-      mdp_faux: ["mdp_faux.mp3", "mdp_faux2.mp3", "mdp_faux3.mp3"],
+      mdp_faux: [
+        "mdp_faux.mp3",
+        "mdp_faux2.mp3",
+        "mdp_faux3.mp3"
+      ],
       petunia: "mdp_faux_petunia.mp3",
       invite_mdp: "invite_mdp.mp3",
-      pas_compris: ["phrase_non_reconnue.mp3", "phrase_non_reconnue2.mp3", "phrase_non_reconnue3.mp3"],
+      pas_compris: [
+        "phrase_non_reconnue.mp3",
+        "phrase_non_reconnue2.mp3",
+        "phrase_non_reconnue3.mp3"
+      ],
       ca_va: "ca_va.mp3",
       tu_es_la: "tu_es_la.mp3",
+      berceuse: "berceuse.mp3",
       notif: "notification_mdp_valide.mp3",
       reve_croire: "reve_croire.mp3",
       pq_reve_plus: "pq_les_humains_reve_plus.mp3",
       qui_morpheus: "c_qui_morpheus.mp3",
       parchemin: "parchemin_liberation.mp3",
 
-      // 🔸 Nouveaux fichiers
+      // 🟣 Nouveaux fichiers
       faire_quoi_mtn: "faire_quoi_mtn.mp3",
       rire: "rire.mp3",
       c_toi_qui_controles: "c_toi_qui_controles.mp3",
@@ -135,69 +153,115 @@
       indice_aide: "indice_aide.mp3"
     };
 
+    const playAudio = (filename) => {
+      const audio = new Audio(filename);
+      orb.classList.add("talking");
+      audio.onended = () => orb.classList.remove("talking");
+      audio.play();
+    };
+
     const detectPhrase = (text) => {
       const t = text.toLowerCase();
 
-      // --- Interactions générales ---
-      if (t.includes("bonjour") || t.includes("salut")) return audioFiles.bonjour;
-      if (t.includes("qui es") || t.includes("t’es qui")) return audioFiles.qui;
-      if (t.includes("on est où") || t.includes("où sommes")) return audioFiles.ou;
+      // === Salutations ===
+      if (
+        t.includes("bonjour") || t.includes("salut") || t.includes("coucou") || 
+        t.includes("bonsoir") || t.includes("wesh") || t.includes("yo")
+      ) return audioFiles.bonjour;
 
-      // --- Mot de passe ---
-      if (t.includes("bonne nuit")) {
+      // === Qui es-tu ===
+      if (
+        t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
+        t.includes("c’est quoi toi") || t.includes("astra") || t.includes("c'est quoi ce truc")
+      ) return audioFiles.qui;
+
+      // === Où sommes-nous ===
+      if (t.includes("où sommes") || t.includes("on est où") || t.includes("quel est cet endroit"))
+        return audioFiles.ou;
+
+      // === Mot de passe ===
+      if (t.includes("le mot de passe c'est bonne nuit") || t.includes("bonne nuit")) {
         if (!mdpValid) {
           mdpValid = true;
           bandeau.style.display = "none";
           document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
           orb.style.background = "radial-gradient(circle at center, #88ffd2 0%, #004444 80%)";
           orb.style.boxShadow = "0 0 40px #88ffd2";
-          playSound(audioFiles.notif, () => playSound(audioFiles.mdp));
+          playSound(audioFiles.notif, () => playAudio(audioFiles.mdp));
         } else return audioFiles.mdp;
         return null;
       }
 
-      if (t.includes("oublié le mot de passe") || t.includes("j'ai oublié le mot de passe")) return audioFiles.mdp_oublie;
+      if (t.includes("oublié le mot de passe") || t.includes("j'ai oublié le mot de passe"))
+        return audioFiles.mdp_oublie;
 
-      // --- Nouvelles interactions spécifiques ---
+      // === Fausse réponse Pétunia ===
+      if (t.includes("pétunia") || t.includes("petunia")) return audioFiles.petunia;
+
+      // === Autres interactions sans mdp ===
+      if (t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe"))
+        return audioFiles.invite_mdp;
+
+      if (t.includes("ça va") || t.includes("comment tu vas") || t.includes("tu vas bien"))
+        return audioFiles.ca_va;
+
+      if (t.includes("tu es là") || t.includes("t'es là") || t.includes("hé ho") || t.includes("tu m'entends"))
+        return audioFiles.tu_es_la;
+
+      if (t.includes("berceuse") || t.includes("musique pour dormir"))
+        return audioFiles.berceuse;
+
+      if (t.includes("tu crois en nous") || t.includes("on va réussir"))
+        return audioFiles.reve_croire;
+
+      if (t.includes("pourquoi les humains ne rêvent plus"))
+        return audioFiles.pq_reve_plus;
+
+      if (t.includes("qui est morpheus") || t.includes("monsieur morpheus"))
+        return audioFiles.qui_morpheus;
+
+      // === Parchemin ===
+      if (t.includes("parchemin de libération") || t.includes("potion liberation")) {
+        if (mdpValid) {
+          parcheminImage.style.display = "block";
+          setTimeout(() => { parcheminImage.style.display = "none"; }, 15000);
+          return audioFiles.parchemin;
+        } else {
+          const randomFaux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
+          return randomFaux;
+        }
+      }
+
+      // === Nouveaux fichiers ajoutés ===
       if (t.includes("blague") || t.includes("raconte une blague")) {
-        playSound(audioFiles.blague, () => setTimeout(() => playSound(audioFiles.rire), 800));
+        playSound(audioFiles.blague, () => setTimeout(() => playSound(audioFiles.rire), 1000));
         return null;
       }
 
-      if (t.includes("tu aimes morpheus") || t.includes("tu l’aimes morpheus")) return audioFiles.tu_aime_morpheus;
-      if (t.includes("solution") || t.includes("c’est quoi la solution")) return audioFiles.la_solution;
-      if (t.includes("tu contrôles") || t.includes("c’est toi qui contrôles")) return audioFiles.c_toi_qui_controles;
+      if (t.includes("tu aimes morpheus"))|| t.includes("tu nous aimes")) return audioFiles.tu_aime_morpheus;
+      if (t.includes("solution")) return audioFiles.la_solution;
+      if (t.includes("contrôles") || t.includes("c’est toi qui contrôles"))|| t.includes("qui contrôles")) return audioFiles.c_toi_qui_controles;
       if (t.includes("faut faire quoi") || t.includes("on fait quoi maintenant")) return audioFiles.faire_quoi_mtn;
-      if (t.includes("préenregistrée") || t.includes("pré enregistrée")) return audioFiles.voix_preenregistree;
-      if (t.includes("quoi morpheus ressemble") || t.includes("à quoi ressemble morpheus")) return audioFiles.morpheus_apparence;
+      if (t.includes("préenregistrée") || t.includes("c'est enregistrée"))|| t.includes("c'est preenregistrée")) return audioFiles.voix_preenregistree;
+      if (t.includes("ressemble morpheus") || t.includes("à quoi ressemble morpheus")) return audioFiles.morpheus_apparence;
       if (t.includes("indice") || t.includes("aide")) return audioFiles.indice_aide;
 
-      // --- Autres réponses de base ---
-      if (t.includes("tu es là") || t.includes("hé ho")) return audioFiles.tu_es_la;
-      if (t.includes("pourquoi les humains ne rêvent plus")) return audioFiles.pq_reve_plus;
-      if (t.includes("qui est morpheus")) return audioFiles.qui_morpheus;
-
-      // --- Parchemin ---
-      if (t.includes("parchemin")) {
-        if (mdpValid) {
-          parcheminImage.style.display = "block";
-          setTimeout(() => (parcheminImage.style.display = "none"), 15000);
-          return audioFiles.parchemin;
-        } else return audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
-      }
-
-      // --- Si rien ne correspond ---
+      // === Non reconnu ===
       return audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)];
     };
+
+    recognition.onstart = () => playSound("notification_debut.mp3");
 
     recognition.onresult = (event) => {
       const text = event.results[event.results.length - 1][0].transcript.trim();
       const audioFile = detectPhrase(text);
-      if (audioFile) playSound(audioFile);
+      if (audioFile) playAudio(audioFile);
     };
 
-    recognition.onerror = (e) => console.error("Erreur :", e);
-    recognition.onend = () => setTimeout(() => recognition.start(), 1000);
+    recognition.onerror = (event) => console.error("Erreur vocale :", event.error);
+    recognition.onend = () => setTimeout(() => {
+      try { recognition.start(); } catch (e) { console.warn("Erreur redémarrage :", e); }
+    }, 1000);
 
     window.onload = () => {
       navigator.mediaDevices.getUserMedia({ audio: true })
