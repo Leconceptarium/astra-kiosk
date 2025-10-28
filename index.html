@@ -66,6 +66,13 @@
     const astraReaction = document.getElementById("astraReaction");
 
     /* Références vidéos (exactement tes fichiers) */
+  function startIdleVideo() {
+      astraIdle.play().catch(() => {
+        console.warn("🔇 Autoplay bloqué : relance manuelle de la vidéo idle.");
+        astraIdle.muted = true;
+        astraIdle.play();
+      });
+    }    
     const VIDEO = {
       idle: "Astra_idle.mp4",
       talk: "Astra_parle.mp4",
@@ -235,7 +242,7 @@
     window.onload=()=>{
       navigator.mediaDevices.getUserMedia({audio:true})
         .then(()=>{
-          // petit son d’amorçage facultatif si besoin
+          startIdleVideo();
           // new Audio(audioFiles.notif_debut).play();
           recognition.start();
         })
