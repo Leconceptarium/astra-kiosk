@@ -193,18 +193,28 @@
       if (t.includes("où sommes") || t.includes("on est où") || t.includes("quel est cet endroit"))
         return { file: audioFiles.ou, video: "astra_suspecte.mp4" };
 
-      // === Mot de passe ===
-      if (t.includes("le mot de passe c'est bonne nuit") || t.includes("bonne nuit")) {
-        if (!mdpValid) {
-          mdpValid = true;
-          bandeau.style.display = "none";
-          document.body.style.background = "#001b1b";
-          for (let i = 0; i < 40; i++) setTimeout(spawnMagic, i * 150);
-          playAudio(audioFiles.notif, "astra_heureuse.mp4");
-          return {};
-        } else return { file: audioFiles.mdp, video: "astra_parle.mp4" };
-      }
+    // === Mot de passe ===
+if (t.includes("le mot de passe c'est bonne nuit") || t.includes("bonne nuit")) {
+  if (!mdpValid) {
+    mdpValid = true;
+    bandeau.style.display = "none";
 
+    // 🗣️ Astra parle d'abord ("mot de passe confirmé")
+    playAudio(audioFiles.mdp, "astra_heureuse.mp4");
+
+    // 🌌 Ensuite, 2 secondes après, effets magiques et fond
+    setTimeout(() => {
+      document.body.style.background = "#001b1b";
+      for (let i = 0; i < 40; i++) setTimeout(spawnMagic, i * 150);
+      playAudio(audioFiles.notif, "astra_parle.mp4");
+    }, 2000);
+
+    return;
+  } else {
+    // Si le mot de passe est déjà validé, elle redira juste le message
+    return { file: audioFiles.mdp, video: "astra_parle.mp4" };
+  }
+}
       // === Mot de passe oublié ===
       if (
         t.includes("mot de passe oublié") ||
