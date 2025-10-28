@@ -111,11 +111,11 @@
    function spawnMagic() {
   const p = document.createElement("div");
   p.classList.add("magic");
-  p.style.left = Math.random() * 100 + "vw";
-  p.style.bottom = "-10px";
+  p.style.left = Math.random() * 200 + "vw";
+  p.style.bottom = "-8px";
   p.style.animationDuration = 3 + Math.random() * 4 + "s";
   p.style.background = Math.random() > 0.5
-    ? "radial-gradient(circle, rgba(0,255,200,0.9) 0%, rgba(0,150,255,0.4) 40%, transparent 80%)"
+    ? "radial-gradient(circle, rgba(0,255,200,0.9) 0%, rgba(0,30,255,0.4) 40%, transparent 80%)"
     : "radial-gradient(circle, rgba(0,255,255,0.9) 0%, rgba(0,255,100,0.4) 40%, transparent 80%)";
   document.body.appendChild(p);
   setTimeout(() => p.remove(), 6000);
