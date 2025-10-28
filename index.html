@@ -11,17 +11,69 @@
       height: 100vh;
       background: radial-gradient(circle at center, #0d0020, #1b003b);
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      flex-direction: column;
+      font-family: 'Unica One', sans-serif;
+      color: #fff;
     }
 
-    video {
-      max-width: 90vw;
-      max-height: 90vh;
-      border-radius: 20px;
-      box-shadow: 0 0 50px #aa88ff;
-      transition: opacity 0.5s ease-in-out;
+    .face {
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 70% 30%, #fff 0%, #ddd 70%);
+      box-shadow: 0 0 40px #aa88ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: transform 0.2s ease;
+    }
+
+    .eyes {
+      display: flex;
+      justify-content: space-between;
+      width: 120px;
+      margin-top: 40px;
+    }
+
+    .eye {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #000;
+      position: relative;
+    }
+
+    .mouth {
+      position: absolute;
+      bottom: 60px;
+      width: 100px;
+      height: 30px;
+      background: #000;
+      border-radius: 0 0 80px 80px;
+      transform-origin: top center;
+      transition: all 0.1s ease;
+    }
+
+    .talking {
+      animation: mouthMove 0.1s ease-in-out infinite alternate;
+    }
+
+    @keyframes mouthMove {
+      from { transform: scaleY(0.4); }
+      to { transform: scaleY(1.2); }
+    }
+
+    .eyes.talking .eye {
+      animation: blink 4s infinite;
+    }
+
+    @keyframes blink {
+      0%, 92%, 100% { transform: scaleY(1); }
+      95%, 98% { transform: scaleY(0.1); }
     }
 
     #bandeau {
@@ -30,146 +82,112 @@
       width: 100%;
       background: rgba(255, 255, 255, 0.08);
       color: #fff;
-      font-family: 'Unica One', sans-serif;
-      font-size: 2.2rem;
-      padding: 12px;
+      font-size: 2rem;
       text-align: center;
-      letter-spacing: 1px;
+      padding: 12px;
+      letter-spacing: 2px;
     }
   </style>
 </head>
 <body>
-  <video id="astraVideo" src="marche.mp4" autoplay loop muted playsinline></video>
+  <div class="face" id="face">
+    <div class="eyes" id="eyes">
+      <div class="eye"></div>
+      <div class="eye"></div>
+    </div>
+    <div class="mouth" id="mouth"></div>
+  </div>
+
   <div id="bandeau">ASTRA VOUS ÉCOUTE...</div>
 
- <script>
-  const video = document.getElementById("astraVideo");
-  const bandeau = document.getElementById("bandeau");
+  <script>
+    const mouth = document.getElementById("mouth");
+    const eyes = document.getElementById("eyes");
+    const face = document.getElementById("face");
+    const bandeau = document.getElementById("bandeau");
 
-  // 🎬 Durée max des animations (en secondes)
-  const MAX_REACTION_DURATION = 5;
-  const MAX_MARCHE_DURATION = 4,5;
+    // --- Fonction : fait parler Astra avec animation ---
+    function playAstraVoice(audioFile) {
+      const audio = new Audio(audioFile);
+      audio.play();
 
-  // --- ASSOCIATION AUDIO -> VIDÉO ---
-  const reactions = {
-    "salutation_bonjour.mp3": "joie.mp4",
-    "mdp_confirme.mp3": "joie.mp4",
-    "ca_va.mp3": "joie.mp4",
-    "mdp_faux.mp3": "colere.mp4",
-    "mdp_faux2.mp3": "colere.mp4",
-    "mdp_faux3.mp3": "colere.mp4",
-    "phrase_non_reconnue.mp3": "suspicion.mp4",
-    "phrase_non_reconnue2.mp3": "suspicion.mp4",
-    "phrase_non_reconnue3.mp3": "suspicion.mp4",
-    "phrase_non_reconnue4.mp3": "suspicion.mp4",
-    "indice_aide.mp3": "confiante.mp4",
-    "c_qui_morpheus.mp3": "confiante.mp4",
-    "ou_sommes_nous.mp3": "confiante.mp4",
-    "tu_es_la.mp3": "confiante.mp4"
-  };
+      mouth.classList.add("talking");
+      eyes.classList.add("talking");
+      face.style.transform = "scale(1.02)";
+      bandeau.textContent = "ASTRA RÉPOND...";
 
-  // --- GESTION DES AUDIOS + VIDÉOS ---
-  function playSoundWithReaction(file) {
-    const audio = new Audio(file);
-    const reactionVideo = reactions[file] || "marche.mp4";
-
-    // 🔁 Change la vidéo selon la réaction
-    video.src = reactionVideo;
-    video.loop = false;
-    video.muted = true;
-    video.currentTime = 0;
-    video.play();
-    bandeau.textContent = "ASTRA RÉPOND...";
-
-    // ⏱️ Coupe la vidéo après 5s max
-    const stopTimer = setTimeout(() => {
-      returnToIdle();
-    }, MAX_REACTION_DURATION * 1000);
-
-    // 🔊 Joue le son
-    audio.play();
-    audio.onended = () => {
-      clearTimeout(stopTimer);
-      returnToIdle();
-    };
-  }
-
-  // --- FONCTION RETOUR À LA MARCHE ---
-  function returnToIdle() {
-    video.src = "marche.mp4";
-    video.loop = true;
-    video.muted = true;
-    video.currentTime = 0;
-    video.play();
-    bandeau.textContent = "ASTRA VOUS ÉCOUTE...";
-  }
-
-  // --- RECONNAISSANCE VOCALE ---
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.continuous = true;
-  recognition.interimResults = false;
-  recognition.lang = 'fr-FR';
-
-  let mdpValid = false;
-
-  const detectPhrase = (text) => {
-    const t = text.toLowerCase();
-
-    if (t.includes("bonjour") || t.includes("salut")) return "salutation_bonjour.mp3";
-    if (t.includes("qui es-tu") || t.includes("astra")) return "c_qui_morpheus.mp3";
-    if (t.includes("on est où") || t.includes("où sommes-nous")) return "ou_sommes_nous.mp3";
-    if (t.includes("ça va")) return "ca_va.mp3";
-    if (t.includes("tu es là")) return "tu_es_la.mp3";
-    if (t.includes("indice") || t.includes("aide")) return "indice_aide.mp3";
-
-    // --- Mot de passe ---
-    if (t.includes("bonne nuit")) {
-      if (!mdpValid) {
-        mdpValid = true;
-        document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
-        playSoundWithReaction("mdp_confirme.mp3");
-      } else playSoundWithReaction("mdp_confirme.mp3");
-      return;
+      audio.onended = () => {
+        mouth.classList.remove("talking");
+        eyes.classList.remove("talking");
+        face.style.transform = "scale(1)";
+        bandeau.textContent = "ASTRA VOUS ÉCOUTE...";
+      };
     }
 
-    if (t.includes("pétunia")) return "mdp_faux.mp3";
+    // --- Détection de phrases ---
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = 'fr-FR';
 
-    // --- Réponses non reconnues ---
-    const randomFaux = [
-      "phrase_non_reconnue.mp3",
-      "phrase_non_reconnue2.mp3",
-      "phrase_non_reconnue3.mp3",
-      "phrase_non_reconnue4.mp3"
-    ];
-    return randomFaux[Math.floor(Math.random() * randomFaux.length)];
-  };
+    let mdpValid = false;
 
-  recognition.onresult = (event) => {
-    const text = event.results[event.results.length - 1][0].transcript.trim();
-    console.log("🎙️ Entendu :", text);
-    const audioFile = detectPhrase(text);
-    if (audioFile) playSoundWithReaction(audioFile);
-  };
+    const detectPhrase = (text) => {
+      const t = text.toLowerCase();
 
-  recognition.onerror = (event) => console.error("Erreur vocale :", event.error);
-  recognition.onend = () => setTimeout(() => recognition.start(), 1000);
+      if (t.includes("bonjour") || t.includes("salut")) return "salutation_bonjour.mp3";
+      if (t.includes("qui es-tu") || t.includes("astra")) return "qui_es_tu.mp3";
+      if (t.includes("on est où") || t.includes("où sommes-nous")) return "ou_sommes_nous.mp3";
+      if (t.includes("ça va")) return "ca_va.mp3";
+      if (t.includes("tu es là")) return "tu_es_la.mp3";
+      if (t.includes("indice") || t.includes("aide")) return "indice_aide.mp3";
 
-  window.onload = () => {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(() => {
-        console.log("✅ Micro autorisé, écoute en cours");
-        recognition.start();
-      })
-      .catch(err => console.error("Micro refusé :", err));
-  };
+      // --- Mot de passe ---
+      if (t.includes("bonne nuit")) {
+        if (!mdpValid) {
+          mdpValid = true;
+          document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
+          return "mdp_confirme.mp3";
+        } else return "mdp_confirme.mp3";
+      }
 
-  // --- TEST CLAVIER ---
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "1") playSoundWithReaction("mdp_confirme.mp3");
-    if (e.key === "2") playSoundWithReaction("mdp_faux.mp3");
-    if (e.key === "3") playSoundWithReaction("phrase_non_reconnue.mp3");
-    if (e.key === "4") playSoundWithReaction("indice_aide.mp3");
-  });
-</script>
+      if (t.includes("pétunia")) return "mdp_faux.mp3";
+
+      // --- Réponses non reconnues ---
+      const randomFaux = [
+        "phrase_non_reconnue.mp3",
+        "phrase_non_reconnue2.mp3",
+        "phrase_non_reconnue3.mp3"
+      ];
+      return randomFaux[Math.floor(Math.random() * randomFaux.length)];
+    };
+
+    // --- Lancement de la reconnaissance ---
+    recognition.onresult = (event) => {
+      const text = event.results[event.results.length - 1][0].transcript.trim();
+      console.log("🎙️ Entendu :", text);
+      const audioFile = detectPhrase(text);
+      if (audioFile) playAstraVoice(audioFile);
+    };
+
+    recognition.onerror = (event) => console.error("Erreur vocale :", event.error);
+    recognition.onend = () => setTimeout(() => recognition.start(), 1000);
+
+    window.onload = () => {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(() => {
+          console.log("✅ Micro autorisé, Astra écoute !");
+          recognition.start();
+        })
+        .catch(err => console.error("Micro refusé :", err));
+    };
+
+    // --- Test clavier (utile sans micro) ---
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "1") playAstraVoice("mdp_confirme.mp3");
+      if (e.key === "2") playAstraVoice("mdp_faux.mp3");
+      if (e.key === "3") playAstraVoice("phrase_non_reconnue.mp3");
+    });
+  </script>
 </body>
 </html>
