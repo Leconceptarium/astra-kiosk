@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -19,13 +19,15 @@
 
     video {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      top: 50%;
+      left: 50%;
+      width: 95%; /* légèrement plus petite */
+      height: auto;
+      transform: translate(-50%, -50%);
+      object-fit: contain;
       opacity: 0;
       transition: opacity 0.8s ease;
+      background-color: #000; /* empêche les flashs blancs */
     }
 
     #astraIdle {
@@ -72,31 +74,31 @@
       display: none;
     }
 
-  .magic {
-  position: absolute;
-  width: 10px; /* plus gros */
-  height: 10px;
-  background: radial-gradient(circle, rgba(0,255,255,0.9) 0%, rgba(0,255,255,0.4) 40%, transparent 80%);
-  border-radius: 50%;
-  filter: blur(2px) brightness(1.6);
-  animation: floatMagic 5s ease-in-out infinite;
-  pointer-events: none;
-  mix-blend-mode: screen;
-  z-index: 5;
-}
+    .magic {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: radial-gradient(circle, rgba(0,255,255,0.9) 0%, rgba(0,255,255,0.4) 40%, transparent 80%);
+      border-radius: 50%;
+      filter: blur(3px) brightness(1.7);
+      animation: floatMagic 6s ease-in-out infinite;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      z-index: 5;
+    }
 
-@keyframes floatMagic {
-  0% { transform: translateY(0) scale(0.8) rotate(0deg); opacity: 1; }
-  50% { transform: translateY(-200px) scale(1.4) rotate(180deg); opacity: 0.8; }
-  100% { transform: translateY(-400px) scale(0.5) rotate(360deg); opacity: 0; }
-}
+    @keyframes floatMagic {
+      0% { transform: translateY(0) scale(0.8) rotate(0deg); opacity: 1; }
+      50% { transform: translateY(-200px) scale(1.4) rotate(180deg); opacity: 0.8; }
+      100% { transform: translateY(-400px) scale(0.5) rotate(360deg); opacity: 0; }
+    }
   </style>
 </head>
 <body>
 
   <!-- 🎥 Vidéos d’Astra -->
-  <video id="astraIdle" src="astra_idle.mp4" autoplay muted loop></video>
-  <video id="astraReaction" muted></video>
+  <video id="astraIdle" src="astra_idle.mp4" autoplay muted loop playsinline preload="auto"></video>
+  <video id="astraReaction" muted playsinline preload="auto"></video>
 
   <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
   <img id="parcheminImage" src="parchemin.png" alt="Parchemin de libération" />
@@ -107,21 +109,21 @@
     const astraIdle = document.getElementById("astraIdle");
     const astraReaction = document.getElementById("astraReaction");
 
-    // 🌌 Effets magiques après mot de passe
-   function spawnMagic() {
-  const p = document.createElement("div");
-  p.classList.add("magic");
-  p.style.left = Math.random() * 200 + "vw";
-  p.style.bottom = "-8px";
-  p.style.animationDuration = 3 + Math.random() * 4 + "s";
-  p.style.background = Math.random() > 0.5
-    ? "radial-gradient(circle, rgba(0,255,200,0.9) 0%, rgba(0,30,255,0.4) 40%, transparent 80%)"
-    : "radial-gradient(circle, rgba(0,255,255,0.9) 0%, rgba(0,255,100,0.4) 40%, transparent 80%)";
-  document.body.appendChild(p);
-  setTimeout(() => p.remove(), 6000);
-}
+    /* 🌌 Effets magiques */
+    function spawnMagic() {
+      const p = document.createElement("div");
+      p.classList.add("magic");
+      p.style.left = Math.random() * 100 + "vw";
+      p.style.bottom = "-10px";
+      p.style.animationDuration = 3 + Math.random() * 4 + "s";
+      p.style.background = Math.random() > 0.5
+        ? "radial-gradient(circle, rgba(0,255,200,0.9) 0%, rgba(0,50,255,0.4) 40%, transparent 80%)"
+        : "radial-gradient(circle, rgba(0,255,255,0.9) 0%, rgba(0,255,150,0.4) 40%, transparent 80%)";
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 6000);
+    }
 
-    // 🎧 Lecture audio + vidéo
+    /* 🎧 Lecture audio + vidéo */
     const playAudio = (file, videoName = "astra_parle.mp4") => {
       const audio = new Audio(file);
       astraReaction.src = videoName;
@@ -137,7 +139,7 @@
       };
     };
 
-    // 🎙️ Reconnaissance vocale
+    /* 🎙️ Reconnaissance vocale */
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.continuous = true;
     recognition.lang = 'fr-FR';
@@ -178,74 +180,68 @@
       indice_aide: "indice_aide.mp3"
     };
 
+    /* 🧠 Détection des phrases */
     const detectPhrase = (text) => {
       const t = text.toLowerCase();
 
       // === Salutations ===
       if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou"))
-        return { file: audioFiles.bonjour, video: "astra_heureuse.mp4" };
+        return { file: audioFiles.bonjour, video: "marche2.mp4" };
 
       // === Qui es-tu ===
       if (t.includes("qui es-tu") || t.includes("astra") || t.includes("c’est quoi toi"))
-        return { file: audioFiles.qui, video: "astra_parle.mp4" };
+        return { file: audioFiles.qui, video: "marche2.mp4" };
 
       // === Où sommes-nous ===
       if (t.includes("où sommes") || t.includes("on est où") || t.includes("quel est cet endroit"))
-        return { file: audioFiles.ou, video: "astra_suspecte.mp4" };
+        return { file: audioFiles.ou, video: "inquiete.mp4" };
 
-    // === Mot de passe ===
-if (t.includes("le mot de passe c'est bonne nuit") || t.includes("bonne nuit")) {
-  if (!mdpValid) {
-    mdpValid = true;
-    bandeau.style.display = "none";
+      // === Mot de passe ===
+      if (t.includes("le mot de passe c'est bonne nuit") || t.includes("bonne nuit")) {
+        if (!mdpValid) {
+          mdpValid = true;
+          bandeau.style.display = "none";
+          playAudio(audioFiles.mdp, "astra_heureuse.mp4");
 
-    // 🗣️ Astra parle d'abord ("mot de passe confirmé")
-    playAudio(audioFiles.mdp, "astra_heureuse.mp4");
+          // 🌌 Effets magiques après 5s
+          setTimeout(() => {
+            document.body.style.background = "#001b1b";
+            for (let i = 0; i < 40; i++) setTimeout(spawnMagic, i * 150);
+            playAudio(audioFiles.notif, "marche2.mp4");
+          }, 5000);
+          return;
+        } else return { file: audioFiles.mdp, video: "marche2.mp4" };
+      }
 
-    // 🌌 Ensuite, 2 secondes après, effets magiques et fond
-    setTimeout(() => {
-      document.body.style.background = "#001b1b";
-      for (let i = 0; i < 40; i++) setTimeout(spawnMagic, i * 150);
-      playAudio(audioFiles.notif, "astra_parle.mp4");
-    }, 3000);
-
-    return;
-  } else {
-    // Si le mot de passe est déjà validé, elle redira juste le message
-    return { file: audioFiles.mdp, video: "astra_parle.mp4" };
-  }
-}
       // === Mot de passe oublié ===
-      if (
-        t.includes("mot de passe oublié") ||
-        t.includes("j'ai oublié") ||
-        t.includes("comment trouver") ||
-        t.includes("c'est quoi le mot de passe")
-      )
-        return { file: audioFiles.mdp_oublie, video: "astra_suspecte.mp4" };
+      if (t.includes("mot de passe oublié") || t.includes("j'ai oublié") || t.includes("comment trouver"))
+        return { file: audioFiles.mdp_oublie, video: "inquiete.mp4" };
 
-      // === Fausse réponse Pétunia ===
+      // === Pétunia ===
       if (t.includes("pétunia"))
         return { file: audioFiles.petunia, video: "astra_colere.mp4" };
 
-      // === Autres interactions ===
-      if (t.includes("ça va")) return { file: audioFiles.ca_va, video: "astra_heureuse.mp4" };
-      if (t.includes("tu es là")) return { file: audioFiles.tu_es_la, video: "astra_parle.mp4" };
+      // === Parchemin ===
       if (t.includes("parchemin")) {
         if (mdpValid) {
           parcheminImage.style.display = "block";
           setTimeout(() => parcheminImage.style.display = "none", 15000);
-          return { file: audioFiles.parchemin, video: "astra_heureuse.mp4" };
+          return { file: audioFiles.parchemin, video: "lecture.mp4" };
         } else {
           const faux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
           return { file: faux, video: "astra_colere.mp4" };
         }
       }
 
-      // === Inconnue ===
-      return { file: audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)], video: "astra_suspecte.mp4" };
+      // === Autres ===
+      if (t.includes("ça va")) return { file: audioFiles.ca_va, video: "marche2.mp4" };
+      if (t.includes("tu es là")) return { file: audioFiles.tu_es_la, video: "inquiete.mp4" };
+
+      // === Non reconnu ===
+      return { file: audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)], video: "inquiete.mp4" };
     };
 
+    /* 🎤 Gestions vocales */
     recognition.onresult = (event) => {
       const text = event.results[event.results.length - 1][0].transcript.trim();
       console.log("🎙️ Entendu :", text);
@@ -260,6 +256,12 @@ if (t.includes("le mot de passe c'est bonne nuit") || t.includes("bonne nuit")) 
         .then(() => recognition.start())
         .catch(err => console.error("Micro refusé :", err));
     };
+
+    /* ⚙️ Corrige le flash blanc sur les boucles */
+    astraIdle.addEventListener('ended', () => {
+      astraIdle.currentTime = 0.01;
+      astraIdle.play();
+    });
   </script>
 </body>
 </html>
