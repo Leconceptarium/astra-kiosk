@@ -51,6 +51,7 @@
       display: inline-block;
       animation: defilement 12s linear infinite;
     }
+
     @keyframes defilement {
       0% { transform: translateX(100%) }
       100% { transform: translateX(-100%) }
@@ -89,7 +90,7 @@
 </head>
 <body>
   <!-- 🎥 Vidéos -->
- <video id="astraIdle" src="astra_idle.mp4" autoplay muted loop></video>
+  <video id="astraIdle" src="astra_idle.mp4" autoplay muted loop playsinline preload="auto"></video>
   <video id="astraIdle2" src="Astra_idle2.mp4" muted loop playsinline preload="auto"></video>
   <video id="astraReaction" muted playsinline preload="auto"></video>
 
@@ -103,7 +104,7 @@
     const astraIdle2 = document.getElementById("astraIdle2");
     const astraReaction = document.getElementById("astraReaction");
 
-    /* ✅ Gestion des boucles sans flash */
+    /* ✅ Boucles sans flash */
     [astraIdle, astraIdle2].forEach(v => {
       v.addEventListener('ended', () => {
         v.currentTime = 0.01;
@@ -115,12 +116,15 @@
       astraIdle.classList.remove("active");
       astraIdle2.classList.remove("active");
       idleVideo.classList.add("active");
-      idleVideo.play().catch(()=>{idleVideo.muted=true;idleVideo.play();});
+      idleVideo.play().catch(() => {
+        idleVideo.muted = true;
+        idleVideo.play();
+      });
     }
 
     // 🎞 Références vidéos
     const VIDEO = {
-      idle1: "Astra_idle.mp4",
+      idle1: "astra_idle.mp4",
       idle2: "Astra_idle2.mp4",
       talk: "Astra_parle.mp4",
       suspicious: "Astra_suspecte.mp4",
@@ -160,6 +164,7 @@
         astraReaction.style.opacity = "0";
         const activeIdle = mdpValid ? astraIdle2 : astraIdle;
         activeIdle.style.opacity = "1";
+        activateIdle(activeIdle);
       };
     };
 
@@ -219,8 +224,7 @@
           setTimeout(() => {
             for (let i = 0; i < 40; i++) setTimeout(spawnMagic, i * 150);
             playAudio(audioFiles.notif, VIDEO.walkTalk);
-            // 🌀 Change la boucle ici :
-            activateIdle(astraIdle2);
+            activateIdle(astraIdle2); // 🌀 passage à la 2e boucle
           }, 1000);
           return;
         } else return { file: audioFiles.mdp, video: VIDEO.walkTalk };
@@ -266,10 +270,13 @@
 
     recognition.onend = () => setTimeout(() => recognition.start(), 1000);
 
+    /* ✅ Lancement initial */
     window.onload = () => {
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(() => {
+          astraIdle.classList.add("active"); // visible immédiatement
           activateIdle(astraIdle);
+          astraIdle.play().catch(()=>{astraIdle.muted=true;astraIdle.play();});
           recognition.start();
         })
         .catch(err => console.error("Micro refusé :", err));
