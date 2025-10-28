@@ -9,7 +9,6 @@
       margin: 0;
       overflow: hidden;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
@@ -20,49 +19,22 @@
 
     video {
       position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      z-index: 0;
       opacity: 0;
       transition: opacity 0.8s ease;
     }
 
     #astraIdle {
       opacity: 1;
-    }
-
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       z-index: 1;
     }
 
-    .orb {
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      background: radial-gradient(circle at center, #aa88ff 0%, #220044 80%);
-      box-shadow: 0 0 40px #aa88ff;
-      animation: idleGlow 3s ease-in-out infinite;
-      transition: background 1s ease, box-shadow 1s ease;
-      position: relative;
+    #astraReaction {
       z-index: 2;
-    }
-
-    .talking {
-      animation: pulseTalk 0.3s ease-in-out infinite;
-    }
-
-    @keyframes idleGlow {
-      0%, 100% { box-shadow: 0 0 20px #aa88ff; }
-      50% { box-shadow: 0 0 60px #aa88ff; }
-    }
-
-    @keyframes pulseTalk {
-      0%, 100% { transform: scale(1); box-shadow: 0 0 30px #fff; }
-      50% { transform: scale(1.1); box-shadow: 0 0 60px #fff; }
     }
 
     #bandeau {
@@ -76,6 +48,7 @@
       padding: 20px;
       overflow: hidden;
       white-space: nowrap;
+      z-index: 3;
     }
 
     #bandeau span {
@@ -95,7 +68,7 @@
       transform: translate(-50%, -50%);
       max-width: 80%;
       max-height: 80%;
-      z-index: 10;
+      z-index: 4;
       display: none;
     }
 
@@ -108,6 +81,7 @@
       opacity: 0.8;
       animation: floatMagic 6s linear infinite;
       pointer-events: none;
+      z-index: 5;
     }
 
     @keyframes floatMagic {
@@ -120,47 +94,18 @@
 
   <!-- 🎥 Vidéos d’Astra -->
   <video id="astraIdle" src="astra_idle.mp4" autoplay muted loop></video>
-  <video id="astraParle" src="astra_parle.mp4" muted></video>
-  <video id="astraColere" src="astra_colere.mp4" muted></video>
-  <video id="astraSuspecte" src="astra_suspecte.mp4" muted></video>
-  <video id="astraHeureuse" src="astra_heureuse.mp4" muted></video>
-
-  <div class="container">
-    <div class="orb" id="orb"></div>
-  </div>
+  <video id="astraReaction" muted></video>
 
   <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
   <img id="parcheminImage" src="parchemin.png" alt="Parchemin de libération" />
 
   <script>
-    const orb = document.getElementById("orb");
     const bandeau = document.getElementById("bandeau");
     const parcheminImage = document.getElementById("parcheminImage");
+    const astraIdle = document.getElementById("astraIdle");
+    const astraReaction = document.getElementById("astraReaction");
 
-    // 🎥 Gestion des vidéos
-    const videos = {
-      idle: document.getElementById("astraIdle"),
-      parle: document.getElementById("astraParle"),
-      colere: document.getElementById("astraColere"),
-      suspecte: document.getElementById("astraSuspecte"),
-      heureuse: document.getElementById("astraHeureuse"),
-    };
-
-    function showVideo(videoKey, duration = 6000) {
-      for (const v of Object.values(videos)) v.style.opacity = "0";
-      const v = videos[videoKey];
-      if (v) {
-        v.currentTime = 0;
-        v.play();
-        v.style.opacity = "1";
-        setTimeout(() => {
-          v.style.opacity = "0";
-          videos.idle.style.opacity = "1";
-        }, duration);
-      }
-    }
-
-    // 🌌 Effets magiques activés après le mot de passe
+    // 🌌 Effets magiques après mot de passe
     function spawnMagic() {
       const p = document.createElement("div");
       p.classList.add("magic");
@@ -174,7 +119,29 @@
       setTimeout(() => p.remove(), 6000);
     }
 
-    // 🔊 Audio
+    // 🎧 Lecture audio + vidéo
+    const playAudio = (file, videoName = "astra_parle.mp4") => {
+      const audio = new Audio(file);
+      astraReaction.src = videoName;
+      astraIdle.style.opacity = "0";
+      astraReaction.style.opacity = "1";
+      astraReaction.currentTime = 0;
+      astraReaction.play();
+      audio.play();
+
+      audio.onended = () => {
+        astraReaction.style.opacity = "0";
+        astraIdle.style.opacity = "1";
+      };
+    };
+
+    // 🎙️ Reconnaissance vocale
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.continuous = true;
+    recognition.lang = 'fr-FR';
+
+    let mdpValid = false;
+
     const audioFiles = {
       bonjour: "salutation_bonjour.mp3",
       qui: "qui_es_tu.mp3",
@@ -209,73 +176,70 @@
       indice_aide: "indice_aide.mp3"
     };
 
-    let mdpValid = false;
-
-    const playAudio = (file, mood = "parle") => {
-      const audio = new Audio(file);
-      orb.classList.add("talking");
-      showVideo(mood);
-      audio.onended = () => {
-        orb.classList.remove("talking");
-        videos.idle.style.opacity = "1";
-      };
-      audio.play();
-    };
-
-    // 🎙️ Détection vocale
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.continuous = true;
-    recognition.lang = 'fr-FR';
-
     const detectPhrase = (text) => {
       const t = text.toLowerCase();
 
-      if (t.includes("bonjour") || t.includes("salut")) return {file: audioFiles.bonjour, mood: "heureuse"};
-      if (t.includes("qui es-tu") || t.includes("astra")) return {file: audioFiles.qui, mood: "parle"};
-      if (t.includes("où sommes") || t.includes("on est où")) return {file: audioFiles.ou, mood: "suspecte"};
-      if (t.includes("ça va")) return {file: audioFiles.ca_va, mood: "heureuse"};
-      if (t.includes("tu es là")) return {file: audioFiles.tu_es_la, mood: "parle"};
-      if (t.includes("pétunia")) return {file: audioFiles.petunia, mood: "colere"};
+      // === Salutations ===
+      if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou"))
+        return { file: audioFiles.bonjour, video: "astra_heureuse.mp4" };
 
-      if (t.includes("bonne nuit")) {
+      // === Qui es-tu ===
+      if (t.includes("qui es-tu") || t.includes("astra") || t.includes("c’est quoi toi"))
+        return { file: audioFiles.qui, video: "astra_parle.mp4" };
+
+      // === Où sommes-nous ===
+      if (t.includes("où sommes") || t.includes("on est où") || t.includes("quel est cet endroit"))
+        return { file: audioFiles.ou, video: "astra_suspecte.mp4" };
+
+      // === Mot de passe ===
+      if (t.includes("le mot de passe c'est bonne nuit") || t.includes("bonne nuit")) {
         if (!mdpValid) {
           mdpValid = true;
           bandeau.style.display = "none";
           document.body.style.background = "#001b1b";
           for (let i = 0; i < 40; i++) setTimeout(spawnMagic, i * 150);
-          playAudio(audioFiles.notif, "heureuse");
-          setTimeout(() => playAudio(audioFiles.mdp, "parle"), 3000);
+          playAudio(audioFiles.notif, "astra_heureuse.mp4");
+          setTimeout(() => playAudio(audioFiles.mdp, "astra_parle.mp4"), 3000);
           return {};
-        } else return {file: audioFiles.mdp, mood: "parle"};
+        } else return { file: audioFiles.mdp, video: "astra_parle.mp4" };
       }
 
+      // === Mot de passe oublié ===
       if (
         t.includes("mot de passe oublié") ||
         t.includes("j'ai oublié") ||
         t.includes("comment trouver") ||
         t.includes("c'est quoi le mot de passe")
       )
-        return {file: audioFiles.mdp_oublie, mood: "suspecte"};
+        return { file: audioFiles.mdp_oublie, video: "astra_suspecte.mp4" };
 
-      if (t.includes("parchemin de libération")) {
+      // === Fausse réponse Pétunia ===
+      if (t.includes("pétunia"))
+        return { file: audioFiles.petunia, video: "astra_colere.mp4" };
+
+      // === Autres interactions ===
+      if (t.includes("ça va")) return { file: audioFiles.ca_va, video: "astra_heureuse.mp4" };
+      if (t.includes("tu es là")) return { file: audioFiles.tu_es_la, video: "astra_parle.mp4" };
+      if (t.includes("parchemin")) {
         if (mdpValid) {
           parcheminImage.style.display = "block";
-          setTimeout(() => (parcheminImage.style.display = "none"), 15000);
-          return {file: audioFiles.parchemin, mood: "heureuse"};
+          setTimeout(() => parcheminImage.style.display = "none", 15000);
+          return { file: audioFiles.parchemin, video: "astra_heureuse.mp4" };
         } else {
-          const randomFaux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
-          return {file: randomFaux, mood: "colere"};
+          const faux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
+          return { file: faux, video: "astra_colere.mp4" };
         }
       }
 
-      return {file: audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)], mood: "suspecte"};
+      // === Inconnue ===
+      return { file: audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)], video: "astra_suspecte.mp4" };
     };
 
-    recognition.onresult = (e) => {
-      const text = e.results[e.results.length - 1][0].transcript.trim();
+    recognition.onresult = (event) => {
+      const text = event.results[event.results.length - 1][0].transcript.trim();
       console.log("🎙️ Entendu :", text);
-      const {file, mood} = detectPhrase(text);
-      if (file) playAudio(file, mood);
+      const { file, video } = detectPhrase(text);
+      if (file) playAudio(file, video);
     };
 
     recognition.onend = () => setTimeout(() => recognition.start(), 1000);
