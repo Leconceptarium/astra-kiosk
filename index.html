@@ -1,210 +1,96 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Astra – Assistant de M. Morpheus</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Unica+One&display=swap');
-
     body {
       margin: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       height: 100vh;
-      background: radial-gradient(circle at center, #0d0020, #1b003b);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      overflow: hidden;
-      font-family: 'Unica One', sans-serif;
-      color: #fff;
+      background: linear-gradient(135deg, #0d0020, #1b003b);
+      font-family: 'Unica One', serif;
+      transition: background 1s ease;
     }
 
-    /* Halo lumineux derrière la tête */
-    .aura {
-      position: absolute;
-      width: 300px;
-      height: 300px;
+    .container { display: flex; flex-direction: column; align-items: center; }
+
+    .orb {
+      width: 180px;
+      height: 180px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(170,136,255,0.4) 0%, rgba(60,0,120,0.05) 70%);
-      filter: blur(40px);
-      animation: pulseAura 6s ease-in-out infinite;
+      background: radial-gradient(circle at center, #aa88ff 0%, #220044 80%);
+      box-shadow: 0 0 40px #aa88ff;
+      animation: idleGlow 3s ease-in-out infinite;
+      transition: background 1s ease, box-shadow 1s ease;
     }
 
-    @keyframes pulseAura {
-      0%,100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
-      50% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+    .talking { animation: pulseTalk 0.3s ease-in-out infinite; }
+
+    @keyframes idleGlow {
+      0%, 100% { box-shadow: 0 0 20px #aa88ff; }
+      50% { box-shadow: 0 0 60px #aa88ff; }
     }
 
-    /* Visage */
-    .face {
-      position: relative;
-      width: 260px;
-      height: 260px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 70% 30%, #fff 0%, #dcdcdc 80%);
-      border: 4px solid #000;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 0 60px #aa88ff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.4s ease;
-      z-index: 2;
+    @keyframes pulseTalk {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 30px #fff; }
+      50% { transform: scale(1.1); box-shadow: 0 0 60px #fff; }
     }
 
-    .face.talking { transform: scale(1.05); }
-
-    /* Yeux */
-    .eyes {
-      display: flex;
-      justify-content: space-between;
-      width: 140px;
-      margin-top: 50px;
-    }
-
-    .eye {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: #000;
-      border: 3px solid #222;
-      position: relative;
-      overflow: hidden;
-      transform-origin: center;
-    }
-
-    .eye::after {
-      content: "";
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #fff 0%, #999 80%);
-      top: 10px;
-      left: 12px;
-      animation: lookAround 6s ease-in-out infinite;
-    }
-
-    @keyframes lookAround {
-      0%,100% { transform: translate(0,0); }
-      25% { transform: translate(6px, 2px); }
-      50% { transform: translate(-4px, 3px); }
-      75% { transform: translate(2px, -3px); }
-    }
-
-    .eyes.talking .eye {
-      animation: blink 5s infinite;
-    }
-
-    @keyframes blink {
-      0%, 92%, 100% { transform: scaleY(1); }
-      95%, 98% { transform: scaleY(0.1); }
-    }
-
-    /* Bouche */
-    .mouth {
-      position: absolute;
-      bottom: 55px;
-      width: 110px;
-      height: 35px;
-      background: radial-gradient(circle at center, #300050 0%, #000 70%);
-      border-radius: 0 0 90px 90px;
-      border-top: 3px solid #000;
-      transition: all 0.15s ease;
-      transform-origin: top center;
-      box-shadow: inset 0 -3px 10px rgba(255,255,255,0.1);
-    }
-
-    .mouth.talking {
-      animation: mouthMove 0.12s ease-in-out infinite alternate;
-      background: radial-gradient(circle at center, #6e00b8 0%, #10002b 80%);
-      box-shadow: 0 0 15px #b78aff;
-    }
-
-    @keyframes mouthMove {
-      from { transform: scaleY(0.4); }
-      to { transform: scaleY(1.3); }
-    }
-
-    /* Bandeau */
     #bandeau {
       position: fixed;
       bottom: 0;
       width: 100%;
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.1);
       color: #fff;
-      font-size: 2rem;
+      font-size: 4rem;
+      font-family: 'Unica One';
+      padding: 20px;
       text-align: center;
-      padding: 14px;
-      letter-spacing: 2px;
-      text-shadow: 0 0 10px #a084ff;
-      border-top: 1px solid rgba(255,255,255,0.2);
+      white-space: nowrap;
+      overflow: hidden;
     }
 
-    /* Petites particules lumineuses */
-    .particle {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: #bfa2ff;
-      opacity: 0.8;
-      animation: floatUp 6s linear infinite;
+    #bandeau span {
+      display: inline-block;
+      animation: defilement 12s linear infinite;
     }
 
-    @keyframes floatUp {
-      0% { transform: translateY(0) scale(1); opacity: 1; }
-      100% { transform: translateY(-300px) scale(0.5); opacity: 0; }
+    @keyframes defilement {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    #parcheminImage {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 80%;
+      max-height: 80%;
+      z-index: 10;
+      display: none;
     }
   </style>
 </head>
 <body>
-  <div class="aura"></div>
-  <div class="face" id="face">
-    <div class="eyes" id="eyes">
-      <div class="eye"></div>
-      <div class="eye"></div>
-    </div>
-    <div class="mouth" id="mouth"></div>
+  <div class="container">
+    <div class="orb" id="orb"></div>
   </div>
 
-  <div id="bandeau">ASTRA VOUS ÉCOUTE...</div>
+  <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
+  <img id="parcheminImage" src="parchemin.png" alt="Parchemin de libération" />
 
   <script>
-    // --- Crée des particules de lumière ---
-    for (let i = 0; i < 15; i++) {
-      const p = document.createElement('div');
-      p.className = 'particle';
-      p.style.left = Math.random() * 100 + 'vw';
-      p.style.animationDelay = Math.random() * 5 + 's';
-      p.style.animationDuration = (4 + Math.random() * 3) + 's';
-      document.body.appendChild(p);
-    }
-
-    const mouth = document.getElementById("mouth");
-    const eyes = document.getElementById("eyes");
-    const face = document.getElementById("face");
+    const orb = document.getElementById("orb");
     const bandeau = document.getElementById("bandeau");
+    const parcheminImage = document.getElementById("parcheminImage");
 
-    function playAstraVoice(audioFile) {
-      const audio = new Audio(audioFile);
-      audio.play();
-
-      mouth.classList.add("talking");
-      eyes.classList.add("talking");
-      face.classList.add("talking");
-      bandeau.textContent = "ASTRA RÉPOND...";
-
-      audio.onended = () => {
-        mouth.classList.remove("talking");
-        eyes.classList.remove("talking");
-        face.classList.remove("talking");
-        bandeau.textContent = "ASTRA VOUS ÉCOUTE...";
-      };
-    }
-
-    // --- Reconnaissance vocale ---
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.continuous = true;
     recognition.interimResults = false;
@@ -212,56 +98,191 @@
 
     let mdpValid = false;
 
-    const detectPhrase = (text) => {
-      const t = text.toLowerCase();
-      if (t.includes("bonjour") || t.includes("salut")) return "salutation_bonjour.mp3";
-      if (t.includes("qui es-tu") || t.includes("astra")) return "qui_es_tu.mp3";
-      if (t.includes("on est où") || t.includes("où sommes-nous")) return "ou_sommes_nous.mp3";
-      if (t.includes("ça va")) return "ca_va.mp3";
-      if (t.includes("tu es là")) return "tu_es_la.mp3";
-      if (t.includes("indice") || t.includes("aide")) return "indice_aide.mp3";
-      if (t.includes("bonne nuit")) {
-        if (!mdpValid) {
-          mdpValid = true;
-          document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
-        }
-        return "mdp_confirme.mp3";
-      }
-      if (t.includes("pétunia")) return "mdp_faux.mp3";
+    const playSound = (file, callback) => {
+      const audio = new Audio(file);
+      orb.classList.add("talking");
+      audio.onended = () => {
+        orb.classList.remove("talking");
+        if (callback) callback();
+      };
+      audio.play();
+    };
 
-      const randomFaux = [
+    const audioFiles = {
+      bonjour: "salutation_bonjour.mp3",
+      qui: "qui_es_tu.mp3",
+      ou: "ou_sommes_nous.mp3",
+      mdp: "mdp_confirme.mp3",
+      mdp_faux: ["mdp_faux.mp3", "mdp_faux2.mp3", "mdp_faux3.mp3"],
+      petunia: "mdp_faux_petunia.mp3",
+      invite_mdp: "invite_mdp.mp3",
+      pas_compris: [
         "phrase_non_reconnue.mp3",
         "phrase_non_reconnue2.mp3",
-        "phrase_non_reconnue3.mp3"
-      ];
-      return randomFaux[Math.floor(Math.random() * randomFaux.length)];
+        "phrase_non_reconnue3.mp3",
+        "phrase_non_reconnue4.mp3"
+      ],
+      ca_va: "ca_va.mp3",
+      tu_es_la: "tu_es_la.mp3",
+      berceuse: "berceuse.mp3",
+      notif: "notification_mdp_valide.mp3",
+      reve_croire: "reve_croire.mp3",
+      pq_reve_plus: "pq_les_humains_reve_plus.mp3",
+      qui_morpheus: "c_qui_morpheus.mp3",
+      parchemin: "parchemin_liberation.mp3",
+      faire_quoi_mtn: "faire_quoi_mtn.mp3",
+      rire: "rire.mp3",
+      c_toi_qui_controles: "c_toi_qui_controles.mp3",
+      blague: "blague.mp3",
+      tu_aime_morpheus: "tu_aime_morpheus.mp3",
+      la_solution: "la_solution.mp3",
+      voix_preenregistree: "voix_preenregistree.mp3",
+      mdp_oublie: "mdp_oublie.mp3",
+      morpheus_apparence: "morpheus_apparence.mp3",
+      indice_aide: "indice_aide.mp3"
     };
+
+    const playAudio = (filename) => {
+      const audio = new Audio(filename);
+      orb.classList.add("talking");
+      audio.onended = () => orb.classList.remove("talking");
+      audio.play();
+    };
+
+    const detectPhrase = (text) => {
+      const t = text.toLowerCase();
+
+      // === Salutations ===
+      if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") ||
+          t.includes("bonsoir") || t.includes("wesh") || t.includes("yo"))
+        return audioFiles.bonjour;
+
+      // === Qui es-tu ===
+      if (t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
+          t.includes("c’est quoi toi") || t.includes("astra") || t.includes("c'est quoi ce truc"))
+        return audioFiles.qui;
+
+      // === Où sommes-nous ===
+      if (t.includes("où sommes") || t.includes("on est où") || t.includes("quel est cet endroit"))
+        return audioFiles.ou;
+
+      // === Mot de passe ===
+      if (t.includes("le mot de passe c'est bonne nuit") || t.includes("bonne nuit")) {
+        if (!mdpValid) {
+          mdpValid = true;
+          bandeau.style.display = "none";
+          document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
+          orb.style.background = "radial-gradient(circle at center, #88ffd2 0%, #004444 80%)";
+          orb.style.boxShadow = "0 0 40px #88ffd2";
+          playSound(audioFiles.notif, () => playAudio(audioFiles.mdp));
+        } else return audioFiles.mdp;
+        return null;
+      }
+// === Mot de passe oublié ===
+if (
+  t.includes("mot de passe oublié") ||
+  t.includes("j'ai oublié le mot de passe") ||
+  t.includes("comment trouver le mot de passe") ||
+  t.includes("c'est quoi le mot de passe") ||
+  t.includes("où je peux trouver le mot de passe")
+)
+  return audioFiles.mdp_oublie;
+
+      // === Fausse réponse Pétunia ===
+      if (t.includes("pétunia") || t.includes("petunia"))
+        return audioFiles.petunia;
+
+      // === Autres interactions sans mdp ===
+      if (t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe"))
+        return audioFiles.invite_mdp;
+
+      if (t.includes("ça va") || t.includes("comment tu vas") || t.includes("tu vas bien"))
+        return audioFiles.ca_va;
+
+      if (t.includes("tu es là") || t.includes("t'es là") || t.includes("hé ho") || t.includes("tu m'entends"))
+        return audioFiles.tu_es_la;
+
+      if (t.includes("berceuse") || t.includes("musique pour dormir"))
+        return audioFiles.berceuse;
+
+      if (t.includes("tu crois en nous") || t.includes("on va réussir"))
+        return audioFiles.reve_croire;
+
+      if (t.includes("pourquoi les humains ne rêvent plus"))
+        return audioFiles.pq_reve_plus;
+
+      if (t.includes("qui est morpheus") || t.includes("monsieur morpheus"))
+        return audioFiles.qui_morpheus;
+
+      // === Parchemin ===
+      if (t.includes("parchemin de libération") || t.includes("potion liberation")) {
+        if (mdpValid) {
+          parcheminImage.style.display = "block";
+          setTimeout(() => { parcheminImage.style.display = "none"; }, 15000);
+          return audioFiles.parchemin;
+        } else {
+          const randomFaux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
+          return randomFaux;
+        }
+      }
+
+      // === Nouveaux fichiers ajoutés ===
+      if (t.includes("blague") || t.includes("raconte une blague")) {
+        playSound(audioFiles.blague, () => setTimeout(() => playSound(audioFiles.rire), 1000));
+        return null;
+      }
+
+      if (t.includes("tu aimes morpheus") || t.includes("tu nous aimes"))
+        return audioFiles.tu_aime_morpheus;
+
+      if (t.includes("solution"))
+        return audioFiles.la_solution;
+
+      if (t.includes("contrôles") || t.includes("c’est toi qui contrôles") || t.includes("qui contrôles"))
+        return audioFiles.c_toi_qui_controles;
+
+      if (t.includes("faut faire quoi") || t.includes("on fait quoi maintenant"))
+        return audioFiles.faire_quoi_mtn;
+
+      if (t.includes("préenregistrée") || t.includes("c'est enregistrée") || t.includes("c'est preenregistrée"))
+        return audioFiles.voix_preenregistree;
+
+      if (t.includes("ressemble morpheus") || t.includes("à quoi ressemble morpheus"))
+        return audioFiles.morpheus_apparence;
+
+      if (t.includes("indice") || t.includes("aide"))
+        return audioFiles.indice_aide;
+
+      // === Non reconnu ===
+      return audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)];
+    };
+
+    recognition.onstart = () => playSound("notification_debut.mp3");
 
     recognition.onresult = (event) => {
       const text = event.results[event.results.length - 1][0].transcript.trim();
       console.log("🎙️ Entendu :", text);
       const audioFile = detectPhrase(text);
-      if (audioFile) playAstraVoice(audioFile);
+      if (audioFile) playAudio(audioFile);
     };
 
     recognition.onerror = (event) => console.error("Erreur vocale :", event.error);
-    recognition.onend = () => setTimeout(() => recognition.start(), 1000);
+
+    recognition.onend = () => {
+      console.warn("🎧 Redémarrage de l’écoute...");
+      setTimeout(() => {
+        try { recognition.start(); } catch (e) { console.warn("Erreur redémarrage :", e); }
+      }, 1000);
+    };
 
     window.onload = () => {
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(() => {
-          console.log("✅ Micro autorisé, Astra écoute !");
+          console.log("✅ Micro autorisé, lancement de l’écoute");
           recognition.start();
         })
         .catch(err => console.error("Micro refusé :", err));
     };
-
-    // --- Test clavier ---
-    window.addEventListener("keydown", (e) => {
-      if (e.key === "1") playAstraVoice("mdp_confirme.mp3");
-      if (e.key === "2") playAstraVoice("mdp_faux.mp3");
-      if (e.key === "3") playAstraVoice("phrase_non_reconnue.mp3");
-    });
   </script>
 </body>
 </html>
