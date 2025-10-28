@@ -72,22 +72,24 @@
       display: none;
     }
 
-    .magic {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      background: radial-gradient(circle, #00ffee 0%, transparent 70%);
-      border-radius: 50%;
-      opacity: 0.8;
-      animation: floatMagic 6s linear infinite;
-      pointer-events: none;
-      z-index: 5;
-    }
+  .magic {
+  position: absolute;
+  width: 10px; /* plus gros */
+  height: 10px;
+  background: radial-gradient(circle, rgba(0,255,255,0.9) 0%, rgba(0,255,255,0.4) 40%, transparent 80%);
+  border-radius: 50%;
+  filter: blur(2px) brightness(1.6);
+  animation: floatMagic 5s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  z-index: 5;
+}
 
-    @keyframes floatMagic {
-      0% { transform: translateY(0) scale(1); opacity: 1; }
-      100% { transform: translateY(-400px) scale(0.3); opacity: 0; }
-    }
+@keyframes floatMagic {
+  0% { transform: translateY(0) scale(0.8) rotate(0deg); opacity: 1; }
+  50% { transform: translateY(-200px) scale(1.4) rotate(180deg); opacity: 0.8; }
+  100% { transform: translateY(-400px) scale(0.5) rotate(360deg); opacity: 0; }
+}
   </style>
 </head>
 <body>
@@ -106,24 +108,24 @@
     const astraReaction = document.getElementById("astraReaction");
 
     // 🌌 Effets magiques après mot de passe
-    function spawnMagic() {
-      const p = document.createElement("div");
-      p.classList.add("magic");
-      p.style.left = Math.random() * 100 + "vw";
-      p.style.bottom = "0px";
-      p.style.animationDuration = 4 + Math.random() * 4 + "s";
-      p.style.background = Math.random() > 0.5
-        ? "radial-gradient(circle, #00ffcc 0%, transparent 70%)"
-        : "radial-gradient(circle, #00ffee 0%, transparent 70%)";
-      document.body.appendChild(p);
-      setTimeout(() => p.remove(), 6000);
-    }
+   function spawnMagic() {
+  const p = document.createElement("div");
+  p.classList.add("magic");
+  p.style.left = Math.random() * 100 + "vw";
+  p.style.bottom = "-10px";
+  p.style.animationDuration = 3 + Math.random() * 4 + "s";
+  p.style.background = Math.random() > 0.5
+    ? "radial-gradient(circle, rgba(0,255,200,0.9) 0%, rgba(0,150,255,0.4) 40%, transparent 80%)"
+    : "radial-gradient(circle, rgba(0,255,255,0.9) 0%, rgba(0,255,100,0.4) 40%, transparent 80%)";
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 6000);
+}
 
     // 🎧 Lecture audio + vidéo
     const playAudio = (file, videoName = "astra_parle.mp4") => {
       const audio = new Audio(file);
       astraReaction.src = videoName;
-      astraIdle.style.opacity = "0";
+      astraIdle.style.opacity = "0.3";
       astraReaction.style.opacity = "1";
       astraReaction.currentTime = 0;
       astraReaction.play();
@@ -199,7 +201,6 @@
           document.body.style.background = "#001b1b";
           for (let i = 0; i < 40; i++) setTimeout(spawnMagic, i * 150);
           playAudio(audioFiles.notif, "astra_heureuse.mp4");
-          setTimeout(() => playAudio(audioFiles.mdp, "astra_parle.mp4"), 3000);
           return {};
         } else return { file: audioFiles.mdp, video: "astra_parle.mp4" };
       }
