@@ -91,7 +91,7 @@
 <body>
   <!-- 🎥 Vidéos -->
   <video id="astraIdle" src="astra_idle.mp4" autoplay muted loop playsinline preload="auto"></video>
-  <video id="astraIdle2" src="Astra_idle2.mp4" muted loop playsinline preload="auto"></video>
+  <video id="astraIdle2" src="astra_idle2.mp4" muted loop playsinline preload="auto"></video>
   <video id="astraReaction" muted playsinline preload="auto"></video>
 
   <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
@@ -104,7 +104,7 @@
     const astraIdle2 = document.getElementById("astraIdle2");
     const astraReaction = document.getElementById("astraReaction");
 
-    /* ✅ Boucles sans flash */
+    // ✅ Boucles sans flash
     [astraIdle, astraIdle2].forEach(v => {
       v.addEventListener('ended', () => {
         v.currentTime = 0.01;
@@ -216,21 +216,35 @@
       if (t.includes("qui es-tu") || t.includes("astra")) return { file: audioFiles.qui, video: VIDEO.happy };
       if (t.includes("où sommes")) return { file: audioFiles.ou, video: VIDEO.anxious };
 
+      // 🔑 Mot de passe
       if (t.includes("bonne nuit")) {
         if (!mdpValid) {
           mdpValid = true;
           bandeau.style.display = "none";
+
+          // Étape 1 : Astra confirme le mot de passe
           playAudio(audioFiles.mdp, VIDEO.happy);
+
+          // Étape 2 : effets magiques + notification après 3 sec
           setTimeout(() => {
             for (let i = 0; i < 40; i++) setTimeout(spawnMagic, i * 150);
             playAudio(audioFiles.notif, VIDEO.walkTalk);
-            activateIdle(astraIdle2); // 🌀 passage à la 2e boucle
-          }, 1000);
+
+            // Étape 3 : passage définitif à astra_idle2
+            setTimeout(() => {
+              astraIdle.classList.remove("active");
+              activateIdle(astraIdle2);
+            }, 4000);
+          }, 3000);
+
           return;
-        } else return { file: audioFiles.mdp, video: VIDEO.walkTalk };
+        } else {
+          return { file: audioFiles.mdp, video: VIDEO.walkTalk };
+        }
       }
 
-      if (t.includes("mot de passe oublié") || t.includes("j'ai oublié") || t.includes("comment trouver")) return { file: audioFiles.mdp_oublie, video: VIDEO.anxious };
+      if (t.includes("mot de passe oublié") || t.includes("j'ai oublié") || t.includes("comment trouver"))
+        return { file: audioFiles.mdp_oublie, video: VIDEO.anxious };
       if (t.includes("pétunia")) return { file: audioFiles.petunia, video: VIDEO.angry };
 
       if (t.includes("parchemin")) {
@@ -246,7 +260,7 @@
 
       if (t.includes("ça va")) return { file: audioFiles.ca_va, video: VIDEO.happy };
       if (t.includes("tu es là")) return { file: audioFiles.tu_es_la, video: VIDEO.anxious };
-      if (t.includes("berceuse")) return { file: audioFiles.berceuse, };
+      if (t.includes("berceuse")) return { file: audioFiles.berceuse };
       if (t.includes("tu crois en nous") || t.includes("on va réussir")) return { file: audioFiles.reve_croire, video: VIDEO.confident };
       if (t.includes("pourquoi les humains ne rêvent plus")) return { file: audioFiles.pq_reve_plus, video: VIDEO.suspicionAlt };
       if (t.includes("qui est morpheus")) return { file: audioFiles.qui_morpheus, video: VIDEO.walkTalk };
@@ -274,7 +288,7 @@
     window.onload = () => {
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(() => {
-          astraIdle.classList.add("active"); // visible immédiatement
+          astraIdle.classList.add("active");
           activateIdle(astraIdle);
           astraIdle.play().catch(()=>{astraIdle.muted=true;astraIdle.play();});
           recognition.start();
