@@ -125,11 +125,11 @@
     // 🎞 Références vidéos
     const VIDEO = {
       idle1: "astra_idle.mp4",
-      idle2: "Astra_idle2.mp4",
-      talk: "Astra_parle.mp4",
-      suspicious: "Astra_suspecte.mp4",
-      angry: "Astra_colere.mp4",
-      happy: "Astra_heureuse.mp4",
+      idle2: "astra_idle2.mp4",
+      talk: "astra_parle.mp4",
+      suspicious: "astra_suspecte.mp4",
+      angry: "astra_colere.mp4",
+      happy: "astra_heureuse.mp4",
       walkTalk: "marche2.mp4",
       anxious: "inquiete.mp4",
       read: "lecture.mp4",
@@ -246,7 +246,7 @@
 
       if (t.includes("ça va")) return { file: audioFiles.ca_va, video: VIDEO.happy };
       if (t.includes("tu es là")) return { file: audioFiles.tu_es_la, video: VIDEO.anxious };
-      if (t.includes("berceuse")) return { file: audioFiles.berceuse, video: VIDEO.suspicious };
+      if (t.includes("berceuse")) return { file: audioFiles.berceuse, };
       if (t.includes("tu crois en nous") || t.includes("on va réussir")) return { file: audioFiles.reve_croire, video: VIDEO.confident };
       if (t.includes("pourquoi les humains ne rêvent plus")) return { file: audioFiles.pq_reve_plus, video: VIDEO.suspicionAlt };
       if (t.includes("qui est morpheus")) return { file: audioFiles.qui_morpheus, video: VIDEO.walkTalk };
