@@ -13,12 +13,31 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: linear-gradient(135deg, #0d0020, #1b003b);
+      background: #000;
       font-family: 'Unica One', serif;
       transition: background 1s ease;
     }
 
-    .container { display: flex; flex-direction: column; align-items: center; }
+    video {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    #astraIdle {
+      opacity: 1;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 1;
+    }
 
     .orb {
       width: 180px;
@@ -28,9 +47,13 @@
       box-shadow: 0 0 40px #aa88ff;
       animation: idleGlow 3s ease-in-out infinite;
       transition: background 1s ease, box-shadow 1s ease;
+      position: relative;
+      z-index: 2;
     }
 
-    .talking { animation: pulseTalk 0.3s ease-in-out infinite; }
+    .talking {
+      animation: pulseTalk 0.3s ease-in-out infinite;
+    }
 
     @keyframes idleGlow {
       0%, 100% { box-shadow: 0 0 20px #aa88ff; }
@@ -46,14 +69,13 @@
       position: fixed;
       bottom: 0;
       width: 100%;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.08);
       color: #fff;
-      font-size: 4rem;
-      font-family: 'Unica One';
-      padding: 20px;
+      font-size: 3rem;
       text-align: center;
-      white-space: nowrap;
+      padding: 20px;
       overflow: hidden;
+      white-space: nowrap;
     }
 
     #bandeau span {
@@ -76,9 +98,33 @@
       z-index: 10;
       display: none;
     }
+
+    .magic {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: radial-gradient(circle, #00ffee 0%, transparent 70%);
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: floatMagic 6s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes floatMagic {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-400px) scale(0.3); opacity: 0; }
+    }
   </style>
 </head>
 <body>
+
+  <!-- 🎥 Vidéos d’Astra -->
+  <video id="astraIdle" src="astra_idle.mp4" autoplay muted loop></video>
+  <video id="astraParle" src="astra_parle.mp4" muted></video>
+  <video id="astraColere" src="astra_colere.mp4" muted></video>
+  <video id="astraSuspecte" src="astra_suspecte.mp4" muted></video>
+  <video id="astraHeureuse" src="astra_heureuse.mp4" muted></video>
+
   <div class="container">
     <div class="orb" id="orb"></div>
   </div>
@@ -91,23 +137,44 @@
     const bandeau = document.getElementById("bandeau");
     const parcheminImage = document.getElementById("parcheminImage");
 
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.lang = 'fr-FR';
-
-    let mdpValid = false;
-
-    const playSound = (file, callback) => {
-      const audio = new Audio(file);
-      orb.classList.add("talking");
-      audio.onended = () => {
-        orb.classList.remove("talking");
-        if (callback) callback();
-      };
-      audio.play();
+    // 🎥 Gestion des vidéos
+    const videos = {
+      idle: document.getElementById("astraIdle"),
+      parle: document.getElementById("astraParle"),
+      colere: document.getElementById("astraColere"),
+      suspecte: document.getElementById("astraSuspecte"),
+      heureuse: document.getElementById("astraHeureuse"),
     };
 
+    function showVideo(videoKey, duration = 6000) {
+      for (const v of Object.values(videos)) v.style.opacity = "0";
+      const v = videos[videoKey];
+      if (v) {
+        v.currentTime = 0;
+        v.play();
+        v.style.opacity = "1";
+        setTimeout(() => {
+          v.style.opacity = "0";
+          videos.idle.style.opacity = "1";
+        }, duration);
+      }
+    }
+
+    // 🌌 Effets magiques activés après le mot de passe
+    function spawnMagic() {
+      const p = document.createElement("div");
+      p.classList.add("magic");
+      p.style.left = Math.random() * 100 + "vw";
+      p.style.bottom = "0px";
+      p.style.animationDuration = 4 + Math.random() * 4 + "s";
+      p.style.background = Math.random() > 0.5
+        ? "radial-gradient(circle, #00ffcc 0%, transparent 70%)"
+        : "radial-gradient(circle, #00ffee 0%, transparent 70%)";
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 6000);
+    }
+
+    // 🔊 Audio
     const audioFiles = {
       bonjour: "salutation_bonjour.mp3",
       qui: "qui_es_tu.mp3",
@@ -142,145 +209,80 @@
       indice_aide: "indice_aide.mp3"
     };
 
-    const playAudio = (filename) => {
-      const audio = new Audio(filename);
+    let mdpValid = false;
+
+    const playAudio = (file, mood = "parle") => {
+      const audio = new Audio(file);
       orb.classList.add("talking");
-      audio.onended = () => orb.classList.remove("talking");
+      showVideo(mood);
+      audio.onended = () => {
+        orb.classList.remove("talking");
+        videos.idle.style.opacity = "1";
+      };
       audio.play();
     };
+
+    // 🎙️ Détection vocale
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.continuous = true;
+    recognition.lang = 'fr-FR';
 
     const detectPhrase = (text) => {
       const t = text.toLowerCase();
 
-      // === Salutations ===
-      if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") ||
-          t.includes("bonsoir") || t.includes("wesh") || t.includes("yo"))
-        return audioFiles.bonjour;
+      if (t.includes("bonjour") || t.includes("salut")) return {file: audioFiles.bonjour, mood: "heureuse"};
+      if (t.includes("qui es-tu") || t.includes("astra")) return {file: audioFiles.qui, mood: "parle"};
+      if (t.includes("où sommes") || t.includes("on est où")) return {file: audioFiles.ou, mood: "suspecte"};
+      if (t.includes("ça va")) return {file: audioFiles.ca_va, mood: "heureuse"};
+      if (t.includes("tu es là")) return {file: audioFiles.tu_es_la, mood: "parle"};
+      if (t.includes("pétunia")) return {file: audioFiles.petunia, mood: "colere"};
 
-      // === Qui es-tu ===
-      if (t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
-          t.includes("c’est quoi toi") || t.includes("astra") || t.includes("c'est quoi ce truc"))
-        return audioFiles.qui;
-
-      // === Où sommes-nous ===
-      if (t.includes("où sommes") || t.includes("on est où") || t.includes("quel est cet endroit"))
-        return audioFiles.ou;
-
-      // === Mot de passe ===
-      if (t.includes("le mot de passe c'est bonne nuit") || t.includes("bonne nuit")) {
+      if (t.includes("bonne nuit")) {
         if (!mdpValid) {
           mdpValid = true;
           bandeau.style.display = "none";
-          document.body.style.background = "linear-gradient(135deg, #002d2d, #006c6c)";
-          orb.style.background = "radial-gradient(circle at center, #88ffd2 0%, #004444 80%)";
-          orb.style.boxShadow = "0 0 40px #88ffd2";
-          playSound(audioFiles.notif, () => playAudio(audioFiles.mdp));
-        } else return audioFiles.mdp;
-        return null;
+          document.body.style.background = "#001b1b";
+          for (let i = 0; i < 40; i++) setTimeout(spawnMagic, i * 150);
+          playAudio(audioFiles.notif, "heureuse");
+          setTimeout(() => playAudio(audioFiles.mdp, "parle"), 3000);
+          return {};
+        } else return {file: audioFiles.mdp, mood: "parle"};
       }
-// === Mot de passe oublié ===
-if (
-  t.includes("mot de passe oublié") ||
-  t.includes("j'ai oublié le mot de passe") ||
-  t.includes("comment trouver le mot de passe") ||
-  t.includes("c'est quoi le mot de passe") ||
-  t.includes("où je peux trouver le mot de passe")
-)
-  return audioFiles.mdp_oublie;
 
-      // === Fausse réponse Pétunia ===
-      if (t.includes("pétunia") || t.includes("petunia"))
-        return audioFiles.petunia;
+      if (
+        t.includes("mot de passe oublié") ||
+        t.includes("j'ai oublié") ||
+        t.includes("comment trouver") ||
+        t.includes("c'est quoi le mot de passe")
+      )
+        return {file: audioFiles.mdp_oublie, mood: "suspecte"};
 
-      // === Autres interactions sans mdp ===
-      if (t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe"))
-        return audioFiles.invite_mdp;
-
-      if (t.includes("ça va") || t.includes("comment tu vas") || t.includes("tu vas bien"))
-        return audioFiles.ca_va;
-
-      if (t.includes("tu es là") || t.includes("t'es là") || t.includes("hé ho") || t.includes("tu m'entends"))
-        return audioFiles.tu_es_la;
-
-      if (t.includes("berceuse") || t.includes("musique pour dormir"))
-        return audioFiles.berceuse;
-
-      if (t.includes("tu crois en nous") || t.includes("on va réussir"))
-        return audioFiles.reve_croire;
-
-      if (t.includes("pourquoi les humains ne rêvent plus"))
-        return audioFiles.pq_reve_plus;
-
-      if (t.includes("qui est morpheus") || t.includes("monsieur morpheus"))
-        return audioFiles.qui_morpheus;
-
-      // === Parchemin ===
-      if (t.includes("parchemin de libération") || t.includes("potion liberation")) {
+      if (t.includes("parchemin de libération")) {
         if (mdpValid) {
           parcheminImage.style.display = "block";
-          setTimeout(() => { parcheminImage.style.display = "none"; }, 15000);
-          return audioFiles.parchemin;
+          setTimeout(() => (parcheminImage.style.display = "none"), 15000);
+          return {file: audioFiles.parchemin, mood: "heureuse"};
         } else {
           const randomFaux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
-          return randomFaux;
+          return {file: randomFaux, mood: "colere"};
         }
       }
 
-      // === Nouveaux fichiers ajoutés ===
-      if (t.includes("blague") || t.includes("raconte une blague")) {
-        playSound(audioFiles.blague, () => setTimeout(() => playSound(audioFiles.rire), 1000));
-        return null;
-      }
-
-      if (t.includes("tu aimes morpheus") || t.includes("tu nous aimes"))
-        return audioFiles.tu_aime_morpheus;
-
-      if (t.includes("solution"))
-        return audioFiles.la_solution;
-
-      if (t.includes("contrôles") || t.includes("c’est toi qui contrôles") || t.includes("qui contrôles"))
-        return audioFiles.c_toi_qui_controles;
-
-      if (t.includes("faut faire quoi") || t.includes("on fait quoi maintenant"))
-        return audioFiles.faire_quoi_mtn;
-
-      if (t.includes("préenregistrée") || t.includes("c'est enregistrée") || t.includes("c'est preenregistrée"))
-        return audioFiles.voix_preenregistree;
-
-      if (t.includes("ressemble morpheus") || t.includes("à quoi ressemble morpheus"))
-        return audioFiles.morpheus_apparence;
-
-      if (t.includes("indice") || t.includes("aide"))
-        return audioFiles.indice_aide;
-
-      // === Non reconnu ===
-      return audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)];
+      return {file: audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)], mood: "suspecte"};
     };
 
-    recognition.onstart = () => playSound("notification_debut.mp3");
-
-    recognition.onresult = (event) => {
-      const text = event.results[event.results.length - 1][0].transcript.trim();
+    recognition.onresult = (e) => {
+      const text = e.results[e.results.length - 1][0].transcript.trim();
       console.log("🎙️ Entendu :", text);
-      const audioFile = detectPhrase(text);
-      if (audioFile) playAudio(audioFile);
+      const {file, mood} = detectPhrase(text);
+      if (file) playAudio(file, mood);
     };
 
-    recognition.onerror = (event) => console.error("Erreur vocale :", event.error);
-
-    recognition.onend = () => {
-      console.warn("🎧 Redémarrage de l’écoute...");
-      setTimeout(() => {
-        try { recognition.start(); } catch (e) { console.warn("Erreur redémarrage :", e); }
-      }, 1000);
-    };
+    recognition.onend = () => setTimeout(() => recognition.start(), 1000);
 
     window.onload = () => {
       navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(() => {
-          console.log("✅ Micro autorisé, lancement de l’écoute");
-          recognition.start();
-        })
+        .then(() => recognition.start())
         .catch(err => console.error("Micro refusé :", err));
     };
   </script>
