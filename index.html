@@ -12,91 +12,48 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: #000; /* ✅ FOND NOIR PERMANENT */
+      background: #000; /* fond noir permanent */
       font-family: 'Unica One', serif;
     }
+    video{
+      position:absolute;top:50%;left:50%;
+      width:95%;height:auto;transform:translate(-50%,-50%);
+      object-fit:contain;background:#000;
+      opacity:0;transition:opacity .6s ease;
+    }
+    #astraIdle{opacity:1;z-index:1;}
+    #astraReaction{z-index:2;}
 
-    video {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 95%; /* légèrement plus petite */
-      height: auto;
-      transform: translate(-50%, -50%);
-      object-fit: contain;
-      opacity: 0;
-      transition: opacity 0.8s ease;
-      background-color: #000; /* ✅ supprime le flash entre les boucles */
+    #bandeau{
+      position:fixed;bottom:0;width:100%;
+      background:rgba(255,255,255,.05);color:#fff;
+      font-size:3rem;text-align:center;padding:20px;
+      white-space:nowrap;overflow:hidden;z-index:3;
+    }
+    #bandeau span{display:inline-block;animation:def 12s linear infinite;}
+    @keyframes def{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+
+    #parcheminImage{
+      position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+      max-width:80%;max-height:80%;z-index:4;display:none;
     }
 
-    #astraIdle {
-      opacity: 1;
-      z-index: 1;
+    .magic{
+      position:absolute;width:18px;height:18px;border-radius:50%;
+      background:radial-gradient(circle,rgba(0,255,255,.9) 0%,rgba(0,255,255,.2) 40%,transparent 80%);
+      filter:blur(4px) brightness(2);mix-blend-mode:screen;
+      animation:floatMagic 6s ease-in-out infinite;pointer-events:none;z-index:5;
     }
-
-    #astraReaction {
-      z-index: 2;
-    }
-
-    #bandeau {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-      font-size: 3rem;
-      text-align: center;
-      padding: 20px;
-      overflow: hidden;
-      white-space: nowrap;
-      z-index: 3;
-    }
-
-    #bandeau span {
-      display: inline-block;
-      animation: defilement 12s linear infinite;
-    }
-
-    @keyframes defilement {
-      0% { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
-    }
-
-    #parcheminImage {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      max-width: 80%;
-      max-height: 80%;
-      z-index: 4;
-      display: none;
-    }
-
-    .magic {
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      background: radial-gradient(circle, rgba(0,255,255,0.9) 0%, rgba(0,255,255,0.2) 40%, transparent 80%);
-      border-radius: 50%;
-      filter: blur(4px) brightness(2);
-      animation: floatMagic 6s ease-in-out infinite;
-      pointer-events: none;
-      mix-blend-mode: screen;
-      z-index: 5;
-    }
-
-    @keyframes floatMagic {
-      0% { transform: translateY(0) scale(0.8) rotate(0deg); opacity: 1; }
-      50% { transform: translateY(-250px) scale(1.3) rotate(180deg); opacity: 0.8; }
-      100% { transform: translateY(-500px) scale(0.5) rotate(360deg); opacity: 0; }
+    @keyframes floatMagic{
+      0%{transform:translateY(0) scale(.8) rotate(0);opacity:1}
+      50%{transform:translateY(-250px) scale(1.3) rotate(180deg);opacity:.8}
+      100%{transform:translateY(-500px) scale(.5) rotate(360deg);opacity:0}
     }
   </style>
 </head>
 <body>
-
-  <!-- 🎥 Vidéos d’Astra -->
-  <video id="astraIdle" src="astra_idle.mp4" autoplay muted loop playsinline preload="auto"></video>
+  <!-- Vidéos -->
+  <video id="astraIdle" src="Astra_idle.mp4" autoplay muted loop playsinline preload="auto"></video>
   <video id="astraReaction" muted playsinline preload="auto"></video>
 
   <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
@@ -108,144 +65,186 @@
     const astraIdle = document.getElementById("astraIdle");
     const astraReaction = document.getElementById("astraReaction");
 
-    /* 🌌 Effets magiques */
-    function spawnMagic() {
-      const p = document.createElement("div");
-      p.classList.add("magic");
-      p.style.left = Math.random() * 100 + "vw";
-      p.style.bottom = "-10px";
-      p.style.animationDuration = 3 + Math.random() * 4 + "s";
-      p.style.background = Math.random() > 0.5
+    /* Références vidéos (exactement tes fichiers) */
+    const VIDEO = {
+      idle: "Astra_idle.mp4",
+      talk: "Astra_parle.mp4",
+      suspicious: "Astra_suspecte.mp4",
+      angry: "Astra_colere.mp4",
+      angryAlt: "Colere.mp4",
+      happy: "Astra_heureuse.mp4",
+      walkTalk: "marche2.mp4",
+      anxious: "inquiete.mp4",
+      read: "lecture.mp4",
+      joy: "joie.mp4",
+      suspicionAlt: "suspicion.mp4",
+      confident: "confiant.mp4"
+    };
+
+    /* Particules */
+    function spawnMagic(){
+      const p=document.createElement("div");
+      p.className="magic";
+      p.style.left=(Math.random()*100)+"vw";
+      p.style.bottom="-10px";
+      p.style.animationDuration=(3+Math.random()*4)+"s";
+      p.style.background = Math.random()>0.5
         ? "radial-gradient(circle, rgba(0,200,255,0.9) 0%, rgba(0,100,255,0.3) 40%, transparent 80%)"
         : "radial-gradient(circle, rgba(0,255,180,0.9) 0%, rgba(0,255,100,0.3) 40%, transparent 80%)";
       document.body.appendChild(p);
-      setTimeout(() => p.remove(), 6000);
+      setTimeout(()=>p.remove(),6000);
     }
 
-    /* 🎧 Lecture audio + vidéo */
-    const playAudio = (file, videoName = "astra_parle.mp4") => {
-      const audio = new Audio(file);
-      astraReaction.src = videoName;
-      astraIdle.style.opacity = "0.3";
-      astraReaction.style.opacity = "1";
-      astraReaction.currentTime = 0;
+    /* Audio + vidéo */
+    const playAudio=(file, videoName=VIDEO.talk)=>{
+      const audio=new Audio(file);
+      astraReaction.src=videoName;
+      astraIdle.style.opacity="0.3";
+      astraReaction.style.opacity="1";
+      astraReaction.currentTime=0;
       astraReaction.play();
       audio.play();
-
-      audio.onended = () => {
-        astraReaction.style.opacity = "0";
-        astraIdle.style.opacity = "1";
+      audio.onended=()=>{
+        astraReaction.style.opacity="0";
+        astraIdle.style.opacity="1";
       };
     };
 
-    /* 🎙️ Reconnaissance vocale */
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.continuous = true;
-    recognition.lang = 'fr-FR';
+    /* Reconnaissance vocale */
+    const recognition=new (window.SpeechRecognition||window.webkitSpeechRecognition)();
+    recognition.continuous=true;
+    recognition.lang='fr-FR';
 
-    let mdpValid = false;
+    let mdpValid=false;
 
+    /* Audios (exactement tes noms de fichiers) */
     const audioFiles = {
       bonjour: "salutation_bonjour.mp3",
       qui: "qui_es_tu.mp3",
       ou: "ou_sommes_nous.mp3",
       mdp: "mdp_confirme.mp3",
-      mdp_faux: ["mdp_faux.mp3", "mdp_faux2.mp3", "mdp_faux3.mp3"],
+      mdp_faux: ["mdp_faux.mp3","mdp_faux_petunia.mp3"],
       petunia: "mdp_faux_petunia.mp3",
-      invite_mdp: "invite_mdp.mp3",
-      pas_compris: [
-        "phrase_non_reconnue.mp3",
-        "phrase_non_reconnue2.mp3",
-        "phrase_non_reconnue3.mp3",
-        "phrase_non_reconnue4.mp3"
-      ],
-      ca_va: "ca_va.mp3",
+      invite_mdp: "inviter_mdp.mp3",
+      pas_compris: ["phrase_non_reconnue.mp3","phrase_non_reconnue2.mp3","phrase_non_reconnue3.mp3","phrase_non_reconnue4.mp3"],
+      ca_va: "Ca_va.mp3",
       tu_es_la: "tu_es_la.mp3",
+      berceuse: "Berceuse.mp3",
       notif: "notification_mdp_valide.mp3",
       reve_croire: "reve_croire.mp3",
       pq_reve_plus: "pq_les_humains_reve_plus.mp3",
-      qui_morpheus: "c_qui_morpheus.mp3",
+      qui_morpheus: "C_qui_morpheus.mp3",
       parchemin: "parchemin_liberation.mp3",
-      faire_quoi_mtn: "faire_quoi_mtn.mp3",
+      faire_quoi_mtn: "Faire_quoi_mtn.mp3",
       rire: "rire.mp3",
-      c_toi_qui_controles: "c_toi_qui_controles.mp3",
+      c_toi_qui_controles: "C_toi_qui_controles.mp3",
       blague: "blague.mp3",
       tu_aime_morpheus: "tu_aime_morpheus.mp3",
-      la_solution: "la_solution.mp3",
+      la_solution: "La_solution.mp3",
       voix_preenregistree: "voix_preenregistree.mp3",
       mdp_oublie: "mdp_oublie.mp3",
       morpheus_apparence: "morpheus_apparence.mp3",
-      indice_aide: "indice_aide.mp3"
+      indice_aide: "Indice_aide.mp3",
+      notif_debut: "notification_debut.mp3",
+      bonus: "jeu-bonus-144751.mp3"
     };
 
-    /* 🧠 Détection des phrases */
-    const detectPhrase = (text) => {
-      const t = text.toLowerCase();
+    /* Routing des phrases -> audios + vidéos */
+    const detectPhrase=(text)=>{
+      const t=text.toLowerCase();
 
-      if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou"))
-        return { file: audioFiles.bonjour, video: "marche2.mp4" };
+      // Salutations
+      if(t.includes("bonjour")||t.includes("salut")||t.includes("coucou"))
+        return {file:audioFiles.bonjour, video:VIDEO.walkTalk};
 
-      if (t.includes("qui es-tu") || t.includes("astra") || t.includes("c’est quoi toi"))
-        return { file: audioFiles.qui, video: "marche2.mp4" };
+      // Qui es-tu
+      if(t.includes("qui es-tu")||t.includes("astra")||t.includes("c’est quoi toi")||t.includes("c'est quoi toi"))
+        return {file:audioFiles.qui, video:VIDEO.walkTalk};
 
-      if (t.includes("où sommes") || t.includes("on est où") || t.includes("quel est cet endroit"))
-        return { file: audioFiles.ou, video: "inquiete.mp4" };
+      // Où sommes-nous
+      if(t.includes("où sommes")||t.includes("on est où")||t.includes("quel est cet endroit"))
+        return {file:audioFiles.ou, video:VIDEO.anxious};
 
-      if (t.includes("le mot de passe c'est bonne nuit") || t.includes("bonne nuit")) {
-        if (!mdpValid) {
-          mdpValid = true;
-          bandeau.style.display = "none";
-          playAudio(audioFiles.mdp, "astra_heureuse.mp4");
-
-          setTimeout(() => {
-            for (let i = 0; i < 40; i++) setTimeout(spawnMagic, i * 150);
-            playAudio(audioFiles.notif, "marche2.mp4");
-          }, 5000);
+      // Mot de passe
+      if(t.includes("le mot de passe c'est bonne nuit")||t.includes("bonne nuit")){
+        if(!mdpValid){
+          mdpValid=true;
+          bandeau.style.display="none";
+          // Astra confirme d’abord
+          playAudio(audioFiles.mdp, VIDEO.happy);
+          // Effets + petit son 5s après
+          setTimeout(()=>{
+            for(let i=0;i<40;i++) setTimeout(spawnMagic, i*150);
+            playAudio(audioFiles.notif, VIDEO.walkTalk);
+          },5000);
           return;
-        } else return { file: audioFiles.mdp, video: "marche2.mp4" };
-      }
-
-      if (t.includes("mot de passe oublié") || t.includes("j'ai oublié") || t.includes("comment trouver"))
-        return { file: audioFiles.mdp_oublie, video: "inquiete.mp4" };
-
-      if (t.includes("pétunia"))
-        return { file: audioFiles.petunia, video: "astra_colere.mp4" };
-
-      if (t.includes("parchemin")) {
-        if (mdpValid) {
-          parcheminImage.style.display = "block";
-          setTimeout(() => parcheminImage.style.display = "none", 15000);
-          return { file: audioFiles.parchemin, video: "lecture.mp4" };
-        } else {
-          const faux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
-          return { file: faux, video: "astra_colere.mp4" };
+        }else{
+          return {file:audioFiles.mdp, video:VIDEO.walkTalk};
         }
       }
 
-      if (t.includes("ça va")) return { file: audioFiles.ca_va, video: "marche2.mp4" };
-      if (t.includes("tu es là")) return { file: audioFiles.tu_es_la, video: "inquiete.mp4" };
+      // Mot de passe oublié
+      if(t.includes("mot de passe oublié")||t.includes("j'ai oublié")||t.includes("comment trouver")||t.includes("c'est quoi le mot de passe"))
+        return {file:audioFiles.mdp_oublie, video:VIDEO.anxious};
 
-      return { file: audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)], video: "inquiete.mp4" };
+      // Pétunia
+      if(t.includes("pétunia")||t.includes("petunia"))
+        return {file:audioFiles.petunia, video:VIDEO.angry};
+
+      // Parchemin
+      if(t.includes("parchemin")){
+        if(mdpValid){
+          parcheminImage.style.display="block";
+          setTimeout(()=>parcheminImage.style.display="none",15000);
+          return {file:audioFiles.parchemin, video:VIDEO.read};
+        }else{
+          const faux = audioFiles.mdp_faux[Math.floor(Math.random()*audioFiles.mdp_faux.length)];
+          return {file:faux, video:VIDEO.angryAlt};
+        }
+      }
+
+      // Divers
+      if(t.includes("ça va")) return {file:audioFiles.ca_va, video:VIDEO.walkTalk};
+      if(t.includes("tu es là")) return {file:audioFiles.tu_es_la, video:VIDEO.anxious};
+      if(t.includes("berceuse")) return {file:audioFiles.berceuse, video:VIDEO.suspicious};
+      if(t.includes("tu crois en nous")||t.includes("on va réussir")) return {file:audioFiles.reve_croire, video:VIDEO.confident};
+      if(t.includes("pourquoi les humains ne rêvent plus")) return {file:audioFiles.pq_reve_plus, video:VIDEO.suspicionAlt};
+      if(t.includes("qui est morpheus")||t.includes("monsieur morpheus")) return {file:audioFiles.qui_morpheus, video:VIDEO.walkTalk};
+      if(t.includes("blague")||t.includes("raconte une blague")) return {file:audioFiles.blague, video:VIDEO.joy};
+      if(t.includes("tu aimes morpheus")||t.includes("tu nous aimes")) return {file:audioFiles.tu_aime_morpheus, video:VIDEO.walkTalk};
+      if(t.includes("solution")) return {file:audioFiles.la_solution, video:VIDEO.talk};
+      if(t.includes("préenregistrée")||t.includes("preenregistrée")||t.includes("pré-enregistrée"))
+        return {file:audioFiles.voix_preenregistree, video:VIDEO.suspicious};
+      if(t.includes("indice")||t.includes("aide")) return {file:audioFiles.indice_aide, video:VIDEO.suspicionAlt};
+      if(t.includes("faut faire quoi")||t.includes("on fait quoi maintenant"))
+        return {file:audioFiles.faire_quoi_mtn, video:VIDEO.walkTalk};
+
+      // Non reconnu
+      return {file:audioFiles.pas_compris[Math.floor(Math.random()*audioFiles.pas_compris.length)], video:VIDEO.anxious};
     };
 
-    recognition.onresult = (event) => {
-      const text = event.results[event.results.length - 1][0].transcript.trim();
+    recognition.onresult=(e)=>{
+      const text=e.results[e.results.length-1][0].transcript.trim();
       console.log("🎙️ Entendu :", text);
-      const { file, video } = detectPhrase(text);
-      if (file) playAudio(file, video);
+      const res=detectPhrase(text);
+      if(res && res.file) playAudio(res.file, res.video||VIDEO.talk);
     };
 
-    recognition.onend = () => setTimeout(() => recognition.start(), 1000);
+    recognition.onend=()=>setTimeout(()=>recognition.start(),1000);
 
-    window.onload = () => {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(() => recognition.start())
-        .catch(err => console.error("Micro refusé :", err));
+    window.onload=()=>{
+      navigator.mediaDevices.getUserMedia({audio:true})
+        .then(()=>{
+          // petit son d’amorçage facultatif si besoin
+          // new Audio(audioFiles.notif_debut).play();
+          recognition.start();
+        })
+        .catch(err=>console.error("Micro refusé :", err));
     };
 
-    /* 🔁 Corrige les flashs en fin de boucle */
-    astraIdle.addEventListener('ended', () => {
-      astraIdle.currentTime = 0.01;
+    /* Loop idle ultra propre (pas de flash) */
+    astraIdle.addEventListener('ended', ()=>{
+      astraIdle.currentTime=0.01;
       astraIdle.play();
     });
   </script>
