@@ -27,11 +27,19 @@
       background: #000;
       opacity: 0;
       transition: opacity 0.6s ease;
+      display: none; /* invisible tant qu’inactive */
     }
 
-    #astraIdle, #astraIdle2 { z-index: 1; opacity: 0; }
-    #astraReaction { z-index: 2; }
-    #astraIdle.active, #astraIdle2.active { opacity: 1; }
+    #astraIdle.active, #astraIdle2.active {
+      display: block;
+      opacity: 1;
+      z-index: 1;
+    }
+
+    #astraReaction {
+      z-index: 2;
+      display: none;
+    }
 
     #bandeau {
       position: fixed;
@@ -73,7 +81,7 @@
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,255,255,.9) 0%, rgba(0,255,255,.2) 40%, transparent 80%);
+      background: radial-gradient(circle, rgba(150,0,255,.9) 0%, rgba(0,255,255,.2) 40%, transparent 80%);
       filter: blur(4px) brightness(2);
       mix-blend-mode: screen;
       animation: floatMagic 6s ease-in-out infinite;
@@ -85,6 +93,17 @@
       0% { transform: translateY(0) scale(.8) rotate(0); opacity: 1 }
       50% { transform: translateY(-250px) scale(1.3) rotate(180deg); opacity: .8 }
       100% { transform: translateY(-500px) scale(.5) rotate(360deg); opacity: 0 }
+    }
+
+    /* 🌀 Fondu magique violet entre idle et idle2 */
+    #transitionFade {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(180,100,255,0.6) 0%, rgba(0,0,0,1) 80%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9;
+      transition: opacity 1.5s ease;
     }
 
     /* 🖥️ Bouton plein écran */
@@ -117,6 +136,9 @@
   <video id="astraIdle2" src="astra_idle2.mp4" muted loop playsinline preload="auto"></video>
   <video id="astraReaction" muted playsinline preload="auto"></video>
 
+  <!-- 🌌 Transition magique -->
+  <div id="transitionFade"></div>
+
   <!-- 🔘 Bouton plein écran -->
   <div id="fullscreenBtn" title="Plein écran">⛶</div>
 
@@ -130,6 +152,7 @@
     const astraIdle2 = document.getElementById("astraIdle2");
     const astraReaction = document.getElementById("astraReaction");
     const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const fade = document.getElementById("transitionFade");
 
     /* ✅ Plein écran */
     fullscreenBtn.addEventListener("click", () => {
@@ -151,6 +174,10 @@
     function activateIdle(idleVideo) {
       astraIdle.classList.remove("active");
       astraIdle2.classList.remove("active");
+      astraIdle.style.display = "none";
+      astraIdle2.style.display = "none";
+
+      idleVideo.style.display = "block";
       idleVideo.classList.add("active");
       idleVideo.play().catch(() => {
         idleVideo.muted = true;
@@ -189,6 +216,7 @@
     const playAudio = (file, videoName = VIDEO.talk) => {
       const audio = new Audio(file);
       astraReaction.src = videoName;
+      astraReaction.style.display = "block";
       astraIdle.style.opacity = "0.3";
       astraIdle2.style.opacity = "0.3";
       astraReaction.style.opacity = "1";
@@ -198,6 +226,7 @@
 
       audio.onended = () => {
         astraReaction.style.opacity = "0";
+        astraReaction.style.display = "none";
         const activeIdle = mdpValid ? astraIdle2 : astraIdle;
         activeIdle.style.opacity = "1";
         activateIdle(activeIdle);
@@ -244,7 +273,7 @@
       indice_aide: "indice_aide.mp3"
     };
 
-    // 🧠 Réponses
+    // 🧠 Détection vocale
     const detectPhrase = (text) => {
       const t = text.toLowerCase();
 
@@ -252,31 +281,26 @@
       if (t.includes("qui es-tu") || t.includes("astra")) return { file: audioFiles.qui, video: VIDEO.happy };
       if (t.includes("où sommes")) return { file: audioFiles.ou, video: VIDEO.anxious };
 
-      // 🔑 Mot de passe
       if (t.includes("bonne nuit")) {
         if (!mdpValid) {
           mdpValid = true;
           bandeau.style.display = "none";
-
-          // Étape 1 : Astra confirme le mot de passe
           playAudio(audioFiles.mdp, VIDEO.happy);
 
-          // Étape 2 : effets magiques + notification après 3 sec
           setTimeout(() => {
             for (let i = 0; i < 40; i++) setTimeout(spawnMagic, i * 150);
             playAudio(audioFiles.notif, VIDEO.walkTalk);
 
-            // Étape 3 : passage définitif à astra_idle2
+            // 🌌 Transition magique
+            fade.style.opacity = "1";
             setTimeout(() => {
               astraIdle.classList.remove("active");
               activateIdle(astraIdle2);
-            }, 4000);
+              fade.style.opacity = "0";
+            }, 1500);
           }, 3000);
-
           return;
-        } else {
-          return { file: audioFiles.mdp, video: VIDEO.walkTalk };
-        }
+        } else return { file: audioFiles.mdp, video: VIDEO.walkTalk };
       }
 
       if (t.includes("mot de passe oublié") || t.includes("j'ai oublié") || t.includes("comment trouver"))
@@ -324,7 +348,6 @@
     window.onload = () => {
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(() => {
-          astraIdle.classList.add("active");
           activateIdle(astraIdle);
           astraIdle.play().catch(()=>{astraIdle.muted=true;astraIdle.play();});
           recognition.start();
