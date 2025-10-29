@@ -76,35 +76,48 @@
       display: none;
     }
 
-    .magic {
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(150,0,255,.9) 0%, rgba(0,255,255,.2) 40%, transparent 80%);
-      filter: blur(4px) brightness(2);
-      mix-blend-mode: screen;
-      animation: floatMagic 6s ease-in-out infinite;
-      pointer-events: none;
-      z-index: 5;
-    }
+   .magic {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(150,0,255,.9) 0%, rgba(0,255,255,.2) 40%, transparent 80%);
+  filter: blur(4px) brightness(2);
+  mix-blend-mode: screen;
+  animation: fallMagic 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 5;
+}
 
-    @keyframes floatMagic {
-      0% { transform: translateY(0) scale(.8) rotate(0); opacity: 1 }
-      50% { transform: translateY(-250px) scale(1.3) rotate(180deg); opacity: .8 }
-      100% { transform: translateY(-500px) scale(.5) rotate(360deg); opacity: 0 }
-    }
+@keyframes fallMagic {
+  0% {
+    transform: translateY(-600px) scale(1.3) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  60% {
+    transform: translateY(0px) scale(0.8) rotate(180deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(400px) scale(0.6) rotate(360deg);
+    opacity: 0;
+  }
+}
 
     /* 🌀 Fondu magique violet entre idle et idle2 */
     #transitionFade {
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle at center, rgba(180,100,255,0.6) 0%, rgba(0,0,0,1) 80%);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 9;
-      transition: opacity 1.5s ease;
-    }
+      background: radial-gradient(
+  circle,
+  rgba(0, 255, 255, 0.9) 0%,      /* centre bleu turquoise lumineux */
+  rgba(0, 255, 150, 0.4) 40%,     /* halo vert clair doux */
+  rgba(0, 100, 100, 0.2) 60%,     /* transition vers vert profond */
+  transparent 85%                 /* fondu total à la fin */
+)
 
     /* 🖥️ Bouton plein écran */
     #fullscreenBtn {
@@ -202,15 +215,15 @@
     };
 
     // ✨ Effets magiques
-    function spawnMagic() {
-      const p = document.createElement("div");
-      p.className = "magic";
-      p.style.left = Math.random() * 100 + "vw";
-      p.style.bottom = "-10px";
-      p.style.animationDuration = 3 + Math.random() * 4 + "s";
-      document.body.appendChild(p);
-      setTimeout(() => p.remove(), 6000);
-    }
+   function spawnMagic() {
+  const p = document.createElement("div");
+  p.className = "magic";
+  p.style.left = Math.random() * 100 + "vw";
+  p.style.top = "-50px"; // 👈 au lieu de bottom = "-10px"
+  p.style.animationDuration = 3 + Math.random() * 4 + "s";
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 6000);
+}
 
     // 🎧 Lecture audio + vidéo
     const playAudio = (file, videoName = VIDEO.talk) => {
