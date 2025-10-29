@@ -309,16 +309,24 @@
         return { file: audioFiles.mdp_oublie, video: VIDEO.anxious };
       if (t.includes("pétunia")) return { file: audioFiles.petunia, video: VIDEO.angry };
 
-       if (t.includes("parchemin de libération") || t.includes("potion liberation")) {
-        if (mdpValid) {
-          parcheminImage.style.display = "block";
-          setTimeout(() => parcheminImage.style.display = "none", 15000);
-          return { file: audioFiles.parchemin, video: VIDEO.read };
-        } else {
-          const faux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
-          return { file: faux, video: VIDEO.angry };
-        }
-      }
+     if (
+  t.includes("parchemin") ||
+  t.includes("marchemin") ||
+  t.includes("par chemin") ||
+  t.includes("parchemin liberation") ||
+  t.includes("potion de libération") ||
+  t.includes("recette de liberation") ||
+  t.includes("potion libération")
+) {
+  if (mdpValid) {
+    parcheminImage.style.display = "block";
+    setTimeout(() => parcheminImage.style.display = "none", 15000);
+    return { file: audioFiles.parchemin, video: VIDEO.read };
+  } else {
+    const faux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
+    return { file: faux, video: VIDEO.angry };
+  }
+}
   if (t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe"))
         return audioFiles.invite_mdp;
       
