@@ -76,15 +76,21 @@
       display: none;
     }
 
-   .magic {
+.magic {
   position: absolute;
-  width: 18px;
-  height: 18px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(150,0,255,.9) 0%, rgba(0,255,255,.2) 40%, transparent 80%);
-  filter: blur(4px) brightness(2);
+  background: radial-gradient(
+    circle,
+    rgba(0, 255, 255, 0.8) 0%,     /* bleu cyan un peu moins fort */
+    rgba(0, 255, 150, 0.25) 40%,   /* vert clair très doux */
+    rgba(0, 100, 100, 0.1) 65%,    /* halo vert pâle presque transparent */
+    transparent 85%                /* fin de la diffusion */
+  );
+  filter: blur(3px) brightness(2.2); /* luminosité globale un peu réduite */
   mix-blend-mode: screen;
-  animation: fallMagic 6s ease-in-out infinite;
+  animation: floatMagic 6s ease-in-out infinite;
   pointer-events: none;
   z-index: 5;
 }
