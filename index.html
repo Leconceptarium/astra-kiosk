@@ -108,16 +108,21 @@
 }
 
     /* 🌀 Fondu magique violet entre idle et idle2 */
-    #transitionFade {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(
-  circle,
-  rgba(0, 255, 255, 0.9) 0%,      /* centre bleu turquoise lumineux */
-  rgba(0, 255, 150, 0.4) 40%,     /* halo vert clair doux */
-  rgba(0, 100, 100, 0.2) 60%,     /* transition vers vert profond */
-  transparent 85%                 /* fondu total à la fin */
-)
+   #transitionFade {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 255, 255, 0.9) 0%,     /* centre bleu turquoise lumineux */
+    rgba(0, 255, 150, 0.4) 40%,    /* halo vert clair doux */
+    rgba(0, 100, 100, 0.2) 65%,    /* transition vers vert profond */
+    transparent 85%                /* fondu total */
+  );
+  opacity: 0;                      /* invisible par défaut */
+  pointer-events: none;            /* ne bloque pas les clics */
+  transition: opacity 1.2s ease;   /* fondu fluide */
+  z-index: 9;                      /* au-dessus des vidéos */
+}
 
     /* 🖥️ Bouton plein écran */
     #fullscreenBtn {
