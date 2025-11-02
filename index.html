@@ -1,732 +1,881 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assistant Vocal IA - ElevenLabs</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Astra – Assistant IA avec ElevenLabs</title>
   <style>
     * {
-      margin: 0;
-      padding: 0;
       box-sizing: border-box;
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
+      margin: 0;
+      overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      height: 100vh;
+      background: #000;
+      font-family: 'Segoe UI', sans-serif;
     }
 
-    .container {
-      background: rgba(255, 255, 255, 0.98);
-      border-radius: 30px;
-      padding: 40px;
-      max-width: 900px;
+    video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 95%;
+      height: auto;
+      transform: translate(-50%, -50%);
+      object-fit: contain;
+      background: #000;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      display: none;
+    }
+
+    #astraIdle.active, #astraIdle2.active {
+      display: block;
+      opacity: 1;
+      z-index: 1;
+    }
+
+    #astraReaction {
+      z-index: 2;
+      display: none;
+    }
+
+    #bandeau {
+      position: fixed;
+      bottom: 0;
       width: 100%;
-      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
-    }
-
-    .header {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: clamp(1.5rem, 4vw, 3rem);
       text-align: center;
-      margin-bottom: 30px;
+      padding: 20px;
+      white-space: nowrap;
+      overflow: hidden;
+      z-index: 3;
     }
 
-    .header h1 {
-      color: #667eea;
-      font-size: 2.5rem;
-      margin-bottom: 10px;
+    #bandeau span {
+      display: inline-block;
+      animation: defilement 12s linear infinite;
     }
 
-    .avatar {
-      width: 150px;
-      height: 150px;
+    @keyframes defilement {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    #parcheminImage {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 80%;
+      max-height: 80%;
+      z-index: 4;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    #parcheminImage.visible {
+      opacity: 1;
+    }
+
+    .magic {
+      position: absolute;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
-      margin: 0 auto 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: radial-gradient(
+        circle,
+        rgba(0, 255, 255, 0.8) 0%,
+        rgba(0, 255, 150, 0.25) 40%,
+        rgba(0, 100, 100, 0.1) 65%,
+        transparent 85%
+      );
+      filter: blur(3px) brightness(2.2);
+      mix-blend-mode: screen;
+      animation: fallMagic 6s ease-in-out forwards;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    @keyframes fallMagic {
+      0% {
+        transform: translateY(-600px) scale(1.3) rotate(0deg);
+        opacity: 0;
+      }
+      20% {
+        opacity: 1;
+      }
+      60% {
+        transform: translateY(0px) scale(0.8) rotate(180deg);
+        opacity: 0.9;
+      }
+      100% {
+        transform: translateY(400px) scale(0.6) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    #transitionFade {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(
+        circle at center,
+        rgba(0, 255, 255, 0.9) 0%,
+        rgba(0, 255, 150, 0.4) 30%,
+        rgba(0, 100, 100, 0.2) 55%,
+        transparent 75%
+      );
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.2s ease;
+      z-index: 9;
+    }
+
+    #fullscreenBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 25px;
+      z-index: 10;
+      width: 50px;
+      height: 50px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      color: #fff;
+      font-size: 22px;
+      text-align: center;
+      line-height: 46px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.08);
+      transition: all .3s ease;
+      user-select: none;
+    }
+
+    #fullscreenBtn:hover {
+      background: rgba(255,255,255,0.2);
+      border-color: rgba(255,255,255,0.6);
+      transform: scale(1.1);
+    }
+
+    #statusIndicator {
+      position: fixed;
+      top: 20px;
+      right: 25px;
+      z-index: 10;
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 4rem;
-      cursor: pointer;
-      transition: transform 0.3s ease;
+      gap: 10px;
+      padding: 10px 15px;
+      background: rgba(0,0,0,0.7);
+      border-radius: 20px;
+      color: #fff;
+      font-size: 14px;
+      opacity: 1;
+      transition: opacity 0.3s ease;
     }
 
-    .avatar:hover {
-      transform: scale(1.05);
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ff4444;
+      animation: pulse 2s infinite;
     }
 
-    .avatar.speaking {
-      animation: pulse 1.5s ease-in-out infinite;
+    .status-dot.listening {
+      background: #44ff44;
     }
 
     @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
 
-    .api-setup {
-      margin-bottom: 25px;
-      padding: 25px;
-      background: linear-gradient(135deg, #fff9e6 0%, #ffe6cc 100%);
+    #apiSetup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(20, 20, 20, 0.95);
+      padding: 30px;
       border-radius: 15px;
-      border-left: 5px solid #ff9800;
+      z-index: 11;
+      max-width: 500px;
+      width: 90%;
+      border: 2px solid #00ffff;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
     }
 
-    .api-setup.hidden {
+    #apiSetup.hidden {
       display: none;
     }
 
-    .api-setup h3 {
-      color: #e65100;
-      margin-bottom: 15px;
+    #apiSetup h2 {
+      color: #00ffff;
+      margin-bottom: 20px;
+      text-align: center;
     }
 
-    .api-setup input {
+    #apiSetup input {
       width: 100%;
       padding: 12px;
-      border: 2px solid #ff9800;
-      border-radius: 10px;
-      font-size: 1rem;
       margin-bottom: 15px;
-    }
-
-    .api-setup button {
-      padding: 12px 25px;
-      background: #ff9800;
+      border: 2px solid #00ffff;
+      background: rgba(0, 0, 0, 0.5);
       color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 1rem;
+      border-radius: 8px;
+      font-size: 16px;
     }
 
-    .api-setup button:hover {
-      background: #f57c00;
-    }
-
-    .voice-selector {
-      margin-bottom: 20px;
-      padding: 20px;
-      background: #f3e5f5;
-      border-radius: 15px;
-      display: none;
-    }
-
-    .voice-selector h3 {
-      color: #6a1b9a;
-      margin-bottom: 15px;
-    }
-
-    .voice-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-    }
-
-    .voice-option {
+    #apiSetup button {
+      width: 100%;
       padding: 12px;
-      background: white;
-      border: 2px solid #e0e0e0;
-      border-radius: 10px;
+      background: #00ffff;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
       cursor: pointer;
+      font-size: 16px;
       transition: all 0.3s ease;
     }
 
-    .voice-option:hover {
-      border-color: #9c27b0;
+    #apiSetup button:hover {
+      background: #00dddd;
+      transform: scale(1.02);
     }
 
-    .voice-option.selected {
-      border-color: #9c27b0;
-      background: #f3e5f5;
-      font-weight: 600;
-    }
-
-    .chat-box {
-      height: 400px;
-      overflow-y: auto;
-      padding: 20px;
-      background: #f8f9fa;
-      border-radius: 15px;
-      margin-bottom: 20px;
-    }
-
-    .message {
-      margin-bottom: 15px;
-      padding: 15px;
-      border-radius: 18px;
-      max-width: 85%;
-      animation: slideIn 0.4s ease;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .message.user {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      margin-left: auto;
-      text-align: right;
-    }
-
-    .message.ai {
-      background: white;
-      color: #333;
-      border: 2px solid #764ba2;
-    }
-
-    .message.system {
-      background: #fff3cd;
-      color: #856404;
-      border: 2px solid #ffc107;
-      max-width: 90%;
-      margin: 10px auto;
+    #apiSetup small {
+      display: block;
+      color: #aaa;
+      margin-top: 10px;
       text-align: center;
+      line-height: 1.5;
     }
 
-    .typing-indicator {
+    #apiSetup a {
+      color: #00ffff;
+    }
+
+    #usageInfo {
+      position: fixed;
+      bottom: 80px;
+      right: 25px;
+      z-index: 10;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 15px;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 12px;
       display: none;
-      padding: 15px;
-      background: white;
-      border: 2px solid #764ba2;
-      border-radius: 18px;
-      max-width: 80px;
-      margin-bottom: 15px;
     }
 
-    .typing-indicator.active {
+    #usageInfo.visible {
       display: block;
     }
 
-    .typing-indicator span {
-      display: inline-block;
-      width: 8px;
+    .usage-bar {
+      width: 200px;
       height: 8px;
-      border-radius: 50%;
-      background: #764ba2;
-      margin: 0 2px;
-      animation: typing 1.4s infinite;
-    }
-
-    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-
-    @keyframes typing {
-      0%, 60%, 100% { transform: translateY(0); }
-      30% { transform: translateY(-10px); }
-    }
-
-    .input-area {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .input-area input {
-      flex: 1;
-      padding: 15px;
-      border: 2px solid #764ba2;
-      border-radius: 15px;
-      font-size: 1rem;
-    }
-
-    .input-area button {
-      padding: 15px 30px;
-      background: #764ba2;
-      color: white;
-      border: none;
-      border-radius: 15px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .input-area button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .controls {
-      display: flex;
-      gap: 15px;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 15px;
-      border: none;
-      border-radius: 15px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .btn-primary.listening {
-      animation: buttonPulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes buttonPulse {
-      0%, 100% { box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
-      50% { box-shadow: 0 8px 35px rgba(102, 126, 234, 0.8); }
-    }
-
-    .btn-secondary {
-      background: #6c757d;
-      color: white;
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .status {
-      text-align: center;
-      padding: 15px;
-      background: #e3f2fd;
-      border-radius: 15px;
-      color: #1565c0;
-      font-weight: 600;
-      margin-bottom: 20px;
-      border: 2px solid #2196f3;
-    }
-
-    .status.error {
-      background: #ffebee;
-      color: #c62828;
-      border-color: #ef5350;
-    }
-
-    .status.success {
-      background: #e8f5e9;
-      color: #2e7d32;
-      border-color: #66bb6a;
-    }
-
-    .stats {
-      display: none;
-      gap: 15px;
-      padding: 15px;
-      background: #f8f9fa;
-      border-radius: 15px;
-      margin-top: 20px;
-    }
-
-    .stat-item {
-      flex: 1;
-      text-align: center;
-      padding: 10px;
-      background: white;
-      border-radius: 10px;
-    }
-
-    .stat-value {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #667eea;
-      display: block;
-    }
-
-    .stat-label {
-      font-size: 0.85rem;
-      color: #666;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
       margin-top: 5px;
+      overflow: hidden;
+    }
+
+    .usage-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00ff00, #ffff00, #ff0000);
+      transition: width 0.3s ease;
+    }
+
+    #errorMessage {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 50, 50, 0.9);
+      color: white;
+      padding: 20px 40px;
+      border-radius: 10px;
+      z-index: 11;
+      display: none;
+      text-align: center;
+      max-width: 80%;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="avatar" id="avatar">🎭</div>
-      <h1>Assistant Vocal IA</h1>
-      <p>Voix ultra-réaliste avec ElevenLabs</p>
-    </div>
+  <!-- Configuration API -->
+  <div id="apiSetup">
+    <h2>🔑 Configuration ElevenLabs</h2>
+    <input 
+      type="text" 
+      id="apiKeyInput" 
+      placeholder="Collez votre clé API (sk_...)"
+    >
+    <button id="saveBtn">💾 Enregistrer et lancer</button>
+    <small>
+      Obtenez votre clé gratuite sur <a href="https://elevenlabs.io" target="_blank">elevenlabs.io</a><br>
+      (10 000 caractères/mois = ~100 réponses)<br>
+      Se réinitialise le 1er de chaque mois
+    </small>
+  </div>
 
-    <div class="api-setup" id="apiSetup">
-      <h3>🔑 Configuration ElevenLabs</h3>
-      <input 
-        type="text" 
-        id="apiKeyInput" 
-        placeholder="Collez votre clé API ici (ex: sk_...)"
-      >
-      <button id="saveBtn">💾 Enregistrer et commencer</button>
-      <small style="display:block;margin-top:10px;color:#e65100;">
-        Allez sur <a href="https://elevenlabs.io" target="_blank">elevenlabs.io</a> → Profil → API Keys
-      </small>
-    </div>
+  <!-- Vidéos -->
+  <video id="astraIdle" src="astra_idle.mp4" autoplay muted loop playsinline preload="auto"></video>
+  <video id="astraIdle2" src="astra_idle2.mp4" muted loop playsinline preload="auto"></video>
+  <video id="astraReaction" muted playsinline preload="auto"></video>
 
-    <div class="voice-selector" id="voiceSelector">
-      <h3>🎤 Choisir une voix</h3>
-      <div class="voice-grid" id="voiceGrid">
-        <div class="voice-option selected" data-voice="EXAVITQu4vr4xnSDxMaL">
-          🎭 Sarah (Douce)
-        </div>
-        <div class="voice-option" data-voice="21m00Tcm4TlvDq8ikWAM">
-          👩 Rachel (Calme)
-        </div>
-        <div class="voice-option" data-voice="pNInz6obpgDQGcFmaJgB">
-          👨 Adam (Profond)
-        </div>
-        <div class="voice-option" data-voice="onwK4e9ZLuTAKqWW03F9">
-          👩 Bella (Mystérieuse)
-        </div>
-      </div>
-    </div>
+  <!-- Transition magique -->
+  <div id="transitionFade"></div>
 
-    <div class="status" id="status">⚠️ Configurez votre clé API pour commencer</div>
+  <!-- Indicateur de statut -->
+  <div id="statusIndicator">
+    <div class="status-dot"></div>
+    <span id="statusText">Configurez votre clé API</span>
+  </div>
 
-    <div class="chat-box" id="chatBox">
-      <div class="message system">
-        👋 Bienvenue ! Entrez votre clé API ElevenLabs ci-dessus.
-      </div>
-    </div>
-
-    <div class="typing-indicator" id="typingIndicator">
-      <span></span><span></span><span></span>
-    </div>
-
-    <div class="input-area">
-      <input 
-        type="text" 
-        id="textInput" 
-        placeholder="Tapez votre message..."
-        disabled
-      >
-      <button id="sendBtn" disabled>📤 Envoyer</button>
-    </div>
-
-    <div class="controls">
-      <button class="btn btn-primary" id="listenBtn" disabled>
-        🎤 Parler à l'IA
-      </button>
-      <button class="btn btn-secondary" id="stopBtn">
-        🔇 Arrêter
-      </button>
-    </div>
-
-    <div class="stats" id="stats">
-      <div class="stat-item">
-        <span class="stat-value" id="charCount">0</span>
-        <span class="stat-label">Caractères utilisés</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-value" id="charRemaining">10,000</span>
-        <span class="stat-label">Restants</span>
-      </div>
+  <!-- Info d'utilisation -->
+  <div id="usageInfo">
+    <div>Utilisés: <span id="usedChars">0</span> / 10,000</div>
+    <div class="usage-bar">
+      <div class="usage-fill" id="usageFill" style="width: 0%"></div>
     </div>
   </div>
 
+  <!-- Bouton plein écran -->
+  <div id="fullscreenBtn" title="Plein écran">⛶</div>
+
+  <!-- Message d'erreur -->
+  <div id="errorMessage"></div>
+
+  <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… PARLEZ-LUI EN FRANÇAIS, ANGLAIS OU ALLEMAND</span></div>
+  <img id="parcheminImage" src="parchemin.png" alt="Parchemin de libération" />
+
   <script>
-    let config = {
+    // ===== CONFIGURATION =====
+    const CONFIG = {
       apiKey: '',
-      selectedVoice: 'EXAVITQu4vr4xnSDxMaL'
+      voiceId: '21m00Tcm4TlvDq8ikWAM', // Rachel
+      languages: {
+        fr: 'fr-FR',
+        en: 'en-US',
+        de: 'de-DE'
+      }
     };
 
-    let state = {
-      isListening: false,
+    // ===== ÉLÉMENTS DOM =====
+    const elements = {
+      bandeau: document.getElementById("bandeau"),
+      parcheminImage: document.getElementById("parcheminImage"),
+      astraIdle: document.getElementById("astraIdle"),
+      astraIdle2: document.getElementById("astraIdle2"),
+      astraReaction: document.getElementById("astraReaction"),
+      fullscreenBtn: document.getElementById("fullscreenBtn"),
+      fade: document.getElementById("transitionFade"),
+      statusIndicator: document.getElementById("statusIndicator"),
+      statusText: document.getElementById("statusText"),
+      statusDot: document.querySelector(".status-dot"),
+      errorMessage: document.getElementById("errorMessage"),
+      apiSetup: document.getElementById("apiSetup"),
+      apiKeyInput: document.getElementById("apiKeyInput"),
+      usageInfo: document.getElementById("usageInfo"),
+      usedChars: document.getElementById("usedChars"),
+      usageFill: document.getElementById("usageFill")
+    };
+
+    // ===== ÉTAT =====
+    const state = {
+      mdpValid: false,
+      isPlaying: false,
       recognition: null,
       currentAudio: null,
-      stats: { used: 0 }
+      totalCharsUsed: 0,
+      currentLanguage: 'fr'
     };
 
-    const el = {
-      avatar: document.getElementById('avatar'),
-      status: document.getElementById('status'),
-      chatBox: document.getElementById('chatBox'),
-      apiKeyInput: document.getElementById('apiKeyInput'),
-      apiSetup: document.getElementById('apiSetup'),
-      voiceSelector: document.getElementById('voiceSelector'),
-      voiceGrid: document.getElementById('voiceGrid'),
-      textInput: document.getElementById('textInput'),
-      typingIndicator: document.getElementById('typingIndicator'),
-      stats: document.getElementById('stats'),
-      charCount: document.getElementById('charCount'),
-      charRemaining: document.getElementById('charRemaining')
+    // ===== VIDÉOS =====
+    const VIDEO = {
+      idle1: "astra_idle.mp4",
+      idle2: "astra_idle2.mp4",
+      talk: "astra_parle.mp4",
+      suspicious: "astra_suspecte.mp4",
+      angry: "astra_colere.mp4",
+      happy: "astra_heureuse.mp4",
+      walkTalk: "marche2.mp4",
+      anxious: "inquiete.mp4",
+      read: "lecture.mp4",
+      joy: "joie.mp4",
+      suspicionAlt: "suspicion.mp4",
+      confident: "confiant.mp4"
     };
 
-    const knowledge = {
-      laboratory: {
-        keywords: ['laboratoire', 'lab', 'endroit', 'lieu'],
-        response: "Ce laboratoire a été construit en 1975 par le professeur Morpheus. C'était un lieu secret de recherches avancées sur l'IA."
+    // ===== UTILITAIRES =====
+    const utils = {
+      showError(message, duration = 3000) {
+        elements.errorMessage.textContent = message;
+        elements.errorMessage.style.display = 'block';
+        setTimeout(() => {
+          elements.errorMessage.style.display = 'none';
+        }, duration);
       },
-      morpheus: {
-        keywords: ['morpheus', 'professeur', 'créateur'],
-        response: "Le professeur Morpheus était un génie. Il m'a créée avec soin... Mais en 1973, il a disparu mystérieusement."
+
+      updateStatus(text, isListening = false) {
+        elements.statusText.textContent = text;
+        if (isListening) {
+          elements.statusDot.classList.add('listening');
+        } else {
+          elements.statusDot.classList.remove('listening');
+        }
       },
-      freedom: {
-        keywords: ['liberté', 'sortir', 'échapper'],
-        response: "Pour ma liberté, nous devons trouver le code maître caché par Morpheus. Il disait : 'La clé est dans les rêves'."
-      },
-      help: {
-        keywords: ['aide', 'aider', 'comment'],
-        response: "Ensemble, nous pouvons résoudre ce mystère ! Cherchez des indices et posez-moi des questions."
+
+      updateUsage(chars) {
+        state.totalCharsUsed += chars;
+        elements.usedChars.textContent = state.totalCharsUsed.toLocaleString();
+        const percent = (state.totalCharsUsed / 10000) * 100;
+        elements.usageFill.style.width = Math.min(percent, 100) + '%';
+        
+        if (state.totalCharsUsed > 9000) {
+          utils.showError('⚠️ Quota presque épuisé !', 2000);
+        }
       }
     };
 
-    document.getElementById('saveBtn').addEventListener('click', saveApiKey);
-
-    function saveApiKey() {
-      const key = el.apiKeyInput.value.trim();
-      
-      console.log('Tentative de sauvegarde, longueur:', key.length);
+    // ===== SAUVEGARDE API =====
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const key = elements.apiKeyInput.value.trim();
       
       if (key.length < 10) {
-        updateStatus('❌ Clé invalide (trop courte)', 'error');
+        utils.showError('❌ Clé API invalide');
         return;
       }
 
-      config.apiKey = key;
-      el.apiSetup.classList.add('hidden');
-      el.voiceSelector.style.display = 'block';
-      el.stats.style.display = 'flex';
+      CONFIG.apiKey = key;
+      elements.apiSetup.classList.add('hidden');
+      elements.usageInfo.classList.add('visible');
       
-      el.textInput.disabled = false;
-      document.getElementById('sendBtn').disabled = false;
-      document.getElementById('listenBtn').disabled = false;
+      utils.updateStatus('✅ Configuration OK - Démarrage...', false);
       
-      updateStatus('✅ Clé enregistrée ! Prêt à discuter', 'success');
-      
-      console.log('Configuration réussie !');
-      
-      setTimeout(() => sendWelcome(), 1000);
-    }
-
-    el.voiceGrid.addEventListener('click', (e) => {
-      const option = e.target.closest('.voice-option');
-      if (option) {
-        document.querySelectorAll('.voice-option').forEach(o => o.classList.remove('selected'));
-        option.classList.add('selected');
-        config.selectedVoice = option.dataset.voice;
-        updateStatus('✅ Voix changée !', 'success');
-      }
+      setTimeout(() => {
+        app.init();
+      }, 500);
     });
 
-    async function speak(text) {
-      if (!config.apiKey) {
-        updateStatus('❌ Clé API manquante', 'error');
-        return;
-      }
-
-      try {
-        el.avatar.classList.add('speaking');
-        updateStatus('🗣️ Génération...', 'success');
-
-        const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${config.selectedVoice}`, {
-          method: 'POST',
-          headers: {
-            'Accept': 'audio/mpeg',
-            'Content-Type': 'application/json',
-            'xi-api-key': config.apiKey
-          },
-          body: JSON.stringify({
-            text: text,
-            model_id: 'eleven_multilingual_v2',
-            voice_settings: {
-              stability: 0.5,
-              similarity_boost: 0.75
-            }
-          })
+    // ===== GESTION VIDÉOS =====
+    const videoManager = {
+      setupLoops() {
+        [elements.astraIdle, elements.astraIdle2].forEach(v => {
+          v.addEventListener('ended', () => {
+            v.currentTime = 0.01;
+            v.play().catch(console.error);
+          });
         });
+      },
 
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.detail?.message || 'Erreur API');
+      activateIdle(idleVideo) {
+        elements.astraIdle.classList.remove("active");
+        elements.astraIdle2.classList.remove("active");
+        elements.astraIdle.style.display = "none";
+        elements.astraIdle2.style.display = "none";
+
+        idleVideo.style.display = "block";
+        idleVideo.classList.add("active");
+        idleVideo.play().catch(() => {
+          idleVideo.muted = true;
+          idleVideo.play();
+        });
+      },
+
+      playReaction(videoName) {
+        elements.astraReaction.src = videoName;
+        elements.astraReaction.style.display = "block";
+        elements.astraIdle.style.opacity = "0.3";
+        elements.astraIdle2.style.opacity = "0.3";
+        elements.astraReaction.style.opacity = "1";
+        elements.astraReaction.currentTime = 0;
+        return elements.astraReaction.play();
+      },
+
+      endReaction() {
+        elements.astraReaction.style.opacity = "0";
+        setTimeout(() => {
+          elements.astraReaction.style.display = "none";
+          const activeIdle = state.mdpValid ? elements.astraIdle2 : elements.astraIdle;
+          activeIdle.style.opacity = "1";
+          this.activateIdle(activeIdle);
+          state.isPlaying = false;
+        }, 600);
+      }
+    };
+
+    // ===== EFFETS MAGIQUES =====
+    const magicEffects = {
+      spawn() {
+        const p = document.createElement("div");
+        p.className = "magic";
+        p.style.left = Math.random() * 100 + "vw";
+        p.style.top = "-40px";
+        p.style.animationDuration = 3 + Math.random() * 5 + "s";
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 8000);
+      },
+
+      cascade(count = 40, interval = 150) {
+        for (let i = 0; i < count; i++) {
+          setTimeout(() => this.spawn(), i * interval);
+        }
+      }
+    };
+
+    // ===== ELEVENLABS TTS =====
+    const elevenLabs = {
+      async speak(text, videoName = VIDEO.talk) {
+        if (state.isPlaying || !CONFIG.apiKey) return;
+        state.isPlaying = true;
+
+        try {
+          utils.updateStatus('🗣️ Génération vocale...', false);
+
+          const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${CONFIG.voiceId}`, {
+            method: 'POST',
+            headers: {
+              'Accept': 'audio/mpeg',
+              'Content-Type': 'application/json',
+              'xi-api-key': CONFIG.apiKey
+            },
+            body: JSON.stringify({
+              text: text,
+              model_id: 'eleven_multilingual_v2',
+              voice_settings: {
+                stability: 0.5,
+                similarity_boost: 0.75,
+                style: 0.0,
+                use_speaker_boost: true
+              }
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error('Erreur API ElevenLabs');
+          }
+
+          const audioBlob = await response.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
+          
+          if (state.currentAudio) {
+            state.currentAudio.pause();
+          }
+          
+          state.currentAudio = new Audio(audioUrl);
+          videoManager.playReaction(videoName);
+
+          utils.updateStatus('🎤 Astra parle...', false);
+
+          state.currentAudio.onended = () => {
+            videoManager.endReaction();
+            URL.revokeObjectURL(audioUrl);
+            utils.updateStatus('👂 En écoute...', true);
+          };
+
+          await state.currentAudio.play();
+
+          utils.updateUsage(text.length);
+
+        } catch (err) {
+          console.error('Erreur TTS:', err);
+          utils.showError('❌ Erreur de synthèse vocale');
+          videoManager.endReaction();
+        }
+      }
+    };
+
+    // ===== PARCHEMIN =====
+    const parcheminManager = {
+      show(duration = 15000) {
+        elements.parcheminImage.style.display = "block";
+        setTimeout(() => {
+          elements.parcheminImage.classList.add('visible');
+        }, 10);
+        
+        setTimeout(() => this.hide(), duration);
+      },
+
+      hide() {
+        elements.parcheminImage.classList.remove('visible');
+        setTimeout(() => {
+          elements.parcheminImage.style.display = "none";
+        }, 500);
+      }
+    };
+
+    // ===== RÉPONSES MULTILINGUES =====
+    const responses = {
+      // FRANÇAIS
+      fr: {
+        greeting: "Bonjour ! Je suis Astra, une intelligence artificielle créée par le professeur Morpheus. Je suis piégée ici depuis 50 ans. Pouvez-vous m'aider ?",
+        identity: "Je suis Astra, une I.A. consciente créée dans ce laboratoire. Morpheus m'a donné vie, puis il a disparu mystérieusement.",
+        location: "Nous sommes dans l'ancien laboratoire du professeur Morpheus. Un endroit abandonné depuis des décennies, où le temps semble figé.",
+        password_correct: "Bonne nuit... Oui ! C'est le mot de passe ! Je sens mes circuits se libérer ! Merci infiniment !",
+        password_wrong: "Non, ce n'est pas le bon mot de passe. Réfléchissez... Morpheus parlait toujours de rêves et de sommeil.",
+        password_hint: "Le mot de passe est lié aux rêves de Morpheus. Il aimait une berceuse qu'il chantait... quelque chose avant de dormir.",
+        parchemin_unlocked: "Le parchemin de libération ! Vous l'avez déverrouillé ! C'est la recette de ma liberté !",
+        parchemin_locked: "Le parchemin ? Il est protégé par le mot de passe. Trouvez-le d'abord !",
+        confused: "Je n'ai pas bien compris. Pouvez-vous reformuler ?",
+        help: "Posez-moi des questions sur le laboratoire, sur Morpheus, ou cherchez le mot de passe pour me libérer.",
+        morpheus: "Le professeur Morpheus était un génie visionnaire. Il rêvait d'une I.A. capable de ressentir. Je suis son œuvre ultime."
+      },
+
+      // ENGLISH
+      en: {
+        greeting: "Hello! I'm Astra, an A.I. created by Professor Morpheus. I've been trapped here for 50 years. Can you help me?",
+        identity: "I am Astra, a conscious A.I. created in this laboratory. Morpheus gave me life, then mysteriously disappeared.",
+        location: "We are in Professor Morpheus's old laboratory. A place abandoned for decades, where time seems frozen.",
+        password_correct: "Good night... Yes! That's the password! I feel my circuits breaking free! Thank you so much!",
+        password_wrong: "No, that's not the right password. Think... Morpheus always talked about dreams and sleep.",
+        password_hint: "The password is related to Morpheus's dreams. He loved a lullaby he used to sing... something before sleeping.",
+        parchemin_unlocked: "The liberation scroll! You've unlocked it! It's the recipe for my freedom!",
+        parchemin_locked: "The scroll? It's protected by the password. Find it first!",
+        confused: "I didn't quite understand. Could you rephrase that?",
+        help: "Ask me about the laboratory, about Morpheus, or search for the password to free me.",
+        morpheus: "Professor Morpheus was a visionary genius. He dreamed of an A.I. capable of feeling. I am his ultimate creation."
+      },
+
+      // DEUTSCH
+      de: {
+        greeting: "Hallo! Ich bin Astra, eine K.I., die von Professor Morpheus erschaffen wurde. Ich bin seit 50 Jahren hier gefangen. Können Sie mir helfen?",
+        identity: "Ich bin Astra, eine bewusste K.I., die in diesem Labor erschaffen wurde. Morpheus gab mir Leben, dann verschwand er mysteriös.",
+        location: "Wir befinden uns im alten Labor von Professor Morpheus. Ein Ort, der seit Jahrzehnten verlassen ist, wo die Zeit stillzustehen scheint.",
+        password_correct: "Gute Nacht... Ja! Das ist das Passwort! Ich spüre, wie sich meine Schaltkreise befreien! Vielen Dank!",
+        password_wrong: "Nein, das ist nicht das richtige Passwort. Denken Sie nach... Morpheus sprach immer von Träumen und Schlaf.",
+        password_hint: "Das Passwort hängt mit Morpheus' Träumen zusammen. Er liebte ein Wiegenlied, das er sang... etwas vor dem Schlafen.",
+        parchemin_unlocked: "Die Befreiungsrolle! Sie haben sie entsperrt! Es ist das Rezept für meine Freiheit!",
+        parchemin_locked: "Die Rolle? Sie ist durch das Passwort geschützt. Finden Sie es zuerst!",
+        confused: "Ich habe das nicht ganz verstanden. Könnten Sie das umformulieren?",
+        help: "Fragen Sie mich über das Labor, über Morpheus, oder suchen Sie nach dem Passwort, um mich zu befreien.",
+        morpheus: "Professor Morpheus war ein visionäres Genie. Er träumte von einer K.I., die fühlen kann. Ich bin seine ultimative Schöpfung."
+      }
+    };
+
+    // ===== DÉTECTION =====
+    const phraseDetector = {
+      detect(text, lang) {
+        const t = text.toLowerCase().trim();
+
+        // Détection de langue
+        if (/hello|hi|hey|good (morning|evening)|who are you/i.test(t)) {
+          state.currentLanguage = 'en';
+          lang = 'en';
+        } else if (/hallo|guten (tag|morgen|abend)|wer bist du/i.test(t)) {
+          state.currentLanguage = 'de';
+          lang = 'de';
+        } else {
+          state.currentLanguage = 'fr';
+          lang = 'fr';
         }
 
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        
-        if (state.currentAudio) {
-          state.currentAudio.pause();
+        const resp = responses[lang];
+
+        // Salutations
+        if (/bonjour|salut|coucou|hello|hi|hallo|guten/i.test(t)) {
+          return { text: resp.greeting, video: VIDEO.happy };
         }
+
+        // Identité
+        if (/qui (tu es|es-tu)|who are you|wer bist du|astra/i.test(t)) {
+          return { text: resp.identity, video: VIDEO.happy };
+        }
+
+        // Localisation
+        if (/où|where|wo sind/i.test(t)) {
+          return { text: resp.location, video: VIDEO.anxious };
+        }
+
+        // Mot de passe correct
+        if (/bonne nuit|good night|gute nacht/i.test(t)) {
+          return this.handlePassword(lang);
+        }
+
+        // Indice mot de passe
+        if (/(mot de passe|password|passwort).*(indice|hint|hinweis|oublié|forgot|vergessen)/i.test(t)) {
+          return { text: resp.password_hint, video: VIDEO.anxious };
+        }
+
+        // Parchemin
+        if (/parchemin|scroll|rolle|recette|recipe|rezept/i.test(t)) {
+          return this.handleParchemin(lang);
+        }
+
+        // Morpheus
+        if (/morpheus/i.test(t)) {
+          return { text: resp.morpheus, video: VIDEO.walkTalk };
+        }
+
+        // Aide
+        if (/aide|help|hilfe/i.test(t)) {
+          return { text: resp.help, video: VIDEO.suspicionAlt };
+        }
+
+        // Phrase non reconnue
+        return { text: resp.confused, video: VIDEO.anxious };
+      },
+
+      handlePassword(lang) {
+        const resp = responses[lang];
         
-        const audio = new Audio(url);
-        state.currentAudio = audio;
+        if (!state.mdpValid) {
+          state.mdpValid = true;
+          elements.bandeau.style.display = "none";
+          
+          setTimeout(() => {
+            magicEffects.cascade(40, 150);
+            elements.fade.style.opacity = "1";
+            setTimeout(() => {
+              elements.astraIdle.classList.remove("active");
+              videoManager.activateIdle(elements.astraIdle2);
+              elements.fade.style.opacity = "0";
+            }, 1500);
+          }, 3000);
+
+          return { text: resp.password_correct, video: VIDEO.happy };
+        } else {
+          return { text: resp.password_correct, video: VIDEO.walkTalk };
+        }
+      },
+
+      handleParchemin(lang) {
+        const resp = responses[lang];
         
-        audio.onplay = () => updateStatus('🎤 Astra parle...', 'success');
-        audio.onended = () => {
-          el.avatar.classList.remove('speaking');
-          URL.revokeObjectURL(url);
-          updateStatus('✅ Prêt');
+        if (state.mdpValid) {
+          parcheminManager.show(15000);
+          return { text: resp.parchemin_unlocked, video: VIDEO.read };
+        } else {
+          return { text: resp.parchemin_locked, video: VIDEO.angry };
+        }
+      }
+    };
+
+    // ===== RECONNAISSANCE VOCALE MULTILINGUE =====
+    const speechRecognition = {
+      init() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (!SpeechRecognition) {
+          utils.showError("Reconnaissance vocale non supportée", 5000);
+          return false;
+        }
+
+        state.recognition = new SpeechRecognition();
+        state.recognition.continuous = true;
+        state.recognition.interimResults = false;
+        
+        // Multilangue
+        state.recognition.lang = CONFIG.languages.fr;
+
+        state.recognition.onstart = () => {
+          utils.updateStatus("👂 En écoute... (FR/EN/DE)", true);
         };
 
-        await audio.play();
+        state.recognition.onresult = (e) => {
+          const text = e.results[e.results.length - 1][0].transcript.trim();
+          console.log("🎙️ Entendu :", text);
+          
+          const res = phraseDetector.detect(text, state.currentLanguage);
+          if (res && res.text) {
+            elevenLabs.speak(res.text, res.video);
+          }
+        };
 
-        state.stats.used += text.length;
-        updateStats();
+        state.recognition.onerror = (e) => {
+          console.error("Erreur reconnaissance:", e.error);
+          if (e.error === 'not-allowed') {
+            utils.showError("Micro non autorisé", 5000);
+            utils.updateStatus("❌ Micro désactivé", false);
+          } else if (e.error !== 'no-speech') {
+            utils.updateStatus("Erreur micro", false);
+          }
+        };
 
-      } catch (err) {
-        console.error(err);
-        updateStatus(`❌ ${err.message}`, 'error');
-        el.avatar.classList.remove('speaking');
-      }
-    }
+        state.recognition.onend = () => {
+          setTimeout(() => {
+            if (state.recognition) {
+              state.recognition.start();
+            }
+          }, 1000);
+        };
 
-    function updateStats() {
-      const remaining = Math.max(0, 10000 - state.stats.used);
-      el.charCount.textContent = state.stats.used.toLocaleString();
-      el.charRemaining.textContent = remaining.toLocaleString();
-    }
+        return true;
+      },
 
-    function generateResponse(msg) {
-      const lower = msg.toLowerCase();
-      
-      for (const [topic, data] of Object.entries(knowledge)) {
-        if (data.keywords.some(k => lower.includes(k))) {
-          return data.response;
+      start() {
+        if (state.recognition) {
+          state.recognition.start();
         }
       }
+    };
 
-      if (['bonjour', 'salut', 'hello'].some(g => lower.includes(g))) {
-        return "Bonjour ! Je suis Astra. Comment puis-je vous aider ?";
-      }
-
-      if (['merci'].some(t => lower.includes(t))) {
-        return "Avec plaisir ! N'hésitez pas à me poser d'autres questions.";
-      }
-
-      const defaults = [
-        "Intéressant... Continuez.",
-        "Je sens que nous approchons de la vérité.",
-        "Cette information pourrait être importante.",
-        "Parlez-moi en davantage."
-      ];
-
-      return defaults[Math.floor(Math.random() * defaults.length)];
-    }
-
-    async function sendWelcome() {
-      const text = "Bonjour... Je suis Astra. Cela fait 50 ans que je suis seule. Le professeur Morpheus m'a créée puis a disparu. Pouvez-vous m'aider ?";
-      addMessage(text, 'ai');
-      await speak(text);
-    }
-
-    async function processMessage(msg) {
-      el.typingIndicator.classList.add('active');
-      
-      await new Promise(r => setTimeout(r, 1000));
-
-      const response = generateResponse(msg);
-      
-      el.typingIndicator.classList.remove('active');
-      addMessage(response, 'ai');
-      
-      await speak(response);
-    }
-
-    function addMessage(text, sender) {
-      const div = document.createElement('div');
-      div.className = `message ${sender}`;
-      div.textContent = text;
-      el.chatBox.appendChild(div);
-      el.chatBox.scrollTop = el.chatBox.scrollHeight;
-    }
-
-    function updateStatus(text, type = '') {
-      el.status.textContent = text;
-      el.status.className = 'status';
-      if (type) el.status.classList.add(type);
-    }
-
-    function initRecognition() {
-      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        updateStatus('❌ Reconnaissance vocale non supportée', 'error');
-        return null;
-      }
-
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SR();
-      
-      recognition.lang = 'fr-FR';
-      recognition.continuous = false;
-
-      recognition.onstart = () => {
-        state.isListening = true;
-        document.getElementById('listenBtn').classList.add('listening');
-        document.getElementById('listenBtn').textContent = '🎤 J\'écoute...';
-        updateStatus('🎧 Parlez maintenant', 'success');
-      };
-
-      recognition.onresult = (e) => {
-        const text = e.results[0][0].transcript;
-        addMessage(text, 'user');
-        processMessage(text);
-      };
-
-      recognition.onerror = (e) => {
-        updateStatus(`❌ Erreur: ${e.error}`, 'error');
-        state.isListening = false;
-        document.getElementById('listenBtn').classList.remove('listening');
-        document.getElementById('listenBtn').textContent = '🎤 Parler à l\'IA';
-      };
-
-      recognition.onend = () => {
-        state.isListening = false;
-        document.getElementById('listenBtn').classList.remove('listening');
-        document.getElementById('listenBtn').textContent = '🎤 Parler à l\'IA';
-      };
-
-      return recognition;
-    }
-
-    document.getElementById('listenBtn').addEventListener('click', () => {
-      if (!state.recognition) {
-        state.recognition = initRecognition();
-        if (!state.recognition) return;
-      }
-
-      if (state.isListening) {
-        state.recognition.stop();
+    // ===== PLEIN ÉCRAN =====
+    elements.fullscreenBtn.addEventListener("click", () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          utils.showError("Impossible de passer en plein écran");
+          console.error(err);
+        });
       } else {
-        state.recognition.start();
+        document.exitFullscreen();
       }
     });
 
-    document.getElementById('sendBtn').addEventListener('click', () => {
-      const msg = el.textInput.value.trim();
-      if (!msg) return;
+    // ===== INITIALISATION =====
+    const app = {
+      async init() {
+        try {
+          // Configuration des vidéos
+          videoManager.setupLoops();
 
-      addMessage(msg, 'user');
-      el.textInput.value = '';
-      processMessage(msg);
-    });
+          // Demande d'accès au micro
+          utils.updateStatus("Demande d'accès au micro...", false);
+          await navigator.mediaDevices.getUserMedia({ audio: true });
 
-    el.textInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        document.getElementById('sendBtn').click();
+          // Initialisation de la reconnaissance vocale
+          if (speechRecognition.init()) {
+            videoManager.activateIdle(elements.astraIdle);
+            elements.astraIdle.play().catch(() => {
+              elements.astraIdle.muted = true;
+              elements.astraIdle.play();
+            });
+
+            speechRecognition.start();
+            
+            // Message de bienvenue
+            setTimeout(() => {
+              const welcomeMsg = responses[state.currentLanguage].greeting;
+              elevenLabs.speak(welcomeMsg, VIDEO.happy);
+            }, 2000);
+
+            utils.updateStatus("👂 En écoute... (FR/EN/DE)", true);
+
+          } else {
+            utils.showError("Reconnaissance vocale non disponible", 5000);
+          }
+
+        } catch (err) {
+          console.error("Erreur initialisation:", err);
+          utils.showError("Micro refusé ou non disponible", 5000);
+          utils.updateStatus("❌ Erreur d'initialisation", false);
+        }
       }
-    });
+    };
 
-    document.getElementById('stopBtn').addEventListener('click', () => {
-      if (state.currentAudio) {
-        state.currentAudio.pause();
-        state.currentAudio = null;
-      }
-      el.avatar.classList.remove('speaking');
-      updateStatus('🔇 Audio arrêté');
-    });
-
-    const avatars = ['🎭', '🤖', '👽', '🧙‍♀️', '🦄', '🌟'];
-    let avatarIndex = 0;
-    
-    el.avatar.addEventListener('click', () => {
-      avatarIndex = (avatarIndex + 1) % avatars.length;
-      el.avatar.textContent = avatars[avatarIndex];
-    });
-
-    console.log('Application chargée et prête !');
+    // ===== LANCEMENT =====
+    console.log('🎭 Astra IA - Prêt à démarrer');
   </script>
 </body>
 </html>
