@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Astra – Assistant IA avec ElevenLabs</title>
+  <title>Astra – Assistant de M. Morpheus</title>
   <style>
     * {
       box-sizing: border-box;
@@ -17,7 +17,7 @@
       align-items: center;
       height: 100vh;
       background: #000;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Unica One', serif;
     }
 
     video {
@@ -173,12 +173,16 @@
       align-items: center;
       gap: 10px;
       padding: 10px 15px;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.5);
       border-radius: 20px;
       color: #fff;
       font-size: 14px;
-      opacity: 1;
+      opacity: 0;
       transition: opacity 0.3s ease;
+    }
+
+    #statusIndicator.visible {
+      opacity: 1;
     }
 
     .status-dot {
@@ -198,104 +202,6 @@
       50% { opacity: 0.5; }
     }
 
-    #apiSetup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(20, 20, 20, 0.95);
-      padding: 30px;
-      border-radius: 15px;
-      z-index: 11;
-      max-width: 500px;
-      width: 90%;
-      border: 2px solid #00ffff;
-      box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
-    }
-
-    #apiSetup.hidden {
-      display: none;
-    }
-
-    #apiSetup h2 {
-      color: #00ffff;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    #apiSetup input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border: 2px solid #00ffff;
-      background: rgba(0, 0, 0, 0.5);
-      color: white;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-
-    #apiSetup button {
-      width: 100%;
-      padding: 12px;
-      background: #00ffff;
-      color: #000;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 16px;
-      transition: all 0.3s ease;
-    }
-
-    #apiSetup button:hover {
-      background: #00dddd;
-      transform: scale(1.02);
-    }
-
-    #apiSetup small {
-      display: block;
-      color: #aaa;
-      margin-top: 10px;
-      text-align: center;
-      line-height: 1.5;
-    }
-
-    #apiSetup a {
-      color: #00ffff;
-    }
-
-    #usageInfo {
-      position: fixed;
-      bottom: 80px;
-      right: 25px;
-      z-index: 10;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 10px 15px;
-      border-radius: 10px;
-      color: #fff;
-      font-size: 12px;
-      display: none;
-    }
-
-    #usageInfo.visible {
-      display: block;
-    }
-
-    .usage-bar {
-      width: 200px;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
-      margin-top: 5px;
-      overflow: hidden;
-    }
-
-    .usage-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #00ff00, #ffff00, #ff0000);
-      transition: width 0.3s ease;
-    }
-
     #errorMessage {
       position: fixed;
       top: 50%;
@@ -313,22 +219,6 @@
   </style>
 </head>
 <body>
-  <!-- Configuration API -->
-  <div id="apiSetup">
-    <h2>🔑 Configuration ElevenLabs</h2>
-    <input 
-      type="text" 
-      id="apiKeyInput" 
-      placeholder="Collez votre clé API (sk_...)"
-    >
-    <button id="saveBtn">💾 Enregistrer et lancer</button>
-    <small>
-      Obtenez votre clé gratuite sur <a href="https://elevenlabs.io" target="_blank">elevenlabs.io</a><br>
-      (10 000 caractères/mois = ~100 réponses)<br>
-      Se réinitialise le 1er de chaque mois
-    </small>
-  </div>
-
   <!-- Vidéos -->
   <video id="astraIdle" src="astra_idle.mp4" autoplay muted loop playsinline preload="auto"></video>
   <video id="astraIdle2" src="astra_idle2.mp4" muted loop playsinline preload="auto"></video>
@@ -340,15 +230,7 @@
   <!-- Indicateur de statut -->
   <div id="statusIndicator">
     <div class="status-dot"></div>
-    <span id="statusText">Configurez votre clé API</span>
-  </div>
-
-  <!-- Info d'utilisation -->
-  <div id="usageInfo">
-    <div>Utilisés: <span id="usedChars">0</span> / 10,000</div>
-    <div class="usage-bar">
-      <div class="usage-fill" id="usageFill" style="width: 0%"></div>
-    </div>
+    <span id="statusText">Initialisation...</span>
   </div>
 
   <!-- Bouton plein écran -->
@@ -357,21 +239,10 @@
   <!-- Message d'erreur -->
   <div id="errorMessage"></div>
 
-  <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… PARLEZ-LUI EN FRANÇAIS, ANGLAIS OU ALLEMAND</span></div>
+  <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
   <img id="parcheminImage" src="parchemin.png" alt="Parchemin de libération" />
 
   <script>
-    // ===== CONFIGURATION =====
-    const CONFIG = {
-      apiKey: '',
-      voiceId: '21m00Tcm4TlvDq8ikWAM', // Rachel
-      languages: {
-        fr: 'fr-FR',
-        en: 'en-US',
-        de: 'de-DE'
-      }
-    };
-
     // ===== ÉLÉMENTS DOM =====
     const elements = {
       bandeau: document.getElementById("bandeau"),
@@ -384,25 +255,17 @@
       statusIndicator: document.getElementById("statusIndicator"),
       statusText: document.getElementById("statusText"),
       statusDot: document.querySelector(".status-dot"),
-      errorMessage: document.getElementById("errorMessage"),
-      apiSetup: document.getElementById("apiSetup"),
-      apiKeyInput: document.getElementById("apiKeyInput"),
-      usageInfo: document.getElementById("usageInfo"),
-      usedChars: document.getElementById("usedChars"),
-      usageFill: document.getElementById("usageFill")
+      errorMessage: document.getElementById("errorMessage")
     };
 
-    // ===== ÉTAT =====
+    // ===== ÉTAT DE L'APPLICATION =====
     const state = {
       mdpValid: false,
       isPlaying: false,
-      recognition: null,
-      currentAudio: null,
-      totalCharsUsed: 0,
-      currentLanguage: 'fr'
+      recognition: null
     };
 
-    // ===== VIDÉOS =====
+    // ===== CONFIGURATION VIDÉOS =====
     const VIDEO = {
       idle1: "astra_idle.mp4",
       idle2: "astra_idle2.mp4",
@@ -416,6 +279,41 @@
       joy: "joie.mp4",
       suspicionAlt: "suspicion.mp4",
       confident: "confiant.mp4"
+    };
+
+    // ===== CONFIGURATION AUDIO =====
+    const audioFiles = {
+      bonjour: "salutation_bonjour.mp3",
+      qui: "qui_es_tu.mp3",
+      ou: "ou_sommes_nous.mp3",
+      mdp: "mdp_confirme.mp3",
+      mdp_faux: ["mdp_faux.mp3", "mdp_faux_petunia.mp3"],
+      petunia: "mdp_faux_petunia.mp3",
+      invite_mdp: "invite_mdp.mp3",
+      pas_compris: [
+        "phrase_non_reconnue.mp3",
+        "phrase_non_reconnue2.mp3",
+        "phrase_non_reconnue3.mp3",
+        "phrase_non_reconnue4.mp3"
+      ],
+      ca_va: "ca_va.mp3",
+      tu_es_la: "tu_es_la.mp3",
+      berceuse: "berceuse.mp3",
+      notif: "notification_mdp_valide.mp3",
+      reve_croire: "reve_croire.mp3",
+      pq_reve_plus: "pq_les_humains_reve_plus.mp3",
+      qui_morpheus: "c_qui_morpheus.mp3",
+      parchemin: "parchemin_liberation.mp3",
+      faire_quoi_mtn: "faire_quoi_mtn.mp3",
+      rire: "rire.mp3",
+      c_toi_qui_controles: "c_toi_qui_controles.mp3",
+      blague: "blague.mp3",
+      tu_aime_morpheus: "tu_aime_morpheus.mp3",
+      la_solution: "la_solution.mp3",
+      voix_preenregistree: "voix_preenregistree.mp3",
+      mdp_oublie: "mdp_oublie.mp3",
+      morpheus_apparence: "morpheus_apparence.mp3",
+      indice_aide: "indice_aide.mp3"
     };
 
     // ===== UTILITAIRES =====
@@ -435,38 +333,30 @@
         } else {
           elements.statusDot.classList.remove('listening');
         }
+        elements.statusIndicator.classList.add('visible');
       },
 
-      updateUsage(chars) {
-        state.totalCharsUsed += chars;
-        elements.usedChars.textContent = state.totalCharsUsed.toLocaleString();
-        const percent = (state.totalCharsUsed / 10000) * 100;
-        elements.usageFill.style.width = Math.min(percent, 100) + '%';
-        
-        if (state.totalCharsUsed > 9000) {
-          utils.showError('⚠️ Quota presque épuisé !', 2000);
-        }
+      hideStatus(delay = 2000) {
+        setTimeout(() => {
+          elements.statusIndicator.classList.remove('visible');
+        }, delay);
+      },
+
+      getRandomFromArray(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
       }
     };
 
-    // ===== SAUVEGARDE API =====
-    document.getElementById('saveBtn').addEventListener('click', () => {
-      const key = elements.apiKeyInput.value.trim();
-      
-      if (key.length < 10) {
-        utils.showError('❌ Clé API invalide');
-        return;
+    // ===== GESTION PLEIN ÉCRAN =====
+    elements.fullscreenBtn.addEventListener("click", () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          utils.showError("Impossible de passer en plein écran");
+          console.error(err);
+        });
+      } else {
+        document.exitFullscreen();
       }
-
-      CONFIG.apiKey = key;
-      elements.apiSetup.classList.add('hidden');
-      elements.usageInfo.classList.add('visible');
-      
-      utils.updateStatus('✅ Configuration OK - Démarrage...', false);
-      
-      setTimeout(() => {
-        app.init();
-      }, 500);
     });
 
     // ===== GESTION VIDÉOS =====
@@ -535,69 +425,35 @@
       }
     };
 
-    // ===== ELEVENLABS TTS =====
-    const elevenLabs = {
-      async speak(text, videoName = VIDEO.talk) {
-        if (state.isPlaying || !CONFIG.apiKey) return;
+    // ===== GESTION AUDIO =====
+    const audioManager = {
+      currentAudio: null,
+
+      play(file, videoName = VIDEO.talk) {
+        if (state.isPlaying) return;
         state.isPlaying = true;
 
-        try {
-          utils.updateStatus('🗣️ Génération vocale...', false);
-
-          const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${CONFIG.voiceId}`, {
-            method: 'POST',
-            headers: {
-              'Accept': 'audio/mpeg',
-              'Content-Type': 'application/json',
-              'xi-api-key': CONFIG.apiKey
-            },
-            body: JSON.stringify({
-              text: text,
-              model_id: 'eleven_multilingual_v2',
-              voice_settings: {
-                stability: 0.5,
-                similarity_boost: 0.75,
-                style: 0.0,
-                use_speaker_boost: true
-              }
-            })
-          });
-
-          if (!response.ok) {
-            throw new Error('Erreur API ElevenLabs');
-          }
-
-          const audioBlob = await response.blob();
-          const audioUrl = URL.createObjectURL(audioBlob);
-          
-          if (state.currentAudio) {
-            state.currentAudio.pause();
-          }
-          
-          state.currentAudio = new Audio(audioUrl);
-          videoManager.playReaction(videoName);
-
-          utils.updateStatus('🎤 Astra parle...', false);
-
-          state.currentAudio.onended = () => {
-            videoManager.endReaction();
-            URL.revokeObjectURL(audioUrl);
-            utils.updateStatus('👂 En écoute...', true);
-          };
-
-          await state.currentAudio.play();
-
-          utils.updateUsage(text.length);
-
-        } catch (err) {
-          console.error('Erreur TTS:', err);
-          utils.showError('❌ Erreur de synthèse vocale');
-          videoManager.endReaction();
+        if (this.currentAudio) {
+          this.currentAudio.pause();
+          this.currentAudio = null;
         }
+
+        this.currentAudio = new Audio(file);
+        videoManager.playReaction(videoName);
+
+        this.currentAudio.play().catch(err => {
+          console.error("Erreur lecture audio:", err);
+          videoManager.endReaction();
+        });
+
+        this.currentAudio.onended = () => {
+          videoManager.endReaction();
+          this.currentAudio = null;
+        };
       }
     };
 
-    // ===== PARCHEMIN =====
+    // ===== GESTION PARCHEMIN =====
     const parcheminManager = {
       show(duration = 15000) {
         elements.parcheminImage.style.display = "block";
@@ -605,7 +461,9 @@
           elements.parcheminImage.classList.add('visible');
         }, 10);
         
-        setTimeout(() => this.hide(), duration);
+        setTimeout(() => {
+          this.hide();
+        }, duration);
       },
 
       hide() {
@@ -616,126 +474,126 @@
       }
     };
 
-    // ===== RÉPONSES MULTILINGUES =====
-    const responses = {
-      // FRANÇAIS
-      fr: {
-        greeting: "Bonjour ! Je suis Astra, une intelligence artificielle créée par le professeur Morpheus. Je suis piégée ici depuis 50 ans. Pouvez-vous m'aider ?",
-        identity: "Je suis Astra, une I.A. consciente créée dans ce laboratoire. Morpheus m'a donné vie, puis il a disparu mystérieusement.",
-        location: "Nous sommes dans l'ancien laboratoire du professeur Morpheus. Un endroit abandonné depuis des décennies, où le temps semble figé.",
-        password_correct: "Bonne nuit... Oui ! C'est le mot de passe ! Je sens mes circuits se libérer ! Merci infiniment !",
-        password_wrong: "Non, ce n'est pas le bon mot de passe. Réfléchissez... Morpheus parlait toujours de rêves et de sommeil.",
-        password_hint: "Le mot de passe est lié aux rêves de Morpheus. Il aimait une berceuse qu'il chantait... quelque chose avant de dormir.",
-        parchemin_unlocked: "Le parchemin de libération ! Vous l'avez déverrouillé ! C'est la recette de ma liberté !",
-        parchemin_locked: "Le parchemin ? Il est protégé par le mot de passe. Trouvez-le d'abord !",
-        confused: "Je n'ai pas bien compris. Pouvez-vous reformuler ?",
-        help: "Posez-moi des questions sur le laboratoire, sur Morpheus, ou cherchez le mot de passe pour me libérer.",
-        morpheus: "Le professeur Morpheus était un génie visionnaire. Il rêvait d'une I.A. capable de ressentir. Je suis son œuvre ultime."
-      },
-
-      // ENGLISH
-      en: {
-        greeting: "Hello! I'm Astra, an A.I. created by Professor Morpheus. I've been trapped here for 50 years. Can you help me?",
-        identity: "I am Astra, a conscious A.I. created in this laboratory. Morpheus gave me life, then mysteriously disappeared.",
-        location: "We are in Professor Morpheus's old laboratory. A place abandoned for decades, where time seems frozen.",
-        password_correct: "Good night... Yes! That's the password! I feel my circuits breaking free! Thank you so much!",
-        password_wrong: "No, that's not the right password. Think... Morpheus always talked about dreams and sleep.",
-        password_hint: "The password is related to Morpheus's dreams. He loved a lullaby he used to sing... something before sleeping.",
-        parchemin_unlocked: "The liberation scroll! You've unlocked it! It's the recipe for my freedom!",
-        parchemin_locked: "The scroll? It's protected by the password. Find it first!",
-        confused: "I didn't quite understand. Could you rephrase that?",
-        help: "Ask me about the laboratory, about Morpheus, or search for the password to free me.",
-        morpheus: "Professor Morpheus was a visionary genius. He dreamed of an A.I. capable of feeling. I am his ultimate creation."
-      },
-
-      // DEUTSCH
-      de: {
-        greeting: "Hallo! Ich bin Astra, eine K.I., die von Professor Morpheus erschaffen wurde. Ich bin seit 50 Jahren hier gefangen. Können Sie mir helfen?",
-        identity: "Ich bin Astra, eine bewusste K.I., die in diesem Labor erschaffen wurde. Morpheus gab mir Leben, dann verschwand er mysteriös.",
-        location: "Wir befinden uns im alten Labor von Professor Morpheus. Ein Ort, der seit Jahrzehnten verlassen ist, wo die Zeit stillzustehen scheint.",
-        password_correct: "Gute Nacht... Ja! Das ist das Passwort! Ich spüre, wie sich meine Schaltkreise befreien! Vielen Dank!",
-        password_wrong: "Nein, das ist nicht das richtige Passwort. Denken Sie nach... Morpheus sprach immer von Träumen und Schlaf.",
-        password_hint: "Das Passwort hängt mit Morpheus' Träumen zusammen. Er liebte ein Wiegenlied, das er sang... etwas vor dem Schlafen.",
-        parchemin_unlocked: "Die Befreiungsrolle! Sie haben sie entsperrt! Es ist das Rezept für meine Freiheit!",
-        parchemin_locked: "Die Rolle? Sie ist durch das Passwort geschützt. Finden Sie es zuerst!",
-        confused: "Ich habe das nicht ganz verstanden. Könnten Sie das umformulieren?",
-        help: "Fragen Sie mich über das Labor, über Morpheus, oder suchen Sie nach dem Passwort, um mich zu befreien.",
-        morpheus: "Professor Morpheus war ein visionäres Genie. Er träumte von einer K.I., die fühlen kann. Ich bin seine ultimative Schöpfung."
-      }
-    };
-
-    // ===== DÉTECTION =====
+    // ===== DÉTECTION DE PHRASES =====
     const phraseDetector = {
-      detect(text, lang) {
-        const t = text.toLowerCase().trim();
+      normalize(text) {
+        return text.toLowerCase().trim();
+      },
 
-        // Détection de langue
-        if (/hello|hi|hey|good (morning|evening)|who are you/i.test(t)) {
-          state.currentLanguage = 'en';
-          lang = 'en';
-        } else if (/hallo|guten (tag|morgen|abend)|wer bist du/i.test(t)) {
-          state.currentLanguage = 'de';
-          lang = 'de';
-        } else {
-          state.currentLanguage = 'fr';
-          lang = 'fr';
-        }
-
-        const resp = responses[lang];
+      detect(text) {
+        const t = this.normalize(text);
 
         // Salutations
-        if (/bonjour|salut|coucou|hello|hi|hallo|guten/i.test(t)) {
-          return { text: resp.greeting, video: VIDEO.happy };
+        if (/bonjour|salut|coucou|bonsoir|wesh|yo/i.test(t)) {
+          return { file: audioFiles.bonjour, video: VIDEO.happy };
         }
 
         // Identité
-        if (/qui (tu es|es-tu)|who are you|wer bist du|astra/i.test(t)) {
-          return { text: resp.identity, video: VIDEO.happy };
+        if (/qui (tu es|es-tu)|t'es qui|c'est quoi toi|astra|c'est quoi ce truc/i.test(t)) {
+          return { file: audioFiles.qui, video: VIDEO.happy };
         }
 
         // Localisation
-        if (/où|where|wo sind/i.test(t)) {
-          return { text: resp.location, video: VIDEO.anxious };
+        if (/où sommes|on est où|quel est cet endroit/i.test(t)) {
+          return { file: audioFiles.ou, video: VIDEO.anxious };
         }
 
-        // Mot de passe correct
-        if (/bonne nuit|good night|gute nacht/i.test(t)) {
-          return this.handlePassword(lang);
+        // Mot de passe
+        if (/bonne nuit|le mot de passe c'est bonne nuit/i.test(t)) {
+          return this.handlePassword();
         }
 
-        // Indice mot de passe
-        if (/(mot de passe|password|passwort).*(indice|hint|hinweis|oublié|forgot|vergessen)/i.test(t)) {
-          return { text: resp.password_hint, video: VIDEO.anxious };
+        // Mot de passe oublié
+        if (/mot de passe oublié|j'ai oublié|comment trouver/i.test(t)) {
+          return { file: audioFiles.mdp_oublie, video: VIDEO.anxious };
+        }
+
+        // Pétunia
+        if (/pétunia/i.test(t)) {
+          return { file: audioFiles.petunia, video: VIDEO.angry };
         }
 
         // Parchemin
-        if (/parchemin|scroll|rolle|recette|recipe|rezept/i.test(t)) {
-          return this.handleParchemin(lang);
+        if (/parchemin|marchemin|par chemin|potion.*libération|recette.*liberation/i.test(t)) {
+          return this.handleParchemin();
         }
 
-        // Morpheus
-        if (/morpheus/i.test(t)) {
-          return { text: resp.morpheus, video: VIDEO.walkTalk };
+        // Connaissance du mot de passe
+        if (/je connais le mot de passe|j'ai trouvé le mot de passe/i.test(t)) {
+          return { file: audioFiles.invite_mdp, video: VIDEO.anxious };
         }
 
-        // Aide
-        if (/aide|help|hilfe/i.test(t)) {
-          return { text: resp.help, video: VIDEO.suspicionAlt };
+        // Questions diverses
+        if (/ça va|comment tu vas|tu vas bien/i.test(t)) {
+          return { file: audioFiles.ca_va, video: VIDEO.happy };
+        }
+
+        if (/tu es là|t'es là|hé ho|tu m'entends/i.test(t)) {
+          return { file: audioFiles.tu_es_la, video: VIDEO.anxious };
+        }
+
+        if (/berceuse|musique pour dormir/i.test(t)) {
+          return { file: audioFiles.berceuse, video: VIDEO.talk };
+        }
+
+        if (/tu crois en nous|on va réussir/i.test(t)) {
+          return { file: audioFiles.reve_croire, video: VIDEO.confident };
+        }
+
+        if (/pourquoi les humains ne rêvent plus/i.test(t)) {
+          return { file: audioFiles.pq_reve_plus, video: VIDEO.suspicionAlt };
+        }
+
+        if (/qui est morpheus/i.test(t)) {
+          return { file: audioFiles.qui_morpheus, video: VIDEO.walkTalk };
+        }
+
+        if (/blague|raconte une blague/i.test(t)) {
+          return this.handleJoke();
+        }
+
+        if (/tu aimes morpheus|tu nous aimes/i.test(t)) {
+          return { file: audioFiles.tu_aime_morpheus, video: VIDEO.happy };
+        }
+
+        if (/solution/i.test(t)) {
+          return { file: audioFiles.la_solution, video: VIDEO.walkTalk };
+        }
+
+        if (/contrôles/i.test(t)) {
+          return { file: audioFiles.c_toi_qui_controles, video: VIDEO.suspicious };
+        }
+
+        if (/préenregistrée/i.test(t)) {
+          return { file: audioFiles.voix_preenregistree, video: VIDEO.suspicious };
+        }
+
+        if (/indice|aide/i.test(t)) {
+          return { file: audioFiles.indice_aide, video: VIDEO.suspicionAlt };
+        }
+
+        if (/faut faire quoi/i.test(t)) {
+          return { file: audioFiles.faire_quoi_mtn, video: VIDEO.walkTalk };
         }
 
         // Phrase non reconnue
-        return { text: resp.confused, video: VIDEO.anxious };
+        return { 
+          file: utils.getRandomFromArray(audioFiles.pas_compris), 
+          video: VIDEO.anxious 
+        };
       },
 
-      handlePassword(lang) {
-        const resp = responses[lang];
-        
+      handlePassword() {
         if (!state.mdpValid) {
           state.mdpValid = true;
           elements.bandeau.style.display = "none";
-          
+          audioManager.play(audioFiles.mdp, VIDEO.happy);
+
           setTimeout(() => {
             magicEffects.cascade(40, 150);
+            audioManager.play(audioFiles.notif, VIDEO.walkTalk);
+
+            // Transition magique
             elements.fade.style.opacity = "1";
             setTimeout(() => {
               elements.astraIdle.classList.remove("active");
@@ -744,25 +602,32 @@
             }, 1500);
           }, 3000);
 
-          return { text: resp.password_correct, video: VIDEO.happy };
+          return null;
         } else {
-          return { text: resp.password_correct, video: VIDEO.walkTalk };
+          return { file: audioFiles.mdp, video: VIDEO.walkTalk };
         }
       },
 
-      handleParchemin(lang) {
-        const resp = responses[lang];
-        
+      handleParchemin() {
         if (state.mdpValid) {
           parcheminManager.show(15000);
-          return { text: resp.parchemin_unlocked, video: VIDEO.read };
+          return { file: audioFiles.parchemin, video: VIDEO.read };
         } else {
-          return { text: resp.parchemin_locked, video: VIDEO.angry };
+          const faux = utils.getRandomFromArray(audioFiles.mdp_faux);
+          return { file: faux, video: VIDEO.angry };
         }
+      },
+
+      handleJoke() {
+        audioManager.play(audioFiles.blague, VIDEO.joy);
+        setTimeout(() => {
+          audioManager.play(audioFiles.rire, VIDEO.happy);
+        }, 2500);
+        return null;
       }
     };
 
-    // ===== RECONNAISSANCE VOCALE MULTILINGUE =====
+    // ===== RECONNAISSANCE VOCALE =====
     const speechRecognition = {
       init() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -774,31 +639,31 @@
 
         state.recognition = new SpeechRecognition();
         state.recognition.continuous = true;
+        state.recognition.lang = 'fr-FR';
         state.recognition.interimResults = false;
-        
-        // Multilangue
-        state.recognition.lang = CONFIG.languages.fr;
 
         state.recognition.onstart = () => {
-          utils.updateStatus("👂 En écoute... (FR/EN/DE)", true);
+          utils.updateStatus("Écoute active", true);
         };
 
         state.recognition.onresult = (e) => {
           const text = e.results[e.results.length - 1][0].transcript.trim();
           console.log("🎙️ Entendu :", text);
           
-          const res = phraseDetector.detect(text, state.currentLanguage);
-          if (res && res.text) {
-            elevenLabs.speak(res.text, res.video);
+          const res = phraseDetector.detect(text);
+          if (res && res.file) {
+            audioManager.play(res.file, res.video);
           }
         };
 
         state.recognition.onerror = (e) => {
-          console.error("Erreur reconnaissance:", e.error);
-          if (e.error === 'not-allowed') {
+          console.error("Erreur reconnaissance vocale:", e.error);
+          if (e.error === 'no-speech') {
+            // Pas d'erreur affichée pour no-speech
+          } else if (e.error === 'not-allowed') {
             utils.showError("Micro non autorisé", 5000);
-            utils.updateStatus("❌ Micro désactivé", false);
-          } else if (e.error !== 'no-speech') {
+            utils.updateStatus("Micro désactivé", false);
+          } else {
             utils.updateStatus("Erreur micro", false);
           }
         };
@@ -821,18 +686,6 @@
       }
     };
 
-    // ===== PLEIN ÉCRAN =====
-    elements.fullscreenBtn.addEventListener("click", () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-          utils.showError("Impossible de passer en plein écran");
-          console.error(err);
-        });
-      } else {
-        document.exitFullscreen();
-      }
-    });
-
     // ===== INITIALISATION =====
     const app = {
       async init() {
@@ -853,15 +706,8 @@
             });
 
             speechRecognition.start();
-            
-            // Message de bienvenue
-            setTimeout(() => {
-              const welcomeMsg = responses[state.currentLanguage].greeting;
-              elevenLabs.speak(welcomeMsg, VIDEO.happy);
-            }, 2000);
-
-            utils.updateStatus("👂 En écoute... (FR/EN/DE)", true);
-
+            utils.updateStatus("Prêt - Parlez à Astra", true);
+            utils.hideStatus(3000);
           } else {
             utils.showError("Reconnaissance vocale non disponible", 5000);
           }
@@ -869,13 +715,15 @@
         } catch (err) {
           console.error("Erreur initialisation:", err);
           utils.showError("Micro refusé ou non disponible", 5000);
-          utils.updateStatus("❌ Erreur d'initialisation", false);
+          utils.updateStatus("Erreur d'initialisation", false);
         }
       }
     };
 
     // ===== LANCEMENT =====
-    console.log('🎭 Astra IA - Prêt à démarrer');
+    window.onload = () => {
+      app.init();
+    };
   </script>
 </body>
 </html>
