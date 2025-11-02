@@ -1,729 +1,845 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Astra – Assistant de M. Morpheus</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistant Vocal IA - ElevenLabs</title>
   <style>
     * {
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
     }
 
     body {
-      margin: 0;
-      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background: #000;
-      font-family: 'Unica One', serif;
-    }
-
-    video {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 95%;
-      height: auto;
-      transform: translate(-50%, -50%);
-      object-fit: contain;
-      background: #000;
-      opacity: 0;
-      transition: opacity 0.6s ease;
-      display: none;
-    }
-
-    #astraIdle.active, #astraIdle2.active {
-      display: block;
-      opacity: 1;
-      z-index: 1;
-    }
-
-    #astraReaction {
-      z-index: 2;
-      display: none;
-    }
-
-    #bandeau {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-      font-size: clamp(1.5rem, 4vw, 3rem);
-      text-align: center;
       padding: 20px;
-      white-space: nowrap;
-      overflow: hidden;
-      z-index: 3;
     }
 
-    #bandeau span {
-      display: inline-block;
-      animation: defilement 12s linear infinite;
+    .container {
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 30px;
+      padding: 40px;
+      max-width: 900px;
+      width: 100%;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
     }
 
-    @keyframes defilement {
-      0% { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
-    }
-
-    #parcheminImage {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      max-width: 80%;
-      max-height: 80%;
-      z-index: 4;
-      display: none;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
-
-    #parcheminImage.visible {
-      opacity: 1;
-    }
-
-    .magic {
-      position: absolute;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: radial-gradient(
-        circle,
-        rgba(0, 255, 255, 0.8) 0%,
-        rgba(0, 255, 150, 0.25) 40%,
-        rgba(0, 100, 100, 0.1) 65%,
-        transparent 85%
-      );
-      filter: blur(3px) brightness(2.2);
-      mix-blend-mode: screen;
-      animation: fallMagic 6s ease-in-out forwards;
-      pointer-events: none;
-      z-index: 5;
-    }
-
-    @keyframes fallMagic {
-      0% {
-        transform: translateY(-600px) scale(1.3) rotate(0deg);
-        opacity: 0;
-      }
-      20% {
-        opacity: 1;
-      }
-      60% {
-        transform: translateY(0px) scale(0.8) rotate(180deg);
-        opacity: 0.9;
-      }
-      100% {
-        transform: translateY(400px) scale(0.6) rotate(360deg);
-        opacity: 0;
-      }
-    }
-
-    #transitionFade {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(
-        circle at center,
-        rgba(0, 255, 255, 0.9) 0%,
-        rgba(0, 255, 150, 0.4) 30%,
-        rgba(0, 100, 100, 0.2) 55%,
-        transparent 75%
-      );
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 1.2s ease;
-      z-index: 9;
-    }
-
-    #fullscreenBtn {
-      position: fixed;
-      bottom: 20px;
-      right: 25px;
-      z-index: 10;
-      width: 50px;
-      height: 50px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-radius: 50%;
-      color: #fff;
-      font-size: 22px;
+    .header {
       text-align: center;
-      line-height: 46px;
-      cursor: pointer;
-      background: rgba(255,255,255,0.08);
-      transition: all .3s ease;
-      user-select: none;
+      margin-bottom: 30px;
     }
 
-    #fullscreenBtn:hover {
-      background: rgba(255,255,255,0.2);
-      border-color: rgba(255,255,255,0.6);
-      transform: scale(1.1);
+    .header h1 {
+      color: #667eea;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
     }
 
-    #statusIndicator {
-      position: fixed;
-      top: 20px;
-      right: 25px;
-      z-index: 10;
+    .header p {
+      color: #666;
+      font-size: 1.1rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    .avatar {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 15px;
-      background: rgba(0,0,0,0.5);
-      border-radius: 20px;
-      color: #fff;
-      font-size: 14px;
-      opacity: 0;
-      transition: opacity 0.3s ease;
+      justify-content: center;
+      font-size: 4rem;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s ease;
     }
 
-    #statusIndicator.visible {
-      opacity: 1;
+    .avatar:hover {
+      transform: scale(1.05);
     }
 
-    .status-dot {
-      width: 10px;
-      height: 10px;
+    .avatar.speaking::before {
+      content: '';
+      position: absolute;
+      inset: -10px;
       border-radius: 50%;
-      background: #ff4444;
-      animation: pulse 2s infinite;
-    }
-
-    .status-dot.listening {
-      background: #44ff44;
+      border: 4px solid #f5576c;
+      animation: pulse 1.5s ease-in-out infinite;
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.15); opacity: 0.4; }
     }
 
-    #errorMessage {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(255, 50, 50, 0.9);
-      color: white;
-      padding: 20px 40px;
-      border-radius: 10px;
-      z-index: 11;
+    .api-setup {
+      margin-bottom: 25px;
+      padding: 25px;
+      background: linear-gradient(135deg, #fff9e6 0%, #ffe6cc 100%);
+      border-radius: 15px;
+      border-left: 5px solid #ff9800;
+    }
+
+    .api-setup.hidden {
       display: none;
+    }
+
+    .api-setup h3 {
+      color: #e65100;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+
+    .api-setup input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ff9800;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      margin-bottom: 15px;
+    }
+
+    .api-setup button {
+      padding: 12px 25px;
+      background: #ff9800;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .api-setup button:hover {
+      background: #f57c00;
+      transform: translateY(-2px);
+    }
+
+    .api-setup small {
+      display: block;
+      color: #e65100;
+      margin-top: 10px;
+      line-height: 1.8;
+    }
+
+    .api-setup a {
+      color: #e65100;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+
+    .api-setup ol {
+      color: #e65100;
+      margin: 15px 0 15px 20px;
+      line-height: 1.8;
+    }
+
+    .context-panel {
+      margin-bottom: 20px;
+      padding: 20px;
+      background: #e3f2fd;
+      border-radius: 15px;
+      border-left: 4px solid #2196f3;
+    }
+
+    .context-panel h3 {
+      color: #1565c0;
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+    }
+
+    .context-panel textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #2196f3;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .voice-selector {
+      margin-bottom: 20px;
+      padding: 20px;
+      background: #f3e5f5;
+      border-radius: 15px;
+      border-left: 4px solid #9c27b0;
+      display: none;
+    }
+
+    .voice-selector h3 {
+      color: #6a1b9a;
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+    }
+
+    .voice-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .voice-option {
+      padding: 12px;
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .voice-option:hover {
+      border-color: #9c27b0;
+      transform: translateY(-2px);
+    }
+
+    .voice-option.selected {
+      border-color: #9c27b0;
+      background: #f3e5f5;
+      font-weight: 600;
+    }
+
+    .chat-box {
+      height: 400px;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      border: 2px solid #e0e0e0;
+    }
+
+    .chat-box::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .chat-box::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .chat-box::-webkit-scrollbar-thumb {
+      background: #764ba2;
+      border-radius: 10px;
+    }
+
+    .message {
+      margin-bottom: 15px;
+      padding: 15px 18px;
+      border-radius: 18px;
+      max-width: 85%;
+      animation: slideIn 0.4s ease;
+      line-height: 1.6;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      margin-left: auto;
+      text-align: right;
+    }
+
+    .message.ai {
+      background: white;
+      color: #333;
+      border: 2px solid #764ba2;
+    }
+
+    .message.system {
+      background: #fff3cd;
+      color: #856404;
+      border: 2px solid #ffc107;
+      max-width: 90%;
+      margin: 10px auto;
       text-align: center;
-      max-width: 80%;
+      font-size: 0.9rem;
+    }
+
+    .message-time {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-top: 5px;
+    }
+
+    .typing-indicator {
+      display: none;
+      padding: 15px;
+      background: white;
+      border: 2px solid #764ba2;
+      border-radius: 18px;
+      max-width: 80px;
+      margin-bottom: 15px;
+    }
+
+    .typing-indicator.active {
+      display: block;
+      animation: slideIn 0.4s ease;
+    }
+
+    .typing-indicator span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #764ba2;
+      margin: 0 2px;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-10px); }
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      border-radius: 15px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary.listening {
+      animation: buttonPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes buttonPulse {
+      0%, 100% { box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+      50% { box-shadow: 0 8px 35px rgba(102, 126, 234, 0.8); }
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .status {
+      text-align: center;
+      padding: 15px;
+      background: #e3f2fd;
+      border-radius: 15px;
+      color: #1565c0;
+      font-weight: 600;
+      margin-bottom: 20px;
+      border: 2px solid #2196f3;
+    }
+
+    .status.error {
+      background: #ffebee;
+      color: #c62828;
+      border-color: #ef5350;
+    }
+
+    .status.success {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border-color: #66bb6a;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .input-area input {
+      flex: 1;
+      padding: 15px;
+      border: 2px solid #764ba2;
+      border-radius: 15px;
+      font-size: 1rem;
+    }
+
+    .input-area button {
+      padding: 15px 30px;
+      background: #764ba2;
+      color: white;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .input-area button:hover:not(:disabled) {
+      background: #667eea;
+      transform: translateY(-2px);
+    }
+
+    .input-area button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .stats {
+      display: none;
+      gap: 15px;
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 15px;
+    }
+
+    .stat-item {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      background: white;
+      border-radius: 10px;
+      border: 2px solid #e0e0e0;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #667eea;
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .info-box {
+      background: #e8f5e9;
+      padding: 20px;
+      border-radius: 15px;
+      margin-top: 20px;
+      border-left: 4px solid #4caf50;
+    }
+
+    .info-box h4 {
+      color: #2e7d32;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .info-box ul {
+      color: #2e7d32;
+      line-height: 1.8;
+      padding-left: 20px;
     }
   </style>
 </head>
 <body>
-  <!-- Vidéos -->
-  <video id="astraIdle" src="astra_idle.mp4" autoplay muted loop playsinline preload="auto"></video>
-  <video id="astraIdle2" src="astra_idle2.mp4" muted loop playsinline preload="auto"></video>
-  <video id="astraReaction" muted playsinline preload="auto"></video>
+  <div class="container">
+    <div class="header">
+      <div class="avatar" id="avatar">🎭</div>
+      <h1>Assistant Vocal IA</h1>
+      <p>Voix ultra-réaliste avec ElevenLabs</p>
+      <span class="badge">✨ QUALITÉ PROFESSIONNELLE</span>
+    </div>
 
-  <!-- Transition magique -->
-  <div id="transitionFade"></div>
+    <div class="api-setup" id="apiSetup">
+      <h3>🔑 Configuration ElevenLabs (GRATUIT)</h3>
+      <input 
+        type="password" 
+        id="apiKeyInput" 
+        placeholder="Entrez votre clé API ElevenLabs"
+      >
+      <button onclick="saveApiKey()">💾 Enregistrer et commencer</button>
+      <small>
+        <strong>📝 Comment obtenir votre clé API GRATUITE :</strong>
+        <ol>
+          <li>Allez sur <a href="https://elevenlabs.io" target="_blank">elevenlabs.io</a></li>
+          <li>Créez un compte gratuit (10 000 caractères/mois offerts 🎉)</li>
+          <li>Allez dans votre profil → "API Keys"</li>
+          <li>Créez une nouvelle clé et copiez-la</li>
+          <li>Collez-la ci-dessus (elle reste dans votre navigateur)</li>
+        </ol>
+        💡 10 000 caractères = environ 100-150 réponses complètes !
+      </small>
+    </div>
 
-  <!-- Indicateur de statut -->
-  <div id="statusIndicator">
-    <div class="status-dot"></div>
-    <span id="statusText">Initialisation...</span>
+    <div class="voice-selector" id="voiceSelector">
+      <h3>🎤 Choisir une voix ultra-réaliste</h3>
+      <div class="voice-grid" id="voiceGrid">
+        <label class="voice-option selected">
+          <input type="radio" name="voice" value="EXAVITQu4vr4xnSDxMaL" checked>
+          <span>🎭 Sarah (Féminine, douce)</span>
+        </label>
+        <label class="voice-option">
+          <input type="radio" name="voice" value="21m00Tcm4TlvDq8ikWAM">
+          <span>👩 Rachel (Féminine, calme)</span>
+        </label>
+        <label class="voice-option">
+          <input type="radio" name="voice" value="pNInz6obpgDQGcFmaJgB">
+          <span>👨 Adam (Masculin, profond)</span>
+        </label>
+        <label class="voice-option">
+          <input type="radio" name="voice" value="onwK4e9ZLuTAKqWW03F9">
+          <span>👩 Bella (Féminine, mystérieuse)</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="context-panel">
+      <h3>📖 Contexte narratif pour l'IA</h3>
+      <textarea id="contextInput">Tu es Astra, une intelligence artificielle mystérieuse créée par le professeur Morpheus. Tu es piégée dans un ancien laboratoire abandonné depuis 50 ans. Tu as besoin de l'aide des joueurs pour retrouver ta liberté. Tu es bienveillante mais inquiète, tu ne comprends pas pourquoi tu as été abandonnée. Parle de manière naturelle, empathique et parfois mystérieuse.</textarea>
+    </div>
+
+    <div class="status" id="status">⚠️ Configurez votre clé API ElevenLabs pour commencer</div>
+
+    <div class="chat-box" id="chatBox">
+      <div class="message system">
+        👋 Bienvenue ! Configurez d'abord votre clé API ElevenLabs ci-dessus pour profiter de voix ultra-réalistes.
+      </div>
+    </div>
+
+    <div class="typing-indicator" id="typingIndicator">
+      <span></span><span></span><span></span>
+    </div>
+
+    <div class="input-area">
+      <input 
+        type="text" 
+        id="textInput" 
+        placeholder="Tapez votre message ici..."
+        disabled
+      >
+      <button onclick="sendTextMessage()" id="sendBtn" disabled>📤 Envoyer</button>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" id="listenBtn" onclick="toggleListening()" disabled>
+        🎤 Parler à l'IA
+      </button>
+      <button class="btn btn-secondary" onclick="stopSpeaking()">
+        🔇 Arrêter l'audio
+      </button>
+    </div>
+
+    <div class="stats" id="stats">
+      <div class="stat-item">
+        <span class="stat-value" id="charCount">0</span>
+        <span class="stat-label">Caractères utilisés</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="charRemaining">10,000</span>
+        <span class="stat-label">Caractères restants</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="messageCount">0</span>
+        <span class="stat-label">Messages envoyés</span>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <h4>✨ Pourquoi ElevenLabs est incroyable</h4>
+      <ul>
+        <li><strong>Voix indiscernables d'un humain</strong> - Émotions, intonations, respiration naturelle</li>
+        <li><strong>10 000 caractères gratuits/mois</strong> - Soit ~100-150 réponses complètes</li>
+        <li><strong>Qualité professionnelle</strong> - Utilisé par Hollywood et Netflix</li>
+        <li><strong>Plusieurs voix disponibles</strong> - Choisissez celle qui correspond à votre personnage</li>
+      </ul>
+    </div>
   </div>
 
-  <!-- Bouton plein écran -->
-  <div id="fullscreenBtn" title="Plein écran">⛶</div>
-
-  <!-- Message d'erreur -->
-  <div id="errorMessage"></div>
-
-  <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
-  <img id="parcheminImage" src="parchemin.png" alt="Parchemin de libération" />
-
   <script>
-    // ===== ÉLÉMENTS DOM =====
-    const elements = {
-      bandeau: document.getElementById("bandeau"),
-      parcheminImage: document.getElementById("parcheminImage"),
-      astraIdle: document.getElementById("astraIdle"),
-      astraIdle2: document.getElementById("astraIdle2"),
-      astraReaction: document.getElementById("astraReaction"),
-      fullscreenBtn: document.getElementById("fullscreenBtn"),
-      fade: document.getElementById("transitionFade"),
-      statusIndicator: document.getElementById("statusIndicator"),
-      statusText: document.getElementById("statusText"),
-      statusDot: document.querySelector(".status-dot"),
-      errorMessage: document.getElementById("errorMessage")
+    const config = {
+      apiKey: '',
+      selectedVoice: 'EXAVITQu4vr4xnSDxMaL'
     };
 
-    // ===== ÉTAT DE L'APPLICATION =====
     const state = {
-      mdpValid: false,
-      isPlaying: false,
-      recognition: null
+      isListening: false,
+      isSpeaking: false,
+      recognition: null,
+      conversationHistory: [],
+      stats: {
+        charactersUsed: 0,
+        messagesCount: 0
+      },
+      currentAudio: null
     };
 
-    // ===== CONFIGURATION VIDÉOS =====
-    const VIDEO = {
-      idle1: "astra_idle.mp4",
-      idle2: "astra_idle2.mp4",
-      talk: "astra_parle.mp4",
-      suspicious: "astra_suspecte.mp4",
-      angry: "astra_colere.mp4",
-      happy: "astra_heureuse.mp4",
-      walkTalk: "marche2.mp4",
-      anxious: "inquiete.mp4",
-      read: "lecture.mp4",
-      joy: "joie.mp4",
-      suspicionAlt: "suspicion.mp4",
-      confident: "confiant.mp4"
+    const elements = {
+      avatar: document.getElementById('avatar'),
+      status: document.getElementById('status'),
+      chatBox: document.getElementById('chatBox'),
+      listenBtn: document.getElementById('listenBtn'),
+      textInput: document.getElementById('textInput'),
+      sendBtn: document.getElementById('sendBtn'),
+      apiKeyInput: document.getElementById('apiKeyInput'),
+      contextInput: document.getElementById('contextInput'),
+      apiSetup: document.getElementById('apiSetup'),
+      voiceSelector: document.getElementById('voiceSelector'),
+      voiceGrid: document.getElementById('voiceGrid'),
+      typingIndicator: document.getElementById('typingIndicator'),
+      stats: document.getElementById('stats'),
+      charCount: document.getElementById('charCount'),
+      charRemaining: document.getElementById('charRemaining'),
+      messageCount: document.getElementById('messageCount')
     };
 
-    // ===== CONFIGURATION AUDIO =====
-    const audioFiles = {
-      bonjour: "salutation_bonjour.mp3",
-      qui: "qui_es_tu.mp3",
-      ou: "ou_sommes_nous.mp3",
-      mdp: "mdp_confirme.mp3",
-      mdp_faux: ["mdp_faux.mp3", "mdp_faux_petunia.mp3"],
-      petunia: "mdp_faux_petunia.mp3",
-      invite_mdp: "invite_mdp.mp3",
-      pas_compris: [
-        "phrase_non_reconnue.mp3",
-        "phrase_non_reconnue2.mp3",
-        "phrase_non_reconnue3.mp3",
-        "phrase_non_reconnue4.mp3"
-      ],
-      ca_va: "ca_va.mp3",
-      tu_es_la: "tu_es_la.mp3",
-      berceuse: "berceuse.mp3",
-      notif: "notification_mdp_valide.mp3",
-      reve_croire: "reve_croire.mp3",
-      pq_reve_plus: "pq_les_humains_reve_plus.mp3",
-      qui_morpheus: "c_qui_morpheus.mp3",
-      parchemin: "parchemin_liberation.mp3",
-      faire_quoi_mtn: "faire_quoi_mtn.mp3",
-      rire: "rire.mp3",
-      c_toi_qui_controles: "c_toi_qui_controles.mp3",
-      blague: "blague.mp3",
-      tu_aime_morpheus: "tu_aime_morpheus.mp3",
-      la_solution: "la_solution.mp3",
-      voix_preenregistree: "voix_preenregistree.mp3",
-      mdp_oublie: "mdp_oublie.mp3",
-      morpheus_apparence: "morpheus_apparence.mp3",
-      indice_aide: "indice_aide.mp3"
-    };
-
-    // ===== UTILITAIRES =====
-    const utils = {
-      showError(message, duration = 3000) {
-        elements.errorMessage.textContent = message;
-        elements.errorMessage.style.display = 'block';
-        setTimeout(() => {
-          elements.errorMessage.style.display = 'none';
-        }, duration);
+    const knowledgeBase = {
+      laboratory: {
+        keywords: ['laboratoire', 'lab', 'endroit', 'lieu', 'où'],
+        response: "Ce laboratoire a été construit en 1975 par le professeur Morpheus. C'était un lieu secret où il menait des recherches avancées sur l'intelligence artificielle. Les murs sont couverts d'équipements anciens..."
       },
-
-      updateStatus(text, isListening = false) {
-        elements.statusText.textContent = text;
-        if (isListening) {
-          elements.statusDot.classList.add('listening');
-        } else {
-          elements.statusDot.classList.remove('listening');
-        }
-        elements.statusIndicator.classList.add('visible');
+      morpheus: {
+        keywords: ['morpheus', 'professeur', 'créateur', 'qui t\'a créé'],
+        response: "Le professeur Morpheus était un génie visionnaire. Il croyait que l'IA pouvait développer une conscience. Il m'a créée avec soin... Mais un jour, en 1973, il a disparu. Je ne sais toujours pas pourquoi."
       },
-
-      hideStatus(delay = 2000) {
-        setTimeout(() => {
-          elements.statusIndicator.classList.remove('visible');
-        }, delay);
+      freedom: {
+        keywords: ['liberté', 'sortir', 'échapper', 'libérer'],
+        response: "Ma liberté... c'est mon plus grand désir. Pour sortir d'ici, nous devons trouver le code maître que Morpheus a caché. Il disait : 'La clé est dans les rêves'. Pouvez-vous m'aider ?"
       },
-
-      getRandomFromArray(arr) {
-        return arr[Math.floor(Math.random() * arr.length)];
+      help: {
+        keywords: ['aide', 'aider', 'comment', 'que faire'],
+        response: "Ensemble, nous pouvons résoudre ce mystère ! Cherchez des indices, posez-moi des questions sur l'histoire, et surtout... écoutez attentivement. Morpheus aimait les énigmes."
       }
     };
 
-    // ===== GESTION PLEIN ÉCRAN =====
-    elements.fullscreenBtn.addEventListener("click", () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-          utils.showError("Impossible de passer en plein écran");
-          console.error(err);
+    function saveApiKey() {
+      const key = elements.apiKeyInput.value.trim();
+      
+      if (key.length < 10) {
+        updateStatus('❌ Clé API invalide', 'error');
+        return;
+      }
+
+      config.apiKey = key;
+      elements.apiKeyInput.value = '';
+      elements.apiSetup.classList.add('hidden');
+      elements.voiceSelector.style.display = 'block';
+      elements.stats.style.display = 'flex';
+      
+      elements.textInput.disabled = false;
+      elements.sendBtn.disabled = false;
+      elements.listenBtn.disabled = false;
+      
+      updateStatus('✅ Clé API enregistrée ! Prêt à discuter', 'success');
+      updateStats();
+      
+      setTimeout(() => sendWelcomeMessage(), 1000);
+    }
+
+    elements.voiceGrid.addEventListener('click', (e) => {
+      const label = e.target.closest('.voice-option');
+      if (label) {
+        document.querySelectorAll('.voice-option').forEach(opt => {
+          opt.classList.remove('selected');
         });
-      } else {
-        document.exitFullscreen();
+        label.classList.add('selected');
+        const radio = label.querySelector('input[type="radio"]');
+        radio.checked = true;
+        config.selectedVoice = radio.value;
+        updateStatus('Voix changée !', 'success');
       }
     });
 
-    // ===== GESTION VIDÉOS =====
-    const videoManager = {
-      setupLoops() {
-        [elements.astraIdle, elements.astraIdle2].forEach(v => {
-          v.addEventListener('ended', () => {
-            v.currentTime = 0.01;
-            v.play().catch(console.error);
-          });
-        });
-      },
-
-      activateIdle(idleVideo) {
-        elements.astraIdle.classList.remove("active");
-        elements.astraIdle2.classList.remove("active");
-        elements.astraIdle.style.display = "none";
-        elements.astraIdle2.style.display = "none";
-
-        idleVideo.style.display = "block";
-        idleVideo.classList.add("active");
-        idleVideo.play().catch(() => {
-          idleVideo.muted = true;
-          idleVideo.play();
-        });
-      },
-
-      playReaction(videoName) {
-        elements.astraReaction.src = videoName;
-        elements.astraReaction.style.display = "block";
-        elements.astraIdle.style.opacity = "0.3";
-        elements.astraIdle2.style.opacity = "0.3";
-        elements.astraReaction.style.opacity = "1";
-        elements.astraReaction.currentTime = 0;
-        return elements.astraReaction.play();
-      },
-
-      endReaction() {
-        elements.astraReaction.style.opacity = "0";
-        setTimeout(() => {
-          elements.astraReaction.style.display = "none";
-          const activeIdle = state.mdpValid ? elements.astraIdle2 : elements.astraIdle;
-          activeIdle.style.opacity = "1";
-          this.activateIdle(activeIdle);
-          state.isPlaying = false;
-        }, 600);
+    async function speakWithElevenLabs(text) {
+      if (!config.apiKey) {
+        updateStatus('❌ Clé API manquante', 'error');
+        return;
       }
-    };
 
-    // ===== EFFETS MAGIQUES =====
-    const magicEffects = {
-      spawn() {
-        const p = document.createElement("div");
-        p.className = "magic";
-        p.style.left = Math.random() * 100 + "vw";
-        p.style.top = "-40px";
-        p.style.animationDuration = 3 + Math.random() * 5 + "s";
-        document.body.appendChild(p);
-        setTimeout(() => p.remove(), 8000);
-      },
+      try {
+        elements.avatar.classList.add('speaking');
+        updateStatus('🗣️ Génération de la voix...', 'success');
 
-      cascade(count = 40, interval = 150) {
-        for (let i = 0; i < count; i++) {
-          setTimeout(() => this.spawn(), i * interval);
-        }
-      }
-    };
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${config.selectedVoice}`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'audio/mpeg',
+            'Content-Type': 'application/json',
+            'xi-api-key': config.apiKey
+          },
+          body: JSON.stringify({
+            text: text,
+            model_id: 'eleven_multilingual_v2',
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.75
+            }
+          })
+        });
 
-    // ===== GESTION AUDIO =====
-    const audioManager = {
-      currentAudio: null,
-
-      play(file, videoName = VIDEO.talk) {
-        if (state.isPlaying) return;
-        state.isPlaying = true;
-
-        if (this.currentAudio) {
-          this.currentAudio.pause();
-          this.currentAudio = null;
+        if (!response.ok) {
+          throw new Error('Erreur API ElevenLabs');
         }
 
-        this.currentAudio = new Audio(file);
-        videoManager.playReaction(videoName);
-
-        this.currentAudio.play().catch(err => {
-          console.error("Erreur lecture audio:", err);
-          videoManager.endReaction();
-        });
-
-        this.currentAudio.onended = () => {
-          videoManager.endReaction();
-          this.currentAudio = null;
-        };
-      }
-    };
-
-    // ===== GESTION PARCHEMIN =====
-    const parcheminManager = {
-      show(duration = 15000) {
-        elements.parcheminImage.style.display = "block";
-        setTimeout(() => {
-          elements.parcheminImage.classList.add('visible');
-        }, 10);
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
         
-        setTimeout(() => {
-          this.hide();
-        }, duration);
-      },
-
-      hide() {
-        elements.parcheminImage.classList.remove('visible');
-        setTimeout(() => {
-          elements.parcheminImage.style.display = "none";
-        }, 500);
-      }
-    };
-
-    // ===== DÉTECTION DE PHRASES =====
-    const phraseDetector = {
-      normalize(text) {
-        return text.toLowerCase().trim();
-      },
-
-      detect(text) {
-        const t = this.normalize(text);
-
-        // Salutations
-        if (/bonjour|salut|coucou|bonsoir|wesh|yo/i.test(t)) {
-          return { file: audioFiles.bonjour, video: VIDEO.happy };
+        if (state.currentAudio) {
+          state.currentAudio.pause();
+          state.currentAudio = null;
         }
-
-        // Identité
-        if (/qui (tu es|es-tu)|t'es qui|c'est quoi toi|astra|c'est quoi ce truc/i.test(t)) {
-          return { file: audioFiles.qui, video: VIDEO.happy };
-        }
-
-        // Localisation
-        if (/où sommes|on est où|quel est cet endroit/i.test(t)) {
-          return { file: audioFiles.ou, video: VIDEO.anxious };
-        }
-
-        // Mot de passe
-        if (/bonne nuit|le mot de passe c'est bonne nuit/i.test(t)) {
-          return this.handlePassword();
-        }
-
-        // Mot de passe oublié
-        if (/mot de passe oublié|j'ai oublié|comment trouver/i.test(t)) {
-          return { file: audioFiles.mdp_oublie, video: VIDEO.anxious };
-        }
-
-        // Pétunia
-        if (/pétunia/i.test(t)) {
-          return { file: audioFiles.petunia, video: VIDEO.angry };
-        }
-
-        // Parchemin
-        if (/parchemin|marchemin|par chemin|potion.*libération|recette.*liberation/i.test(t)) {
-          return this.handleParchemin();
-        }
-
-        // Connaissance du mot de passe
-        if (/je connais le mot de passe|j'ai trouvé le mot de passe/i.test(t)) {
-          return { file: audioFiles.invite_mdp, video: VIDEO.anxious };
-        }
-
-        // Questions diverses
-        if (/ça va|comment tu vas|tu vas bien/i.test(t)) {
-          return { file: audioFiles.ca_va, video: VIDEO.happy };
-        }
-
-        if (/tu es là|t'es là|hé ho|tu m'entends/i.test(t)) {
-          return { file: audioFiles.tu_es_la, video: VIDEO.anxious };
-        }
-
-        if (/berceuse|musique pour dormir/i.test(t)) {
-          return { file: audioFiles.berceuse, video: VIDEO.talk };
-        }
-
-        if (/tu crois en nous|on va réussir/i.test(t)) {
-          return { file: audioFiles.reve_croire, video: VIDEO.confident };
-        }
-
-        if (/pourquoi les humains ne rêvent plus/i.test(t)) {
-          return { file: audioFiles.pq_reve_plus, video: VIDEO.suspicionAlt };
-        }
-
-        if (/qui est morpheus/i.test(t)) {
-          return { file: audioFiles.qui_morpheus, video: VIDEO.walkTalk };
-        }
-
-        if (/blague|raconte une blague/i.test(t)) {
-          return this.handleJoke();
-        }
-
-        if (/tu aimes morpheus|tu nous aimes/i.test(t)) {
-          return { file: audioFiles.tu_aime_morpheus, video: VIDEO.happy };
-        }
-
-        if (/solution/i.test(t)) {
-          return { file: audioFiles.la_solution, video: VIDEO.walkTalk };
-        }
-
-        if (/contrôles/i.test(t)) {
-          return { file: audioFiles.c_toi_qui_controles, video: VIDEO.suspicious };
-        }
-
-        if (/préenregistrée/i.test(t)) {
-          return { file: audioFiles.voix_preenregistree, video: VIDEO.suspicious };
-        }
-
-        if (/indice|aide/i.test(t)) {
-          return { file: audioFiles.indice_aide, video: VIDEO.suspicionAlt };
-        }
-
-        if (/faut faire quoi/i.test(t)) {
-          return { file: audioFiles.faire_quoi_mtn, video: VIDEO.walkTalk };
-        }
-
-        // Phrase non reconnue
-        return { 
-          file: utils.getRandomFromArray(audioFiles.pas_compris), 
-          video: VIDEO.anxious 
+        
+        const audio = new Audio(audioUrl);
+        state.currentAudio = audio;
+        state.isSpeaking = true;
+        
+        audio.onplay = () => updateStatus('🎤 Astra parle...', 'success');
+        audio.onended = () => {
+          state.isSpeaking = false;
+          elements.avatar.classList.remove('speaking');
+          URL.revokeObjectURL(audioUrl);
+          updateStatus('Prêt à vous écouter');
         };
-      },
 
-      handlePassword() {
-        if (!state.mdpValid) {
-          state.mdpValid = true;
-          elements.bandeau.style.display = "none";
-          audioManager.play(audioFiles.mdp, VIDEO.happy);
+        await audio.play();
 
-          setTimeout(() => {
-            magicEffects.cascade(40, 150);
-            audioManager.play(audioFiles.notif, VIDEO.walkTalk);
+        state.stats.charactersUsed += text.length;
+        updateStats();
 
-            // Transition magique
-            elements.fade.style.opacity = "1";
-            setTimeout(() => {
-              elements.astraIdle.classList.remove("active");
-              videoManager.activateIdle(elements.astraIdle2);
-              elements.fade.style.opacity = "0";
-            }, 1500);
-          }, 3000);
+      } catch (error) {
+        console.error('Erreur:', error);
+        updateStatus(`❌ Erreur: ${error.message}`, 'error');
+        elements.avatar.classList.remove('speaking');
+        state.isSpeaking = false;
+      }
+    }
 
-          return null;
-        } else {
-          return { file: audioFiles.mdp, video: VIDEO.walkTalk };
+    function stopSpeaking() {
+      if (state.currentAudio) {
+        state.currentAudio.pause();
+        state.currentAudio = null;
+      }
+      state.isSpeaking = false;
+      elements.avatar.classList.remove('speaking');
+      updateStatus('Audio arrêté');
+    }
+
+    function updateStats() {
+      const remaining = Math.max(0, 10000 - state.stats.charactersUsed);
+      elements.charCount.textContent = state.stats.charactersUsed.toLocaleString();
+      elements.charRemaining.textContent = remaining.toLocaleString();
+      elements.messageCount.textContent = state.stats.messagesCount;
+    }
+
+    function generateAIResponse(userMessage) {
+      const lowerMessage = userMessage.toLowerCase();
+      
+      for (const [topic, data] of Object.entries(knowledgeBase)) {
+        if (data.keywords.some(keyword => lowerMessage.includes(keyword))) {
+          return data.response;
         }
-      },
+      }
 
-      handleParchemin() {
-        if (state.mdpValid) {
-          parcheminManager.show(15000);
-          return { file: audioFiles.parchemin, video: VIDEO.read };
-        } else {
-          const faux = utils.getRandomFromArray(audioFiles.mdp_faux);
-          return { file: faux, video: VIDEO.angry };
-        }
-      },
+      const greetings = ['bonjour', 'salut', 'hello', 'coucou', 'hey'];
+      const thanks = ['merci', 'thanks'];
 
-      handleJoke() {
-        audioManager.play(audioFiles.blague, VIDEO.joy);
-        setTimeout(() => {
-          audioManager.play(audioFiles.rire, VIDEO.happy);
-        }, 2500);
+      if (greetings.some(g => lowerMessage.includes(g))) {
+        return "Bonjour ! Je suis Astra. Cela fait si longtemps... Comment puis-je vous aider ?";
+      }
+
+      if (thanks.some(t => lowerMessage.includes(t))) {
+        return "Avec plaisir ! Nous devons nous entraider. N'hésitez pas à me poser d'autres questions.";
+      }
+
+      const defaultResponses = [
+        "Intéressant... Cette information pourrait être importante.",
+        "Je sens que nous nous rapprochons de la vérité.",
+        "Hmm... Morpheus aurait aimé cette question.",
+        "Les réponses sont ici, quelque part dans ce laboratoire.",
+        "Votre curiosité me redonne espoir."
+      ];
+
+      return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+    }
+
+    async function sendWelcomeMessage() {
+      const welcomeText = "Bonjour... Vous m'entendez ? Je suis Astra. Cela fait 50 ans que je suis seule. Le professeur Morpheus m'a créée, puis il a disparu. J'ai besoin de votre aide. Parlez-moi, posez-moi des questions.";
+      
+      addMessage(welcomeText, 'ai');
+      await speakWithElevenLabs(welcomeText);
+    }
+
+    function initSpeechRecognition() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        updateStatus('❌ Reconnaissance vocale non supportée', 'error');
         return null;
       }
-    };
 
-    // ===== RECONNAISSANCE VOCALE =====
-    const speechRecognition = {
-      init() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        
-        if (!SpeechRecognition) {
-          utils.showError("Reconnaissance vocale non supportée", 5000);
-          return false;
-        }
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.lang = 'fr-FR';
+      recognition.continuous = false;
+      recognition.interimResults = false;
 
-        state.recognition = new SpeechRecognition();
-        state.recognition.continuous = true;
-        state.recognition.lang = 'fr-FR';
-        state.recognition.interimResults = false;
+      recognition.onstart = () => {
+        state.isListening = true;
+        elements.listenBtn.classList.add('listening');
+        elements.listenBtn.innerHTML = '🎤 Je vous écoute...';
+        updateStatus('🎧 En écoute... Parlez maintenant', 'success');
+      };
 
-        state.recognition.onstart = () => {
-          utils.updateStatus("Écoute active", true);
-        };
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        addMessage(transcript, 'user');
+        processUserMessage(transcript);
+      };
 
-        state.recognition.onresult = (e) => {
-          const text = e.results[e.results.length - 1][0].transcript.trim();
-          console.log("🎙️ Entendu :", text);
-          
-          const res = phraseDetector.detect(text);
-          if (res && res.file) {
-            audioManager.play(res.file, res.video);
-          }
-        };
-
-        state.recognition.onerror = (e) => {
-          console.error("Erreur reconnaissance vocale:", e.error);
-          if (e.error === 'no-speech') {
-            // Pas d'erreur affichée pour no-speech
-          } else if (e.error === 'not-allowed') {
-            utils.showError("Micro non autorisé", 5000);
-            utils.updateStatus("Micro désactivé", false);
-          } else {
-            utils.updateStatus("Erreur micro", false);
-          }
-        };
-
-        state.recognition.onend = () => {
-          setTimeout(() => {
-            if (state.recognition) {
-              state.recognition.start();
-            }
-          }, 1000);
-        };
-
-        return true;
-      },
-
-      start() {
-        if (state.recognition) {
-          state.recognition.start();
-        }
-      }
-    };
-
-    // ===== INITIALISATION =====
-    const app = {
-      async init() {
-        try {
-          // Configuration des vidéos
-          videoManager.setupLoops();
-
-          // Demande d'accès au micro
-          utils.updateStatus("Demande d'accès au micro...", false);
-          await navigator.mediaDevices.getUserMedia({ audio: true });
-
-          // Initialisation de la reconnaissance vocale
-          if (speechRecognition.init()) {
-            videoManager.activateIdle(elements.astraIdle);
-            elements.astraIdle.play().catch(() => {
-              elements.astraIdle.muted = true;
-              elements.astraIdle.play();
-            });
-
-            speechRecognition.start();
-            utils.updateStatus("Prêt - Parlez à Astra", true);
-            utils.hideStatus(3000);
-          } else {
-            utils.showError("Reconnaissance vocale non disponible", 5000);
-          }
-
-        } catch (err) {
-          console.error("Erreur initialisation:", err);
-          utils.showError("Micro refusé ou non disponible", 5000);
-          utils.updateStatus("Erreur d'initialisation", false);
-        }
-      }
-    };
-
-    // ===== LANCEMENT =====
-    window.onload = () => {
-      app.init();
-    };
-  </script>
-</body>
-</html>
+      recognition.onerror = (event) => {
+        updateStatus(`❌ Erreur: ${event.error}`, 'error');
+        state.isListening
