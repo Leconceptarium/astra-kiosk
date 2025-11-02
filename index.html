@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Astra – Assistant de M. Morpheus</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       overflow: hidden;
@@ -27,7 +31,7 @@
       background: #000;
       opacity: 0;
       transition: opacity 0.6s ease;
-      display: none; /* invisible tant qu’inactive */
+      display: none;
     }
 
     #astraIdle.active, #astraIdle2.active {
@@ -47,7 +51,7 @@
       width: 100%;
       background: rgba(255, 255, 255, 0.05);
       color: #fff;
-      font-size: 3rem;
+      font-size: clamp(1.5rem, 4vw, 3rem);
       text-align: center;
       padding: 20px;
       white-space: nowrap;
@@ -61,8 +65,8 @@
     }
 
     @keyframes defilement {
-      0% { transform: translateX(100%) }
-      100% { transform: translateX(-100%) }
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
     }
 
     #parcheminImage {
@@ -74,63 +78,67 @@
       max-height: 80%;
       z-index: 4;
       display: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
     }
 
-.magic {
-  position: absolute;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(0, 255, 255, 0.8) 0%,     /* bleu cyan un peu moins fort */
-    rgba(0, 255, 150, 0.25) 40%,   /* vert clair très doux */
-    rgba(0, 100, 100, 0.1) 65%,    /* halo vert pâle presque transparent */
-    transparent 85%                /* fin de la diffusion */
-  );
-  filter: blur(3px) brightness(2.2); /* luminosité globale un peu réduite */
-  mix-blend-mode: screen;
-  animation: floatMagic 6s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 5;
-}
+    #parcheminImage.visible {
+      opacity: 1;
+    }
 
-@keyframes fallMagic {
-  0% {
-    transform: translateY(-600px) scale(1.3) rotate(0deg);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  60% {
-    transform: translateY(0px) scale(0.8) rotate(180deg);
-    opacity: 0.9;
-  }
-  100% {
-    transform: translateY(400px) scale(0.6) rotate(360deg);
-    opacity: 0;
-  }
-}
+    .magic {
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(0, 255, 255, 0.8) 0%,
+        rgba(0, 255, 150, 0.25) 40%,
+        rgba(0, 100, 100, 0.1) 65%,
+        transparent 85%
+      );
+      filter: blur(3px) brightness(2.2);
+      mix-blend-mode: screen;
+      animation: fallMagic 6s ease-in-out forwards;
+      pointer-events: none;
+      z-index: 5;
+    }
 
-    /* 🌀 Fondu magique violet entre idle et idle2 */
-   #transitionFade {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(
-    circle at center,
-    rgba(0, 255, 255, 0.9) 0%,     /* centre bleu turquoise lumineux */
-    rgba(0, 255, 150, 0.4) 30%,    /* halo vert clair doux */
-    rgba(0, 100, 100, 0.2) 55%,    /* transition vers vert profond */
-    transparent 75%                /* fondu total */
-  );
-  opacity: 0;                      /* invisible par défaut */
-  pointer-events: none;            /* ne bloque pas les clics */
-  transition: opacity 1.2s ease;   /* fondu fluide */
-  z-index: 9;                      /* au-dessus des vidéos */
-}
+    @keyframes fallMagic {
+      0% {
+        transform: translateY(-600px) scale(1.3) rotate(0deg);
+        opacity: 0;
+      }
+      20% {
+        opacity: 1;
+      }
+      60% {
+        transform: translateY(0px) scale(0.8) rotate(180deg);
+        opacity: 0.9;
+      }
+      100% {
+        transform: translateY(400px) scale(0.6) rotate(360deg);
+        opacity: 0;
+      }
+    }
 
-    /* 🖥️ Bouton plein écran */
+    #transitionFade {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(
+        circle at center,
+        rgba(0, 255, 255, 0.9) 0%,
+        rgba(0, 255, 150, 0.4) 30%,
+        rgba(0, 100, 100, 0.2) 55%,
+        transparent 75%
+      );
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.2s ease;
+      z-index: 9;
+    }
+
     #fullscreenBtn {
       position: fixed;
       bottom: 20px;
@@ -147,69 +155,117 @@
       cursor: pointer;
       background: rgba(255,255,255,0.08);
       transition: all .3s ease;
+      user-select: none;
     }
+
     #fullscreenBtn:hover {
       background: rgba(255,255,255,0.2);
       border-color: rgba(255,255,255,0.6);
+      transform: scale(1.1);
+    }
+
+    #statusIndicator {
+      position: fixed;
+      top: 20px;
+      right: 25px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 15px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 20px;
+      color: #fff;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    #statusIndicator.visible {
+      opacity: 1;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ff4444;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.listening {
+      background: #44ff44;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    #errorMessage {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 50, 50, 0.9);
+      color: white;
+      padding: 20px 40px;
+      border-radius: 10px;
+      z-index: 11;
+      display: none;
+      text-align: center;
+      max-width: 80%;
     }
   </style>
 </head>
 <body>
-  <!-- 🎥 Vidéos -->
+  <!-- Vidéos -->
   <video id="astraIdle" src="astra_idle.mp4" autoplay muted loop playsinline preload="auto"></video>
   <video id="astraIdle2" src="astra_idle2.mp4" muted loop playsinline preload="auto"></video>
   <video id="astraReaction" muted playsinline preload="auto"></video>
 
-  <!-- 🌌 Transition magique -->
+  <!-- Transition magique -->
   <div id="transitionFade"></div>
 
-  <!-- 🔘 Bouton plein écran -->
+  <!-- Indicateur de statut -->
+  <div id="statusIndicator">
+    <div class="status-dot"></div>
+    <span id="statusText">Initialisation...</span>
+  </div>
+
+  <!-- Bouton plein écran -->
   <div id="fullscreenBtn" title="Plein écran">⛶</div>
+
+  <!-- Message d'erreur -->
+  <div id="errorMessage"></div>
 
   <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
   <img id="parcheminImage" src="parchemin.png" alt="Parchemin de libération" />
 
   <script>
-    const bandeau = document.getElementById("bandeau");
-    const parcheminImage = document.getElementById("parcheminImage");
-    const astraIdle = document.getElementById("astraIdle");
-    const astraIdle2 = document.getElementById("astraIdle2");
-    const astraReaction = document.getElementById("astraReaction");
-    const fullscreenBtn = document.getElementById("fullscreenBtn");
-    const fade = document.getElementById("transitionFade");
+    // ===== ÉLÉMENTS DOM =====
+    const elements = {
+      bandeau: document.getElementById("bandeau"),
+      parcheminImage: document.getElementById("parcheminImage"),
+      astraIdle: document.getElementById("astraIdle"),
+      astraIdle2: document.getElementById("astraIdle2"),
+      astraReaction: document.getElementById("astraReaction"),
+      fullscreenBtn: document.getElementById("fullscreenBtn"),
+      fade: document.getElementById("transitionFade"),
+      statusIndicator: document.getElementById("statusIndicator"),
+      statusText: document.getElementById("statusText"),
+      statusDot: document.querySelector(".status-dot"),
+      errorMessage: document.getElementById("errorMessage")
+    };
 
-    /* ✅ Plein écran */
-    fullscreenBtn.addEventListener("click", () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => console.log(err));
-      } else {
-        document.exitFullscreen();
-      }
-    });
+    // ===== ÉTAT DE L'APPLICATION =====
+    const state = {
+      mdpValid: false,
+      isPlaying: false,
+      recognition: null
+    };
 
-    /* ✅ Boucles sans flash */
-    [astraIdle, astraIdle2].forEach(v => {
-      v.addEventListener('ended', () => {
-        v.currentTime = 0.01;
-        v.play();
-      });
-    });
-
-    function activateIdle(idleVideo) {
-      astraIdle.classList.remove("active");
-      astraIdle2.classList.remove("active");
-      astraIdle.style.display = "none";
-      astraIdle2.style.display = "none";
-
-      idleVideo.style.display = "block";
-      idleVideo.classList.add("active");
-      idleVideo.play().catch(() => {
-        idleVideo.muted = true;
-        idleVideo.play();
-      });
-    }
-
-    // 🎞 Références vidéos
+    // ===== CONFIGURATION VIDÉOS =====
     const VIDEO = {
       idle1: "astra_idle.mp4",
       idle2: "astra_idle2.mp4",
@@ -225,44 +281,7 @@
       confident: "confiant.mp4"
     };
 
-    // ✨ Effets magiques
-   function spawnMagic() {
-  const p = document.createElement("div");
-  p.className = "magic";
-  p.style.left = Math.random() * 100 + "vw";
-  p.style.top = "-40px"; // 👈 au lieu de bottom = "-10px"
-  p.style.animationDuration = 3 + Math.random() * 5 + "s";
-  document.body.appendChild(p);
-  setTimeout(() => p.remove(), 8000);
-}
-
-    // 🎧 Lecture audio + vidéo
-    const playAudio = (file, videoName = VIDEO.talk) => {
-      const audio = new Audio(file);
-      astraReaction.src = videoName;
-      astraReaction.style.display = "block";
-      astraIdle.style.opacity = "0.3";
-      astraIdle2.style.opacity = "0.3";
-      astraReaction.style.opacity = "1";
-      astraReaction.currentTime = 0;
-      astraReaction.play();
-      audio.play();
-
-      audio.onended = () => {
-        astraReaction.style.opacity = "0";
-        astraReaction.style.display = "none";
-        const activeIdle = mdpValid ? astraIdle2 : astraIdle;
-        activeIdle.style.opacity = "1";
-        activateIdle(activeIdle);
-      };
-    };
-
-    // 🎙️ Reconnaissance vocale
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.continuous = true;
-    recognition.lang = 'fr-FR';
-    let mdpValid = false;
-
+    // ===== CONFIGURATION AUDIO =====
     const audioFiles = {
       bonjour: "salutation_bonjour.mp3",
       qui: "qui_es_tu.mp3",
@@ -297,98 +316,413 @@
       indice_aide: "indice_aide.mp3"
     };
 
-    // 🧠 Détection vocale
-    const detectPhrase = (text) => {
-      const t = text.toLowerCase();
+    // ===== UTILITAIRES =====
+    const utils = {
+      showError(message, duration = 3000) {
+        elements.errorMessage.textContent = message;
+        elements.errorMessage.style.display = 'block';
+        setTimeout(() => {
+          elements.errorMessage.style.display = 'none';
+        }, duration);
+      },
 
-        if (t.includes("bonjour") || t.includes("salut") || t.includes("coucou") ||
-          t.includes("bonsoir") || t.includes("wesh") || t.includes("yo")) return { file: audioFiles.bonjour, video: VIDEO.happy };
- if (t.includes("qui tu es") || t.includes("t’es qui") || t.includes("qui es-tu") ||
-          t.includes("c’est quoi toi") || t.includes("astra") || t.includes("c'est quoi ce truc")) return { file: audioFiles.qui, video: VIDEO.happy };
-    if (t.includes("où sommes") || t.includes("on est où") || t.includes("quel est cet endroit")) return { file: audioFiles.ou, video: VIDEO.anxious };
+      updateStatus(text, isListening = false) {
+        elements.statusText.textContent = text;
+        if (isListening) {
+          elements.statusDot.classList.add('listening');
+        } else {
+          elements.statusDot.classList.remove('listening');
+        }
+        elements.statusIndicator.classList.add('visible');
+      },
 
-    if (t.includes("le mot de passe c'est bonne nuit") || t.includes("bonne nuit")) {
-        if (!mdpValid) {
-          mdpValid = true;
-          bandeau.style.display = "none";
-          playAudio(audioFiles.mdp, VIDEO.happy);
+      hideStatus(delay = 2000) {
+        setTimeout(() => {
+          elements.statusIndicator.classList.remove('visible');
+        }, delay);
+      },
+
+      getRandomFromArray(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+    };
+
+    // ===== GESTION PLEIN ÉCRAN =====
+    elements.fullscreenBtn.addEventListener("click", () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          utils.showError("Impossible de passer en plein écran");
+          console.error(err);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    // ===== GESTION VIDÉOS =====
+    const videoManager = {
+      setupLoops() {
+        [elements.astraIdle, elements.astraIdle2].forEach(v => {
+          v.addEventListener('ended', () => {
+            v.currentTime = 0.01;
+            v.play().catch(console.error);
+          });
+        });
+      },
+
+      activateIdle(idleVideo) {
+        elements.astraIdle.classList.remove("active");
+        elements.astraIdle2.classList.remove("active");
+        elements.astraIdle.style.display = "none";
+        elements.astraIdle2.style.display = "none";
+
+        idleVideo.style.display = "block";
+        idleVideo.classList.add("active");
+        idleVideo.play().catch(() => {
+          idleVideo.muted = true;
+          idleVideo.play();
+        });
+      },
+
+      playReaction(videoName) {
+        elements.astraReaction.src = videoName;
+        elements.astraReaction.style.display = "block";
+        elements.astraIdle.style.opacity = "0.3";
+        elements.astraIdle2.style.opacity = "0.3";
+        elements.astraReaction.style.opacity = "1";
+        elements.astraReaction.currentTime = 0;
+        return elements.astraReaction.play();
+      },
+
+      endReaction() {
+        elements.astraReaction.style.opacity = "0";
+        setTimeout(() => {
+          elements.astraReaction.style.display = "none";
+          const activeIdle = state.mdpValid ? elements.astraIdle2 : elements.astraIdle;
+          activeIdle.style.opacity = "1";
+          this.activateIdle(activeIdle);
+          state.isPlaying = false;
+        }, 600);
+      }
+    };
+
+    // ===== EFFETS MAGIQUES =====
+    const magicEffects = {
+      spawn() {
+        const p = document.createElement("div");
+        p.className = "magic";
+        p.style.left = Math.random() * 100 + "vw";
+        p.style.top = "-40px";
+        p.style.animationDuration = 3 + Math.random() * 5 + "s";
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 8000);
+      },
+
+      cascade(count = 40, interval = 150) {
+        for (let i = 0; i < count; i++) {
+          setTimeout(() => this.spawn(), i * interval);
+        }
+      }
+    };
+
+    // ===== GESTION AUDIO =====
+    const audioManager = {
+      currentAudio: null,
+
+      play(file, videoName = VIDEO.talk) {
+        if (state.isPlaying) return;
+        state.isPlaying = true;
+
+        if (this.currentAudio) {
+          this.currentAudio.pause();
+          this.currentAudio = null;
+        }
+
+        this.currentAudio = new Audio(file);
+        videoManager.playReaction(videoName);
+
+        this.currentAudio.play().catch(err => {
+          console.error("Erreur lecture audio:", err);
+          videoManager.endReaction();
+        });
+
+        this.currentAudio.onended = () => {
+          videoManager.endReaction();
+          this.currentAudio = null;
+        };
+      }
+    };
+
+    // ===== GESTION PARCHEMIN =====
+    const parcheminManager = {
+      show(duration = 15000) {
+        elements.parcheminImage.style.display = "block";
+        setTimeout(() => {
+          elements.parcheminImage.classList.add('visible');
+        }, 10);
+        
+        setTimeout(() => {
+          this.hide();
+        }, duration);
+      },
+
+      hide() {
+        elements.parcheminImage.classList.remove('visible');
+        setTimeout(() => {
+          elements.parcheminImage.style.display = "none";
+        }, 500);
+      }
+    };
+
+    // ===== DÉTECTION DE PHRASES =====
+    const phraseDetector = {
+      normalize(text) {
+        return text.toLowerCase().trim();
+      },
+
+      detect(text) {
+        const t = this.normalize(text);
+
+        // Salutations
+        if (/bonjour|salut|coucou|bonsoir|wesh|yo/i.test(t)) {
+          return { file: audioFiles.bonjour, video: VIDEO.happy };
+        }
+
+        // Identité
+        if (/qui (tu es|es-tu)|t'es qui|c'est quoi toi|astra|c'est quoi ce truc/i.test(t)) {
+          return { file: audioFiles.qui, video: VIDEO.happy };
+        }
+
+        // Localisation
+        if (/où sommes|on est où|quel est cet endroit/i.test(t)) {
+          return { file: audioFiles.ou, video: VIDEO.anxious };
+        }
+
+        // Mot de passe
+        if (/bonne nuit|le mot de passe c'est bonne nuit/i.test(t)) {
+          return this.handlePassword();
+        }
+
+        // Mot de passe oublié
+        if (/mot de passe oublié|j'ai oublié|comment trouver/i.test(t)) {
+          return { file: audioFiles.mdp_oublie, video: VIDEO.anxious };
+        }
+
+        // Pétunia
+        if (/pétunia/i.test(t)) {
+          return { file: audioFiles.petunia, video: VIDEO.angry };
+        }
+
+        // Parchemin
+        if (/parchemin|marchemin|par chemin|potion.*libération|recette.*liberation/i.test(t)) {
+          return this.handleParchemin();
+        }
+
+        // Connaissance du mot de passe
+        if (/je connais le mot de passe|j'ai trouvé le mot de passe/i.test(t)) {
+          return { file: audioFiles.invite_mdp, video: VIDEO.anxious };
+        }
+
+        // Questions diverses
+        if (/ça va|comment tu vas|tu vas bien/i.test(t)) {
+          return { file: audioFiles.ca_va, video: VIDEO.happy };
+        }
+
+        if (/tu es là|t'es là|hé ho|tu m'entends/i.test(t)) {
+          return { file: audioFiles.tu_es_la, video: VIDEO.anxious };
+        }
+
+        if (/berceuse|musique pour dormir/i.test(t)) {
+          return { file: audioFiles.berceuse, video: VIDEO.talk };
+        }
+
+        if (/tu crois en nous|on va réussir/i.test(t)) {
+          return { file: audioFiles.reve_croire, video: VIDEO.confident };
+        }
+
+        if (/pourquoi les humains ne rêvent plus/i.test(t)) {
+          return { file: audioFiles.pq_reve_plus, video: VIDEO.suspicionAlt };
+        }
+
+        if (/qui est morpheus/i.test(t)) {
+          return { file: audioFiles.qui_morpheus, video: VIDEO.walkTalk };
+        }
+
+        if (/blague|raconte une blague/i.test(t)) {
+          return this.handleJoke();
+        }
+
+        if (/tu aimes morpheus|tu nous aimes/i.test(t)) {
+          return { file: audioFiles.tu_aime_morpheus, video: VIDEO.happy };
+        }
+
+        if (/solution/i.test(t)) {
+          return { file: audioFiles.la_solution, video: VIDEO.walkTalk };
+        }
+
+        if (/contrôles/i.test(t)) {
+          return { file: audioFiles.c_toi_qui_controles, video: VIDEO.suspicious };
+        }
+
+        if (/préenregistrée/i.test(t)) {
+          return { file: audioFiles.voix_preenregistree, video: VIDEO.suspicious };
+        }
+
+        if (/indice|aide/i.test(t)) {
+          return { file: audioFiles.indice_aide, video: VIDEO.suspicionAlt };
+        }
+
+        if (/faut faire quoi/i.test(t)) {
+          return { file: audioFiles.faire_quoi_mtn, video: VIDEO.walkTalk };
+        }
+
+        // Phrase non reconnue
+        return { 
+          file: utils.getRandomFromArray(audioFiles.pas_compris), 
+          video: VIDEO.anxious 
+        };
+      },
+
+      handlePassword() {
+        if (!state.mdpValid) {
+          state.mdpValid = true;
+          elements.bandeau.style.display = "none";
+          audioManager.play(audioFiles.mdp, VIDEO.happy);
 
           setTimeout(() => {
-            for (let i = 0; i < 40; i++) setTimeout(spawnMagic, i * 150);
-            playAudio(audioFiles.notif, VIDEO.walkTalk);
+            magicEffects.cascade(40, 150);
+            audioManager.play(audioFiles.notif, VIDEO.walkTalk);
 
-            // 🌌 Transition magique
-            fade.style.opacity = "1";
+            // Transition magique
+            elements.fade.style.opacity = "1";
             setTimeout(() => {
-              astraIdle.classList.remove("active");
-              activateIdle(astraIdle2);
-              fade.style.opacity = "0";
+              elements.astraIdle.classList.remove("active");
+              videoManager.activateIdle(elements.astraIdle2);
+              elements.fade.style.opacity = "0";
             }, 1500);
           }, 3000);
-          return;
-        } else return { file: audioFiles.mdp, video: VIDEO.walkTalk };
+
+          return null;
+        } else {
+          return { file: audioFiles.mdp, video: VIDEO.walkTalk };
+        }
+      },
+
+      handleParchemin() {
+        if (state.mdpValid) {
+          parcheminManager.show(15000);
+          return { file: audioFiles.parchemin, video: VIDEO.read };
+        } else {
+          const faux = utils.getRandomFromArray(audioFiles.mdp_faux);
+          return { file: faux, video: VIDEO.angry };
+        }
+      },
+
+      handleJoke() {
+        audioManager.play(audioFiles.blague, VIDEO.joy);
+        setTimeout(() => {
+          audioManager.play(audioFiles.rire, VIDEO.happy);
+        }, 2500);
+        return null;
       }
-
-      if (t.includes("mot de passe oublié") || t.includes("j'ai oublié") || t.includes("comment trouver"))
-        return { file: audioFiles.mdp_oublie, video: VIDEO.anxious };
-      if (t.includes("pétunia")) return { file: audioFiles.petunia, video: VIDEO.angry };
-
-     if (
-  t.includes("parchemin") ||
-  t.includes("marchemin") ||
-  t.includes("par chemin") ||
-  t.includes("parchemin liberation") ||
-  t.includes("potion de libération") ||
-  t.includes("recette de liberation") ||
-  t.includes("potion libération")
-) {
-  if (mdpValid) {
-    parcheminImage.style.display = "block";
-    setTimeout(() => parcheminImage.style.display = "none", 15000);
-    return { file: audioFiles.parchemin, video: VIDEO.read };
-  } else {
-    const faux = audioFiles.mdp_faux[Math.floor(Math.random() * audioFiles.mdp_faux.length)];
-    return { file: faux, video: VIDEO.angry };
-  }
-}
-  if (t.includes("je connais le mot de passe") || t.includes("j'ai trouvé le mot de passe"))
-        return audioFiles.invite_mdp;
-      
-       if (t.includes("ça va") || t.includes("comment tu vas") || t.includes("tu vas bien")) return { file: audioFiles.ca_va, video: VIDEO.happy };
-       if (t.includes("tu es là") || t.includes("t'es là") || t.includes("hé ho") || t.includes("tu m'entends")) return { file: audioFiles.tu_es_la, video: VIDEO.anxious };
-       if (t.includes("berceuse") || t.includes("musique pour dormir")) return { file: audioFiles.berceuse };
-      if (t.includes("tu crois en nous") || t.includes("on va réussir")) return { file: audioFiles.reve_croire, video: VIDEO.confident };
-      if (t.includes("pourquoi les humains ne rêvent plus")) return { file: audioFiles.pq_reve_plus, video: VIDEO.suspicionAlt };
-      if (t.includes("qui est morpheus")) return { file: audioFiles.qui_morpheus, video: VIDEO.walkTalk };
-         if (t.includes("blague") || t.includes("raconte une blague")) { playAudio(audioFiles.blague, VIDEO.joy); setTimeout(() => playAudio(audioFiles.rire, VIDEO.happy), 2500); return; }
-      if (t.includes("tu aimes morpheus") || t.includes("tu nous aimes")) return { file: audioFiles.tu_aime_morpheus, video: VIDEO.happy };
-      if (t.includes("solution")) return { file: audioFiles.la_solution, video: VIDEO.walkTalk };
-      if (t.includes("contrôles")) return { file: audioFiles.c_toi_qui_controles, video: VIDEO.suspicious };
-      if (t.includes("préenregistrée")) return { file: audioFiles.voix_preenregistree, video: VIDEO.suspicious };
-      if (t.includes("indice") || t.includes("aide")) return { file: audioFiles.indice_aide, video: VIDEO.suspicionAlt };
-      if (t.includes("faut faire quoi")) return { file: audioFiles.faire_quoi_mtn, video: VIDEO.walkTalk };
-
-      return { file: audioFiles.pas_compris[Math.floor(Math.random() * audioFiles.pas_compris.length)], video: VIDEO.anxious };
     };
 
-    recognition.onresult = (e) => {
-      const text = e.results[e.results.length - 1][0].transcript.trim();
-      console.log("🎙️ Entendu :", text);
-      const res = detectPhrase(text);
-      if (res && res.file) playAudio(res.file, res.video);
+    // ===== RECONNAISSANCE VOCALE =====
+    const speechRecognition = {
+      init() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (!SpeechRecognition) {
+          utils.showError("Reconnaissance vocale non supportée", 5000);
+          return false;
+        }
+
+        state.recognition = new SpeechRecognition();
+        state.recognition.continuous = true;
+        state.recognition.lang = 'fr-FR';
+        state.recognition.interimResults = false;
+
+        state.recognition.onstart = () => {
+          utils.updateStatus("Écoute active", true);
+        };
+
+        state.recognition.onresult = (e) => {
+          const text = e.results[e.results.length - 1][0].transcript.trim();
+          console.log("🎙️ Entendu :", text);
+          
+          const res = phraseDetector.detect(text);
+          if (res && res.file) {
+            audioManager.play(res.file, res.video);
+          }
+        };
+
+        state.recognition.onerror = (e) => {
+          console.error("Erreur reconnaissance vocale:", e.error);
+          if (e.error === 'no-speech') {
+            // Pas d'erreur affichée pour no-speech
+          } else if (e.error === 'not-allowed') {
+            utils.showError("Micro non autorisé", 5000);
+            utils.updateStatus("Micro désactivé", false);
+          } else {
+            utils.updateStatus("Erreur micro", false);
+          }
+        };
+
+        state.recognition.onend = () => {
+          setTimeout(() => {
+            if (state.recognition) {
+              state.recognition.start();
+            }
+          }, 1000);
+        };
+
+        return true;
+      },
+
+      start() {
+        if (state.recognition) {
+          state.recognition.start();
+        }
+      }
     };
 
-    recognition.onend = () => setTimeout(() => recognition.start(), 1000);
+    // ===== INITIALISATION =====
+    const app = {
+      async init() {
+        try {
+          // Configuration des vidéos
+          videoManager.setupLoops();
 
-    /* ✅ Lancement initial */
+          // Demande d'accès au micro
+          utils.updateStatus("Demande d'accès au micro...", false);
+          await navigator.mediaDevices.getUserMedia({ audio: true });
+
+          // Initialisation de la reconnaissance vocale
+          if (speechRecognition.init()) {
+            videoManager.activateIdle(elements.astraIdle);
+            elements.astraIdle.play().catch(() => {
+              elements.astraIdle.muted = true;
+              elements.astraIdle.play();
+            });
+
+            speechRecognition.start();
+            utils.updateStatus("Prêt - Parlez à Astra", true);
+            utils.hideStatus(3000);
+          } else {
+            utils.showError("Reconnaissance vocale non disponible", 5000);
+          }
+
+        } catch (err) {
+          console.error("Erreur initialisation:", err);
+          utils.showError("Micro refusé ou non disponible", 5000);
+          utils.updateStatus("Erreur d'initialisation", false);
+        }
+      }
+    };
+
+    // ===== LANCEMENT =====
     window.onload = () => {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(() => {
-          activateIdle(astraIdle);
-          astraIdle.play().catch(()=>{astraIdle.muted=true;astraIdle.play();});
-          recognition.start();
-        })
-        .catch(err => console.error("Micro refusé :", err));
+      app.init();
     };
   </script>
 </body>
