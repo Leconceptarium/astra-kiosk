@@ -217,6 +217,41 @@
       max-width: 80%;
     }
 
+    #debugPanel {
+      position: fixed;
+      bottom: 80px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #0f0;
+      padding: 15px;
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 12px;
+      max-width: 400px;
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 12;
+      display: none;
+    }
+
+    #debugPanel.visible {
+      display: block;
+    }
+
+    #debugToggle {
+      position: fixed;
+      bottom: 80px;
+      left: 20px;
+      z-index: 13;
+      padding: 8px 16px;
+      background: rgba(0, 255, 0, 0.2);
+      border: 2px solid rgba(0, 255, 0, 0.5);
+      border-radius: 20px;
+      color: #0f0;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
     #languageSelector {
       position: fixed;
       top: 20px;
@@ -276,6 +311,10 @@
   <!-- Message d'erreur -->
   <div id="errorMessage"></div>
 
+  <!-- Debug Panel -->
+  <button id="debugToggle">🐛 DEBUG</button>
+  <div id="debugPanel"></div>
+
   <div id="bandeau"><span>ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE</span></div>
   <img id="parcheminImage" src="parchemin.png" alt="Parchemin de libération" />
 
@@ -293,8 +332,46 @@
       statusText: document.getElementById("statusText"),
       statusDot: document.querySelector(".status-dot"),
       errorMessage: document.getElementById("errorMessage"),
-      languageSelector: document.getElementById("languageSelector")
+      languageSelector: document.getElementById("languageSelector"),
+      debugPanel: document.getElementById("debugPanel"),
+      debugToggle: document.getElementById("debugToggle")
     };
+
+    // ===== SYSTÈME DE DEBUG =====
+    const debugLogger = {
+      logs: [],
+      
+      log(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+        this.logs.push(logEntry);
+        
+        if (this.logs.length > 50) {
+          this.logs.shift();
+        }
+        
+        this.update();
+      },
+      
+      update() {
+        if (elements.debugPanel) {
+          elements.debugPanel.innerHTML = this.logs.map(log => 
+            `<div>${log}</div>`
+          ).join('');
+          elements.debugPanel.scrollTop = elements.debugPanel.scrollHeight;
+        }
+      },
+      
+      clear() {
+        this.logs = [];
+        this.update();
+      }
+    };
+
+    // Toggle debug panel
+    elements.debugToggle.addEventListener('click', () => {
+      elements.debugPanel.classList.toggle('visible');
+    });
 
     // ===== ÉTAT DE L'APPLICATION =====
     const state = {
@@ -524,6 +601,7 @@
       switchLanguage(lang) {
         if (lang === state.currentLang) return;
 
+        debugLogger.log(`Changement de langue: ${state.currentLang} → ${lang}`, 'info');
         state.currentLang = lang;
         
         // Mise à jour visuelle des boutons
@@ -547,6 +625,7 @@
             speechRecognition.start();
             utils.updateStatus('ready', true);
             utils.hideStatus(3000);
+            debugLogger.log(`Reconnaissance vocale redémarrée en ${lang}`, 'success');
           }, 500);
         }
       }
@@ -635,7 +714,13 @@
       currentAudio: null,
 
       play(file, videoName = VIDEO.talk) {
-        if (state.isPlaying) return;
+        debugLogger.log(`Tentative lecture: ${file}`, 'audio');
+        debugLogger.log(`Vidéo associée: ${videoName}`, 'video');
+        
+        if (state.isPlaying) {
+          debugLogger.log('Lecture déjà en cours, ignoré', 'warn');
+          return;
+        }
         state.isPlaying = true;
 
         if (this.currentAudio) {
@@ -644,14 +729,27 @@
         }
 
         this.currentAudio = new Audio(file);
+        
+        // Test si le fichier existe
+        this.currentAudio.addEventListener('loadeddata', () => {
+          debugLogger.log(`✓ Audio chargé: ${file}`, 'success');
+        });
+        
+        this.currentAudio.addEventListener('error', (e) => {
+          debugLogger.log(`✗ ERREUR audio: ${file} - ${e.type}`, 'error');
+          utils.showError(`Fichier audio introuvable: ${file}`);
+        });
+
         videoManager.playReaction(videoName);
 
         this.currentAudio.play().catch(err => {
+          debugLogger.log(`Erreur play(): ${err.message}`, 'error');
           console.error("Erreur lecture audio:", err);
           videoManager.endReaction();
         });
 
         this.currentAudio.onended = () => {
+          debugLogger.log('Audio terminé', 'info');
           videoManager.endReaction();
           this.currentAudio = null;
         };
@@ -975,11 +1073,16 @@
 
         state.recognition.onresult = (e) => {
           const text = e.results[e.results.length - 1][0].transcript.trim();
+          debugLogger.log(`🎙️ Entendu: "${text}"`, 'speech');
+          debugLogger.log(`Langue active: ${state.currentLang}`, 'info');
           console.log("🎙️ Entendu :", text);
           
           const res = phraseDetector.detect(text);
           if (res && res.file) {
+            debugLogger.log(`✓ Phrase reconnue`, 'success');
             audioManager.play(res.file, res.video);
+          } else {
+            debugLogger.log(`Aucune réponse pour cette phrase`, 'warn');
           }
         };
 
@@ -1023,15 +1126,20 @@
     const app = {
       async init() {
         try {
+          debugLogger.log('Initialisation de l\'application', 'info');
+          
           // Configuration des vidéos
           videoManager.setupLoops();
+          debugLogger.log('Vidéos configurées', 'success');
 
           // Initialisation du sélecteur de langue
           languageManager.init();
+          debugLogger.log(`Langue par défaut: ${state.currentLang}`, 'info');
 
           // Demande d'accès au micro
           utils.updateStatus('micRequest', false);
           await navigator.mediaDevices.getUserMedia({ audio: true });
+          debugLogger.log('Accès micro autorisé', 'success');
 
           // Initialisation de la reconnaissance vocale
           if (speechRecognition.init()) {
@@ -1044,11 +1152,14 @@
             speechRecognition.start();
             utils.updateStatus('ready', true);
             utils.hideStatus(3000);
+            debugLogger.log('Système prêt', 'success');
           } else {
+            debugLogger.log('Reconnaissance vocale non disponible', 'error');
             utils.showError(translations[state.currentLang].errorSpeechNotAvailable, 5000);
           }
 
         } catch (err) {
+          debugLogger.log(`ERREUR: ${err.message}`, 'error');
           console.error("Erreur initialisation:", err);
           utils.showError(translations[state.currentLang].errorMicDenied, 5000);
           utils.updateStatus('errorInit', false);
