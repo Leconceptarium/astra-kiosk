@@ -722,7 +722,7 @@
           if (/tu es là|t'es là|hé ho|tu m'entends/i.test(t)) {
             return { file: audio.tu_es_la, video: VIDEO.anxious };
           }
-          if (/berceuse|musique pour dormir/i.test(t)) {
+          if (/berceuse|musique pour dormir|met une musique/i.test(t)) {
             return { file: audio.berceuse, video: VIDEO.talk };
           }
           if (/tu crois en nous|on va réussir/i.test(t)) {
@@ -731,7 +731,7 @@
           if (/pourquoi les humains ne rêvent plus/i.test(t)) {
             return { file: audio.pq_reve_plus, video: VIDEO.suspicionAlt };
           }
-          if (/qui est morpheus/i.test(t)) {
+          if (/qui est morpheus|c'est qui morpheus/i.test(t)) {
             return { file: audio.qui_morpheus, video: VIDEO.walkTalk };
           }
           if (/blague|raconte une blague/i.test(t)) {
@@ -746,13 +746,13 @@
           if (/contrôles/i.test(t)) {
             return { file: audio.c_toi_qui_controles, video: VIDEO.suspicious };
           }
-          if (/préenregistrée/i.test(t)) {
+          if (/préenregistrée|enregistré|voix enreigstré/i.test(t)) {
             return { file: audio.voix_preenregistree, video: VIDEO.suspicious };
           }
           if (/indice|aide/i.test(t)) {
             return { file: audio.indice_aide, video: VIDEO.suspicionAlt };
           }
-          if (/faut faire quoi/i.test(t)) {
+          if (/faut faire quoi| on est perdus|nous sommes perdus/i.test(t)) {
             return { file: audio.faire_quoi_mtn, video: VIDEO.walkTalk };
           }
         }
