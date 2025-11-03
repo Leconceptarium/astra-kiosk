@@ -420,7 +420,7 @@
         ],
         ca_va: "en/how_are_you.mp3",
         tu_es_la: "en/are_you_there.mp3",
-        berceuse: "berceuse.mp3",
+        berceuse: "en/lullaby.mp3",
         notif: "en/notification_password_valid.mp3",
         reve_croire: "en/dream_believe.mp3",
         pq_reve_plus: "en/why_humans_dont_dream.mp3",
@@ -429,7 +429,7 @@
         faire_quoi_mtn: "en/what_to_do_now.mp3",
         rire: "en/laugh.mp3",
         c_toi_qui_controles: "en/you_control.mp3",
-        blague: "rire.mp3",
+        blague: "en/joke.mp3",
         tu_aime_morpheus: "en/you_love_morpheus.mp3",
         la_solution: "en/the_solution.mp3",
         voix_preenregistree: "en/prerecorded_voice.mp3",
@@ -453,14 +453,14 @@
         ],
         ca_va: "de/wie_gehts.mp3",
         tu_es_la: "de/bist_du_da.mp3",
-        berceuse: "berceuse.mp3",
+        berceuse: "de/wiegenlied.mp3",
         notif: "de/benachrichtigung_passwort_gueltig.mp3",
         reve_croire: "de/traum_glauben.mp3",
         pq_reve_plus: "de/warum_menschen_nicht_traeumen.mp3",
         qui_morpheus: "de/wer_ist_morpheus.mp3",
         parchemin: "de/befreiungsrolle.mp3",
         faire_quoi_mtn: "de/was_jetzt_tun.mp3",
-        rire: "rire.mp3",
+        rire: "de/lachen.mp3",
         c_toi_qui_controles: "de/du_kontrollierst.mp3",
         blague: "de/witz.mp3",
         tu_aime_morpheus: "de/du_liebst_morpheus.mp3",
@@ -722,7 +722,7 @@
           if (/tu es là|t'es là|hé ho|tu m'entends/i.test(t)) {
             return { file: audio.tu_es_la, video: VIDEO.anxious };
           }
-          if (/berceuse|musique pour dormir|met une musique/i.test(t)) {
+          if (/berceuse|musique pour dormir/i.test(t)) {
             return { file: audio.berceuse, video: VIDEO.talk };
           }
           if (/tu crois en nous|on va réussir/i.test(t)) {
@@ -731,7 +731,7 @@
           if (/pourquoi les humains ne rêvent plus/i.test(t)) {
             return { file: audio.pq_reve_plus, video: VIDEO.suspicionAlt };
           }
-          if (/qui est morpheus|c'est qui morpheus/i.test(t)) {
+          if (/qui est morpheus/i.test(t)) {
             return { file: audio.qui_morpheus, video: VIDEO.walkTalk };
           }
           if (/blague|raconte une blague/i.test(t)) {
@@ -746,13 +746,13 @@
           if (/contrôles/i.test(t)) {
             return { file: audio.c_toi_qui_controles, video: VIDEO.suspicious };
           }
-          if (/préenregistrée|enregistré|voix enreigstré/i.test(t)) {
+          if (/préenregistrée/i.test(t)) {
             return { file: audio.voix_preenregistree, video: VIDEO.suspicious };
           }
           if (/indice|aide/i.test(t)) {
             return { file: audio.indice_aide, video: VIDEO.suspicionAlt };
           }
-          if (/faut faire quoi| on est perdus|nous sommes perdus/i.test(t)) {
+          if (/faut faire quoi/i.test(t)) {
             return { file: audio.faire_quoi_mtn, video: VIDEO.walkTalk };
           }
         }
