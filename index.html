@@ -378,7 +378,8 @@
       mdpValid: false,
       isPlaying: false,
       recognition: null,
-      currentLang: 'fr'
+      currentLang: 'fr',
+      manualStop: false // FIX #2 : distingue un stop() volontaire d'un arrêt naturel
     };
 
     // ===== TRADUCTIONS =====
@@ -619,6 +620,7 @@
 
         // Redémarrage de la reconnaissance vocale avec la nouvelle langue
         if (state.recognition) {
+          state.manualStop = true; // FIX #2 : on prévient onend qu'on gère nous-mêmes le restart
           state.recognition.stop();
           setTimeout(() => {
             speechRecognition.updateLanguage();
@@ -675,7 +677,9 @@
         elements.astraIdle2.style.opacity = "0.3";
         elements.astraReaction.style.opacity = "1";
         elements.astraReaction.currentTime = 0;
-        return elements.astraReaction.play();
+        return elements.astraReaction.play().catch(err => {
+          debugLogger.log(`Vidéo réaction non lue: ${err.message}`, 'warn');
+        });
       },
 
       endReaction() {
@@ -723,6 +727,16 @@
         }
         state.isPlaying = true;
 
+        // FIX #1 : filet de sécurité — si jamais rien ne débloque isPlaying
+        // (fichier introuvable, vidéo qui ne se termine jamais, etc.) on le
+        // réinitialise nous-mêmes après un délai raisonnable.
+        const safetyTimeout = setTimeout(() => {
+          if (state.isPlaying) {
+            debugLogger.log('Timeout de sécurité : déblocage forcé de isPlaying', 'warn');
+            videoManager.endReaction();
+          }
+        }, 20000);
+
         if (this.currentAudio) {
           this.currentAudio.pause();
           this.currentAudio = null;
@@ -738,6 +752,11 @@
         this.currentAudio.addEventListener('error', (e) => {
           debugLogger.log(`✗ ERREUR audio: ${file} - ${e.type}`, 'error');
           utils.showError(`Fichier audio introuvable: ${file}`);
+          // FIX #1 : c'était le bug principal — sans ce déblocage, Astra
+          // restait muette pour toujours après un seul fichier manquant.
+          clearTimeout(safetyTimeout);
+          videoManager.endReaction();
+          this.currentAudio = null;
         });
 
         videoManager.playReaction(videoName);
@@ -745,11 +764,13 @@
         this.currentAudio.play().catch(err => {
           debugLogger.log(`Erreur play(): ${err.message}`, 'error');
           console.error("Erreur lecture audio:", err);
+          clearTimeout(safetyTimeout);
           videoManager.endReaction();
         });
 
         this.currentAudio.onended = () => {
           debugLogger.log('Audio terminé', 'info');
+          clearTimeout(safetyTimeout);
           videoManager.endReaction();
           this.currentAudio = null;
         };
@@ -1088,6 +1109,7 @@
 
         state.recognition.onerror = (e) => {
           console.error("Erreur reconnaissance vocale:", e.error);
+          debugLogger.log(`Erreur reconnaissance: ${e.error}`, 'error');
           if (e.error === 'no-speech') {
             // Pas d'erreur affichée pour no-speech
           } else if (e.error === 'not-allowed') {
@@ -1099,9 +1121,19 @@
         };
 
         state.recognition.onend = () => {
+          // FIX #2 : si l'arrêt vient d'un stop() volontaire (changement de langue),
+          // on laisse switchLanguage() gérer le redémarrage pour éviter un double start().
+          if (state.manualStop) {
+            state.manualStop = false;
+            return;
+          }
           setTimeout(() => {
             if (state.recognition) {
-              state.recognition.start();
+              try {
+                state.recognition.start();
+              } catch (err) {
+                debugLogger.log(`Erreur restart reconnaissance: ${err.message}`, 'error');
+              }
             }
           }, 1000);
         };
@@ -1117,7 +1149,11 @@
 
       start() {
         if (state.recognition) {
-          state.recognition.start();
+          try {
+            state.recognition.start();
+          } catch (err) {
+            debugLogger.log(`Erreur start reconnaissance: ${err.message}`, 'error');
+          }
         }
       }
     };
