@@ -9,15 +9,22 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
       overflow: hidden;
+      height: 100vh;
+      background: #000;
+    }
+
+    body {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background: #000;
       font-family: 'Unica One', serif;
+      /* ===== MIROIR PEPPER'S GHOST =====
+         Tout l'affichage est inversé horizontalement : le reflet sur le
+         plexi renverra une image à l'endroit pour le spectateur. */
+      transform: scaleX(-1);
     }
 
     video {
@@ -45,28 +52,32 @@
       display: none;
     }
 
+    /* ===== BANDEAU MOT DE PASSE — version diégétique ===== */
     #bandeau {
       position: fixed;
-      bottom: 0;
+      bottom: 8%;
       width: 100%;
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-      font-size: clamp(1.5rem, 4vw, 3rem);
+      background: transparent;
+      color: rgba(0, 255, 220, 0.85);
+      font-size: clamp(1.2rem, 3vw, 2.2rem);
       text-align: center;
-      padding: 20px;
-      white-space: nowrap;
-      overflow: hidden;
+      padding: 0 5%;
+      text-shadow: 0 0 15px rgba(0, 255, 200, 0.8), 0 0 30px rgba(0, 255, 200, 0.4);
+      letter-spacing: 2px;
       z-index: 3;
+      animation: bandeauPulse 4s ease-in-out infinite;
+      pointer-events: none;
     }
 
     #bandeau span {
-      display: inline-block;
-      animation: defilement 12s linear infinite;
+      display: block;
+      white-space: normal;
+      animation: none;
     }
 
-    @keyframes defilement {
-      0% { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
+    @keyframes bandeauPulse {
+      0%, 100% { opacity: 0.35; }
+      50% { opacity: 0.9; }
     }
 
     #parcheminImage {
@@ -139,6 +150,28 @@
       z-index: 9;
     }
 
+    /* ===== UI TECHNIQUE — cachée par défaut, visible en mode staff =====
+       Chaque bloc staff est contre-mirroré (scaleX(-1) sur un parent déjà
+       mirroré) pour rester lisible normalement pendant les réglages. */
+    #fullscreenBtn,
+    #statusIndicator,
+    #languageSelector,
+    #debugToggle,
+    #debugPanel {
+      display: none !important;
+    }
+
+    body.staffMode #fullscreenBtn,
+    body.staffMode #statusIndicator,
+    body.staffMode #languageSelector,
+    body.staffMode #debugToggle {
+      display: flex !important;
+    }
+
+    body.staffMode #debugPanel.visible {
+      display: block !important;
+    }
+
     #fullscreenBtn {
       position: fixed;
       bottom: 20px;
@@ -156,12 +189,13 @@
       background: rgba(255,255,255,0.08);
       transition: all .3s ease;
       user-select: none;
+      transform: scaleX(-1);
     }
 
     #fullscreenBtn:hover {
       background: rgba(255,255,255,0.2);
       border-color: rgba(255,255,255,0.6);
-      transform: scale(1.1);
+      transform: scaleX(-1) scale(1.1);
     }
 
     #statusIndicator {
@@ -169,7 +203,6 @@
       top: 20px;
       right: 25px;
       z-index: 10;
-      display: flex;
       align-items: center;
       gap: 10px;
       padding: 10px 15px;
@@ -179,6 +212,7 @@
       font-size: 14px;
       opacity: 0;
       transition: opacity 0.3s ease;
+      transform: scaleX(-1);
     }
 
     #statusIndicator.visible {
@@ -206,7 +240,7 @@
       position: fixed;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%) scaleX(-1);
       background: rgba(255, 50, 50, 0.9);
       color: white;
       padding: 20px 40px;
@@ -231,11 +265,7 @@
       max-height: 300px;
       overflow-y: auto;
       z-index: 12;
-      display: none;
-    }
-
-    #debugPanel.visible {
-      display: block;
+      transform: scaleX(-1);
     }
 
     #debugToggle {
@@ -250,6 +280,7 @@
       color: #0f0;
       cursor: pointer;
       font-size: 12px;
+      transform: scaleX(-1);
     }
 
     #languageSelector {
@@ -257,8 +288,8 @@
       top: 20px;
       left: 25px;
       z-index: 10;
-      display: flex;
       gap: 10px;
+      transform: scaleX(-1);
     }
 
     .lang-btn {
@@ -281,9 +312,23 @@
       background: rgba(0, 255, 255, 0.3);
       border-color: rgba(0, 255, 255, 0.7);
     }
+
+    /* Zone invisible en haut à gauche pour le tap staff (5 taps rapides) */
+    #staffTapZone {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 80px;
+      height: 80px;
+      z-index: 20;
+      cursor: default;
+    }
   </style>
 </head>
 <body>
+  <!-- Zone tap cachée pour activer le mode staff -->
+  <div id="staffTapZone"></div>
+
   <!-- Vidéos -->
   <video id="astraIdle" src="astra_idle.mp4" autoplay muted loop playsinline preload="auto"></video>
   <video id="astraIdle2" src="astra_idle2.mp4" muted loop playsinline preload="auto"></video>
@@ -292,26 +337,26 @@
   <!-- Transition magique -->
   <div id="transitionFade"></div>
 
-  <!-- Sélecteur de langue -->
+  <!-- Sélecteur de langue (staff uniquement) -->
   <div id="languageSelector">
     <button class="lang-btn active" data-lang="fr">🇫🇷 FR</button>
     <button class="lang-btn" data-lang="en">🇬🇧 EN</button>
     <button class="lang-btn" data-lang="de">🇩🇪 DE</button>
   </div>
 
-  <!-- Indicateur de statut -->
+  <!-- Indicateur de statut (staff uniquement) -->
   <div id="statusIndicator">
     <div class="status-dot"></div>
     <span id="statusText">Initialisation...</span>
   </div>
 
-  <!-- Bouton plein écran -->
+  <!-- Bouton plein écran (staff uniquement) -->
   <div id="fullscreenBtn" title="Plein écran">⛶</div>
 
   <!-- Message d'erreur -->
   <div id="errorMessage"></div>
 
-  <!-- Debug Panel -->
+  <!-- Debug Panel (staff uniquement) -->
   <button id="debugToggle">🐛 DEBUG</button>
   <div id="debugPanel"></div>
 
@@ -334,7 +379,8 @@
       errorMessage: document.getElementById("errorMessage"),
       languageSelector: document.getElementById("languageSelector"),
       debugPanel: document.getElementById("debugPanel"),
-      debugToggle: document.getElementById("debugToggle")
+      debugToggle: document.getElementById("debugToggle"),
+      staffTapZone: document.getElementById("staffTapZone")
     };
 
     // ===== SYSTÈME DE DEBUG =====
@@ -371,6 +417,25 @@
     // Toggle debug panel
     elements.debugToggle.addEventListener('click', () => {
       elements.debugPanel.classList.toggle('visible');
+    });
+
+    // ===== MODE STAFF (5 taps rapides en haut à gauche) =====
+    let staffTapCount = 0;
+    let staffTapTimer = null;
+
+    elements.staffTapZone.addEventListener('click', () => {
+      staffTapCount++;
+      clearTimeout(staffTapTimer);
+      staffTapTimer = setTimeout(() => { staffTapCount = 0; }, 2000);
+
+      if (staffTapCount >= 5) {
+        document.body.classList.toggle('staffMode');
+        staffTapCount = 0;
+        debugLogger.log(
+          document.body.classList.contains('staffMode') ? 'Mode staff activé' : 'Mode staff désactivé',
+          'info'
+        );
+      }
     });
 
     // ===== ÉTAT DE L'APPLICATION =====
