@@ -3328,93 +3328,76 @@
       // LANCEMENT DU BIP
 
       // ======================================================
+// ======================================================
+// LANCEMENT DU BIP — VERSION RAPIDE
+// ======================================================
 
-      try {
+try {
 
-        bip.currentTime =
+  bip.currentTime = 0;
 
-          0;
+  const bipPromise = bip.play();
 
-        const bipPromise =
+  if (bipPromise && bipPromise.then) {
 
-          bip.play();
-
-        if (
-
-          bipPromise &&
-
-          bipPromise.then
-
-        ) {
-
-          bipPromise
-
-            .then(
-
-              () => {
-
-                debugLogger.log(
-
-                  "🤖 Bip robotique",
-
-                  "success"
-
-                );
-
-              }
-
-            )
-
-            .catch(
-
-              err => {
-
-                /*
-
-                 Si Safari refuse le bip,
-
-                 la réponse doit quand même partir.
-
-                */
-
-                bipFinished =
-
-                  true;
-
-                debugLogger.log(
-
-                  `Bip refusé : ${err.name} / ${err.message}`,
-
-                  "warn"
-
-                );
-
-                maybeStartResponse();
-
-              }
-
-            );
-
-        }
-
-      } catch (err) {
-
-        bipFinished =
-
-          true;
+    bipPromise
+      .then(() => {
 
         debugLogger.log(
+          "🤖 Bip robotique",
+          "success"
+        );
 
-          `Erreur bip : ${err.message}`,
+        // On n'attend PAS la fin du bip.
+        // Astra peut répondre après seulement 300 ms.
+        setTimeout(() => {
 
+          bipFinished = true;
+
+          // On coupe le bip pour éviter qu'il continue
+          // pendant qu'Astra parle.
+          try {
+            bip.pause();
+            bip.currentTime = 0;
+          } catch (_) {}
+
+          debugLogger.log(
+            "⚡ Fin attente bip rapide → réponse Astra",
+            "info"
+          );
+
+          maybeStartResponse();
+
+        }, 200);
+
+      })
+      .catch(err => {
+
+        bipFinished = true;
+
+        debugLogger.log(
+          `Bip refusé : ${err.name} / ${err.message}`,
           "warn"
-
         );
 
         maybeStartResponse();
 
-      }
+      });
 
+  }
+
+} catch (err) {
+
+  bipFinished = true;
+
+  debugLogger.log(
+    `Erreur bip : ${err.message}`,
+    "warn"
+  );
+
+  maybeStartResponse();
+
+}
       // ======================================================
 
       // CHARGEMENT DU MP3 DE RÉPONSE
@@ -5008,7 +4991,7 @@
 
       /*
 
-       400 ms permettent à onresult
+       300 ms permettent à onresult
 
        de lancer la première réponse avant
 
@@ -5020,7 +5003,7 @@
 
         waitForConfirmationEnd,
 
-        400
+        300
 
       );
 
@@ -5164,7 +5147,7 @@
 
               waitForJokeEnd,
 
-              200
+              100
 
             );
 
@@ -5202,7 +5185,7 @@
 
         waitForJokeEnd,
 
-        400
+        200
 
       );
 
