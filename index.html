@@ -313,6 +313,10 @@
       border-color: rgba(0, 255, 255, 0.7);
     }
 
+    #startOverlay {
+      display: none;
+    }
+
     /* Zone invisible en haut à gauche pour le tap staff (5 taps rapides) */
     #staffTapZone {
       position: fixed;
@@ -380,7 +384,9 @@
       languageSelector: document.getElementById("languageSelector"),
       debugPanel: document.getElementById("debugPanel"),
       debugToggle: document.getElementById("debugToggle"),
-      staffTapZone: document.getElementById("staffTapZone")
+      staffTapZone: document.getElementById("staffTapZone"),
+      startOverlay: document.getElementById("startOverlay"),
+      startOverlayText: document.getElementById("startOverlayText")
     };
 
     // ===== SYSTÈME DE DEBUG =====
@@ -424,6 +430,17 @@
     let staffTapTimer = null;
 
     elements.staffTapZone.addEventListener('click', () => {
+      // Premier tap de la journée sur cette page = démarrage de l'expérience
+      // (déblocage audio + micro iOS). Fait par le staff avant l'arrivée du
+      // groupe, jamais par un joueur.
+      if (!state.started) {
+        state.started = true;
+        audioManager.unlock();
+        app.init();
+        debugLogger.log('Expérience démarrée (tap staff)', 'success');
+        return;
+      }
+
       staffTapCount++;
       clearTimeout(staffTapTimer);
       staffTapTimer = setTimeout(() => { staffTapCount = 0; }, 2000);
@@ -468,13 +485,15 @@
       recognition: null,
       currentLang: 'fr',
       manualStop: false, // FIX #2 : distingue un stop() volontaire d'un arrêt naturel
-      needsGestureRestart: false // FIX iOS : Safari bloque le restart auto sans geste utilisateur
+      needsGestureRestart: false, // FIX iOS : Safari bloque le restart auto sans geste utilisateur
+      started: false // devient true après le tap staff de démarrage (déblocage audio/micro iOS)
     };
 
     // ===== TRADUCTIONS =====
     const translations = {
       fr: {
         bandeau: "ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE",
+        startPrompt: "TOUCHEZ L'ÉCRAN POUR RÉVEILLER ASTRA",
         initializing: "Initialisation...",
         micRequest: "Demande d'accès au micro...",
         ready: "Prêt - Parlez à Astra",
@@ -490,6 +509,7 @@
       },
       en: {
         bandeau: "ASTRA IS LISTENING… BUT SHE'S WAITING FOR YOUR PASSWORD",
+        startPrompt: "TOUCH THE SCREEN TO WAKE ASTRA",
         initializing: "Initializing...",
         micRequest: "Requesting microphone access...",
         ready: "Ready - Speak to Astra",
@@ -505,6 +525,7 @@
       },
       de: {
         bandeau: "ASTRA HÖRT ZU… ABER SIE WARTET AUF IHR PASSWORT",
+        startPrompt: "BERÜHREN SIE DEN BILDSCHIRM, UM ASTRA ZU WECKEN",
         initializing: "Initialisierung...",
         micRequest: "Mikrofonzugriff anfordern...",
         ready: "Bereit - Sprechen Sie mit Astra",
@@ -812,6 +833,31 @@
     // ===== GESTION AUDIO =====
     const audioManager = {
       currentAudio: null,
+      unlocked: false,
+
+      // FIX iOS : le premier .play() DOIT être déclenché de façon synchrone
+      // dans le gestionnaire de clic/touch pour que WebKit débloque l'audio
+      // pour le reste de la session (aucun fichier requis : WAV silencieux inline).
+      unlock() {
+        try {
+          const silent = new Audio(
+            "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="
+          );
+          const p = silent.play();
+          if (p && p.then) {
+            p.then(() => {
+              this.unlocked = true;
+              debugLogger.log('Audio débloqué (geste utilisateur)', 'success');
+            }).catch(err => {
+              debugLogger.log(`Échec unlock audio: ${err.message}`, 'warn');
+            });
+          } else {
+            this.unlocked = true;
+          }
+        } catch (err) {
+          debugLogger.log(`Erreur unlock audio: ${err.message}`, 'error');
+        }
+      },
 
       play(file, videoName = VIDEO.talk) {
         debugLogger.log(`Tentative lecture: ${file}`, 'audio');
@@ -1265,7 +1311,7 @@
 
     // ===== INITIALISATION =====
     const app = {
-      async init() {
+      init() {
         try {
           debugLogger.log('Initialisation de l\'application', 'info');
           
@@ -1277,12 +1323,9 @@
           languageManager.init();
           debugLogger.log(`Langue par défaut: ${state.currentLang}`, 'info');
 
-          // Demande d'accès au micro
-          utils.updateStatus('micRequest', false);
-          await navigator.mediaDevices.getUserMedia({ audio: true });
-          debugLogger.log('Accès micro autorisé', 'success');
-
-          // Initialisation de la reconnaissance vocale
+          // Initialisation + démarrage de la reconnaissance vocale.
+          // IMPORTANT (fix iOS) : start() est appelé de façon synchrone,
+          // dans la continuité directe du tap utilisateur (pas d'await avant).
           if (speechRecognition.init()) {
             videoManager.activateIdle(elements.astraIdle);
             elements.astraIdle.play().catch(() => {
@@ -1310,7 +1353,8 @@
 
     // ===== LANCEMENT =====
     window.onload = () => {
-      app.init();
+      utils.updateBandeau();
+      debugLogger.log('Page chargée — en attente du tap staff de démarrage', 'info');
     };
   </script>
 </body>
