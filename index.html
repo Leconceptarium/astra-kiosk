@@ -438,13 +438,37 @@
       }
     });
 
+    // ===== FIX iOS : relance de la reco vocale sur tap écran =====
+    // Safari iOS refuse de relancer SpeechRecognition programmatiquement
+    // (setTimeout) sans geste utilisateur direct. On profite de n'importe
+    // quel tap sur l'écran (un joueur qui s'approche, qui touche l'écran)
+    // pour relancer discrètement si la reco est tombée en "not-allowed".
+    document.addEventListener('touchstart', () => {
+      if (state.needsGestureRestart && state.recognition) {
+        state.needsGestureRestart = false;
+        try {
+          state.recognition.start();
+          debugLogger.log('Reco relancée via tap écran (fix iOS)', 'success');
+          utils.updateStatus('ready', true);
+          utils.hideStatus(3000);
+        } catch (err) {
+          debugLogger.log(`Échec relance via tap: ${err.message}`, 'error');
+          // Sur iOS, "already started" arrive parfois : on retente une recréation propre
+          if (speechRecognition.init()) {
+            speechRecognition.start();
+          }
+        }
+      }
+    });
+
     // ===== ÉTAT DE L'APPLICATION =====
     const state = {
       mdpValid: false,
       isPlaying: false,
       recognition: null,
       currentLang: 'fr',
-      manualStop: false // FIX #2 : distingue un stop() volontaire d'un arrêt naturel
+      manualStop: false, // FIX #2 : distingue un stop() volontaire d'un arrêt naturel
+      needsGestureRestart: false // FIX iOS : Safari bloque le restart auto sans geste utilisateur
     };
 
     // ===== TRADUCTIONS =====
@@ -510,6 +534,13 @@
       joy: "joie.mp4",
       suspicionAlt: "suspicion.mp4",
       confident: "confiant.mp4"
+    };
+
+    // ===== VIDÉOS PARCHEMIN PAR LANGUE =====
+    const PARCHEMIN_VIDEO = {
+      fr: "astra_parchemin_fr.mp4",
+      en: "astra_parchemin_en.mp4",
+      de: "astra_parchemin_de.mp4"
     };
 
     // ===== CONFIGURATION AUDIO MULTILINGUE =====
@@ -1112,7 +1143,8 @@
         const audio = audioFiles[state.currentLang];
         if (state.mdpValid) {
           parcheminManager.show(15000);
-          return { file: audio.parchemin, video: VIDEO.read };
+          const video = PARCHEMIN_VIDEO[state.currentLang] || VIDEO.read;
+          return { file: audio.parchemin, video: video };
         } else {
           const faux = utils.getRandomFromArray(audio.mdp_faux);
           return { file: faux, video: VIDEO.angry };
@@ -1178,7 +1210,10 @@
           if (e.error === 'no-speech') {
             // Pas d'erreur affichée pour no-speech
           } else if (e.error === 'not-allowed') {
-            utils.showError(translations[state.currentLang].errorMicNotAllowed, 5000);
+            // FIX iOS : Safari a bloqué le restart auto (pas de geste utilisateur direct).
+            // On attend le prochain tap n'importe où sur l'écran pour relancer.
+            state.needsGestureRestart = true;
+            debugLogger.log('iOS a bloqué le restart — en attente d\'un tap écran', 'warn');
             utils.updateStatus('micDisabled', false);
           } else {
             utils.updateStatus('micError', false);
@@ -1192,12 +1227,17 @@
             state.manualStop = false;
             return;
           }
+          // Si on est déjà en attente d'un geste (iOS bloqué), pas la peine de retenter en boucle.
+          if (state.needsGestureRestart) {
+            return;
+          }
           setTimeout(() => {
             if (state.recognition) {
               try {
                 state.recognition.start();
               } catch (err) {
                 debugLogger.log(`Erreur restart reconnaissance: ${err.message}`, 'error');
+                state.needsGestureRestart = true;
               }
             }
           }, 1000);
