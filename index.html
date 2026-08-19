@@ -2478,7 +2478,77 @@ const parcheminManager = {
     // --------------------------------------------------------
     // Lecteur principal Astra
     // --------------------------------------------------------
+// --------------------------------------------------------
+// AMPLIFICATION DE LA VOIX D'ASTRA
+// --------------------------------------------------------
 
+audioContext: null,
+gainNode: null,
+audioSource: null,
+
+voiceGain: 1.8,
+
+
+initAmplifier() {
+
+  // Déjà initialisé → ne surtout pas recréer la source
+  if (this.audioContext) {
+    return;
+  }
+
+  try {
+
+    const AudioContext =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+    if (!AudioContext) {
+      debugLogger.log(
+        "Web Audio API indisponible",
+        "warn"
+      );
+      return;
+    }
+
+    this.audioContext =
+      new AudioContext();
+
+    this.audioSource =
+      this.audioContext.createMediaElementSource(
+        this.currentAudio
+      );
+
+    this.gainNode =
+      this.audioContext.createGain();
+
+    this.gainNode.gain.value =
+      this.voiceGain;
+
+    this.audioSource.connect(
+      this.gainNode
+    );
+
+    this.gainNode.connect(
+      this.audioContext.destination
+    );
+
+    debugLogger.log(
+      `🔊 Amplificateur Astra activé : x${this.voiceGain}`,
+      "success"
+    );
+
+  }
+
+  catch (err) {
+
+    debugLogger.log(
+      `Erreur amplificateur : ${err.message}`,
+      "error"
+    );
+
+  }
+
+},
     currentAudio:
       new Audio(),
 
