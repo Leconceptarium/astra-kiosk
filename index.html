@@ -3570,13 +3570,11 @@ if (
         // PARCHEMIN
         // ----------------------------------------------------
 
-        if (
-          /parchemin|marchemin|par chemin|potion.*liberation|recette.*liberation/i.test(t)
-        ) {
-
-          return this.handleParchemin();
-
-        }
+       if (
+  /parchemin.*liberation|parchemin.*liberer|potion.*liberation|potion.*liberer|recette.*liberation|recette.*liberer|liberer.*creature|liberer.*la creature|delivrer.*creature|delivrer.*la creature|comment.*liberer|comment.*delivrer/i.test(t)
+) {
+  return this.handleParchemin();
+}
 
 
         // ----------------------------------------------------
