@@ -776,15 +776,12 @@
 
   </div>
 
-  <img
-
-    id="parcheminImage"
-
-    src="parchemin.png"
-
-    alt="Parchemin de libération"
-
-  />
+ <video
+  id="parcheminImage"
+  muted
+  playsinline
+  preload="auto">
+</video>
 
 <script>
 
@@ -3458,17 +3455,65 @@ try {
 
   const parcheminManager = {
 
-    show(
+  videos: {
+    fr: "parchemin_fr.mp4",
+    en: "parchemin_en.mp4",
+    de: "parchemin_de.mp4"
+  },
 
-      duration = 15000
+  show() {
 
-    ) {
+    const video = elements.parcheminImage;
 
-      elements.parcheminImage
+    video.src =
+      this.videos[state.currentLang]
+      || this.videos.fr;
 
-        .style.display =
+    video.style.display = "block";
 
-        "block";
+    video.classList.add("visible");
+
+    video.currentTime = 0;
+
+    video.play().catch(err => {
+      debugLogger.log(
+        `Erreur vidéo parchemin : ${err.message}`,
+        "error"
+      );
+    });
+
+    video.onended = () => {
+      this.hide();
+    };
+  },
+
+  hide() {
+
+    const video = elements.parcheminImage;
+
+    video.classList.remove("visible");
+
+    setTimeout(() => {
+
+      video.pause();
+
+      video.style.display = "none";
+
+      try {
+        video.currentTime = 0;
+      } catch (_) {}
+
+    }, 500);
+  }
+
+};
+
+    elements.parcheminImage.src =
+      parchemins[state.currentLang] || parchemins.fr;
+
+    elements.parcheminImage
+      .style.display =
+      "block";
 
       setTimeout(
 
