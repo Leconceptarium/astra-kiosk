@@ -6,54 +6,52 @@
 
   <meta charset="UTF-8" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
-  <title>Astra – Assistant de M. Morpheus</title>
+  <title>
+    Astra – Assistant de M. Morpheus
+  </title>
 
   <style>
 
     * {
-
       box-sizing: border-box;
-
     }
 
-    html, body {
-
+    html,
+    body {
       margin: 0;
-
       overflow: hidden;
-
-      height: 100vh;
-
+      width: 100%;
+      height: 100%;
       background: #000;
-
     }
 
     body {
-
       display: flex;
-
       justify-content: center;
-
       align-items: center;
-
       font-family: 'Unica One', serif;
 
+      /*
+       L'interface est affichée en miroir.
+      */
       transform: scaleX(-1);
-
     }
 
+    /* ======================================================
+       VIDÉOS ASTRA
+       ====================================================== */
+
     video {
-
       position: absolute;
-
       top: 50%;
-
       left: 50%;
 
       width: 95%;
-
       height: auto;
 
       transform: translate(-50%, -50%);
@@ -64,107 +62,128 @@
 
       opacity: 0;
 
-      transition: opacity 0.6s ease;
+      transition:
+        opacity 0.6s ease;
 
       display: none;
-
     }
 
     #astraIdle.active,
-
     #astraIdle2.active {
-
       display: block;
-
       opacity: 1;
-
       z-index: 1;
-
     }
 
     #astraReaction {
-
-      z-index: 2;
-
       display: none;
-
+      z-index: 2;
     }
 
-    /* ===== BANDEAU ===== */
+    /* ======================================================
+       BANDEAU
+       ====================================================== */
 
     #bandeau {
-
       position: fixed;
 
       bottom: 8%;
-
       width: 100%;
 
       background: transparent;
 
-      color: rgba(0, 255, 220, 0.85);
+      color:
+        rgba(
+          0,
+          255,
+          220,
+          0.85
+        );
 
-      font-size: clamp(1.2rem, 3vw, 2.2rem);
+      font-size:
+        clamp(
+          1.2rem,
+          3vw,
+          2.2rem
+        );
 
       text-align: center;
 
-      padding: 0 5%;
+      padding:
+        0 5%;
 
       text-shadow:
+        0 0 15px
+          rgba(
+            0,
+            255,
+            200,
+            0.8
+          ),
 
-        0 0 15px rgba(0, 255, 200, 0.8),
-
-        0 0 30px rgba(0, 255, 200, 0.4);
+        0 0 30px
+          rgba(
+            0,
+            255,
+            200,
+            0.4
+          );
 
       letter-spacing: 2px;
 
       z-index: 3;
 
-      animation: bandeauPulse 4s ease-in-out infinite;
+      animation:
+        bandeauPulse
+        4s
+        ease-in-out
+        infinite;
 
       pointer-events: none;
-
     }
 
     #bandeau span {
-
       display: block;
-
       white-space: normal;
-
     }
 
     @keyframes bandeauPulse {
 
-      0%, 100% {
-
+      0%,
+      100% {
         opacity: 0.35;
-
       }
 
       50% {
-
         opacity: 0.9;
-
       }
 
     }
 
-    /* ===== PARCHEMIN ===== */
+    /* ======================================================
+       PARCHEMIN VIDÉO
+       ====================================================== */
 
     #parcheminImage {
 
       position: fixed;
 
       top: 50%;
-
       left: 50%;
 
-      transform: translate(-50%, -50%);
+      transform:
+        translate(
+          -50%,
+          -50%
+        );
 
       max-width: 80%;
-
       max-height: 80%;
+
+      width: auto;
+      height: auto;
+
+      object-fit: contain;
 
       z-index: 4;
 
@@ -172,59 +191,91 @@
 
       opacity: 0;
 
-      transition: opacity 0.5s ease;
+      transition:
+        opacity 0.5s ease;
 
+      background: transparent;
     }
 
     #parcheminImage.visible {
-
       opacity: 1;
-
     }
 
-    /* ===== PARTICULES MAGIQUES ===== */
+    /* ======================================================
+       PARTICULES MAGIQUES
+       ====================================================== */
 
     .magic {
 
       position: absolute;
 
       width: 26px;
-
       height: 26px;
 
       border-radius: 50%;
 
-      background: radial-gradient(
+      background:
 
-        circle,
+        radial-gradient(
 
-        rgba(0, 255, 255, 0.8) 0%,
+          circle,
 
-        rgba(0, 255, 150, 0.25) 40%,
+          rgba(
+            0,
+            255,
+            255,
+            0.8
+          )
+          0%,
 
-        rgba(0, 100, 100, 0.1) 65%,
+          rgba(
+            0,
+            255,
+            150,
+            0.25
+          )
+          40%,
 
-        transparent 85%
+          rgba(
+            0,
+            100,
+            100,
+            0.1
+          )
+          65%,
 
-      );
+          transparent
+          85%
 
-      filter: blur(3px) brightness(2.2);
+        );
 
-      mix-blend-mode: screen;
+      filter:
+        blur(3px)
+        brightness(2.2);
 
-      animation: fallMagic 6s ease-in-out forwards;
+      mix-blend-mode:
+        screen;
 
-      pointer-events: none;
+      animation:
+        fallMagic
+        6s
+        ease-in-out
+        forwards;
+
+      pointer-events:
+        none;
 
       z-index: 5;
-
     }
 
     @keyframes fallMagic {
 
       0% {
 
-        transform: translateY(-600px) scale(1.3) rotate(0deg);
+        transform:
+          translateY(-600px)
+          scale(1.3)
+          rotate(0deg);
 
         opacity: 0;
 
@@ -238,7 +289,10 @@
 
       60% {
 
-        transform: translateY(0px) scale(0.8) rotate(180deg);
+        transform:
+          translateY(0px)
+          scale(0.8)
+          rotate(180deg);
 
         opacity: 0.9;
 
@@ -246,7 +300,10 @@
 
       100% {
 
-        transform: translateY(400px) scale(0.6) rotate(360deg);
+        transform:
+          translateY(400px)
+          scale(0.6)
+          rotate(360deg);
 
         opacity: 0;
 
@@ -254,7 +311,9 @@
 
     }
 
-    /* ===== TRANSITION MAGIQUE ===== */
+    /* ======================================================
+       TRANSITION MAGIQUE
+       ====================================================== */
 
     #transitionFade {
 
@@ -262,83 +321,117 @@
 
       inset: 0;
 
-      background: radial-gradient(
+      background:
 
-        circle at center,
+        radial-gradient(
 
-        rgba(0, 255, 255, 0.9) 0%,
+          circle at center,
 
-        rgba(0, 255, 150, 0.4) 30%,
+          rgba(
+            0,
+            255,
+            255,
+            0.9
+          )
+          0%,
 
-        rgba(0, 100, 100, 0.2) 55%,
+          rgba(
+            0,
+            255,
+            150,
+            0.4
+          )
+          30%,
 
-        transparent 75%
+          rgba(
+            0,
+            100,
+            100,
+            0.2
+          )
+          55%,
 
-      );
+          transparent
+          75%
+
+        );
 
       opacity: 0;
 
       pointer-events: none;
 
-      transition: opacity 1.2s ease;
+      transition:
+        opacity
+        1.2s
+        ease;
 
       z-index: 9;
+    }
+
+    /* ======================================================
+       INTERFACE STAFF
+       ====================================================== */
+
+    #fullscreenBtn,
+    #statusIndicator,
+    #languageSelector,
+    #debugToggle,
+    #debugPanel {
+
+      display:
+        none !important;
+
+    }
+
+    body.staffMode
+    #fullscreenBtn,
+
+    body.staffMode
+    #statusIndicator,
+
+    body.staffMode
+    #languageSelector,
+
+    body.staffMode
+    #debugToggle {
+
+      display:
+        flex !important;
+
+    }
+
+    body.staffMode
+    #debugPanel.visible {
+
+      display:
+        block !important;
 
     }
 
     /* ======================================================
-
-       INTERFACE STAFF
-
+       PLEIN ÉCRAN
        ====================================================== */
-
-    #fullscreenBtn,
-
-    #statusIndicator,
-
-    #languageSelector,
-
-    #debugToggle,
-
-    #debugPanel {
-
-      display: none !important;
-
-    }
-
-    body.staffMode #fullscreenBtn,
-
-    body.staffMode #statusIndicator,
-
-    body.staffMode #languageSelector,
-
-    body.staffMode #debugToggle {
-
-      display: flex !important;
-
-    }
-
-    body.staffMode #debugPanel.visible {
-
-      display: block !important;
-
-    }
 
     #fullscreenBtn {
 
       position: fixed;
 
       bottom: 20px;
-
       right: 25px;
 
       z-index: 10;
 
       width: 50px;
-
       height: 50px;
 
-      border: 2px solid rgba(255,255,255,0.3);
+      border:
+        2px solid
+        rgba(
+          255,
+          255,
+          255,
+          0.3
+        );
 
       border-radius: 50%;
 
@@ -352,34 +445,59 @@
 
       cursor: pointer;
 
-      background: rgba(255,255,255,0.08);
+      background:
+        rgba(
+          255,
+          255,
+          255,
+          0.08
+        );
 
-      transition: all .3s ease;
+      transition:
+        all
+        0.3s
+        ease;
 
       user-select: none;
 
-      transform: scaleX(-1);
+      transform:
+        scaleX(-1);
 
     }
 
     #fullscreenBtn:hover {
 
-      background: rgba(255,255,255,0.2);
+      background:
+        rgba(
+          255,
+          255,
+          255,
+          0.2
+        );
 
-      border-color: rgba(255,255,255,0.6);
+      border-color:
+        rgba(
+          255,
+          255,
+          255,
+          0.6
+        );
 
-      transform: scaleX(-1) scale(1.1);
+      transform:
+        scaleX(-1)
+        scale(1.1);
 
     }
 
-    /* ===== STATUT ===== */
+    /* ======================================================
+       STATUT
+       ====================================================== */
 
     #statusIndicator {
 
       position: fixed;
 
       top: 20px;
-
       right: 25px;
 
       z-index: 10;
@@ -388,9 +506,16 @@
 
       gap: 10px;
 
-      padding: 10px 15px;
+      padding:
+        10px 15px;
 
-      background: rgba(0,0,0,0.5);
+      background:
+        rgba(
+          0,
+          0,
+          0,
+          0.5
+        );
 
       border-radius: 20px;
 
@@ -400,29 +525,33 @@
 
       opacity: 0;
 
-      transition: opacity 0.3s ease;
+      transition:
+        opacity
+        0.3s
+        ease;
 
-      transform: scaleX(-1);
+      transform:
+        scaleX(-1);
 
     }
 
     #statusIndicator.visible {
-
       opacity: 1;
-
     }
 
     .status-dot {
 
       width: 10px;
-
       height: 10px;
 
       border-radius: 50%;
 
       background: #ff4444;
 
-      animation: pulse 2s infinite;
+      animation:
+        pulse
+        2s
+        infinite;
 
     }
 
@@ -434,7 +563,8 @@
 
     @keyframes pulse {
 
-      0%, 100% {
+      0%,
+      100% {
 
         opacity: 1;
 
@@ -448,27 +578,36 @@
 
     }
 
-    /* ===== ERREUR ===== */
+    /* ======================================================
+       ERREURS
+       ====================================================== */
 
     #errorMessage {
 
       position: fixed;
 
       top: 50%;
-
       left: 50%;
 
       transform:
-
-        translate(-50%, -50%)
-
+        translate(
+          -50%,
+          -50%
+        )
         scaleX(-1);
 
-      background: rgba(255, 50, 50, 0.9);
+      background:
+        rgba(
+          255,
+          50,
+          50,
+          0.9
+        );
 
       color: white;
 
-      padding: 20px 40px;
+      padding:
+        20px 40px;
 
       border-radius: 10px;
 
@@ -482,17 +621,24 @@
 
     }
 
-    /* ===== DEBUG ===== */
+    /* ======================================================
+       DEBUG
+       ====================================================== */
 
     #debugPanel {
 
       position: fixed;
 
       bottom: 80px;
-
       left: 20px;
 
-      background: rgba(0, 0, 0, 0.9);
+      background:
+        rgba(
+          0,
+          0,
+          0,
+          0.9
+        );
 
       color: #0f0;
 
@@ -505,14 +651,14 @@
       font-size: 12px;
 
       max-width: 500px;
-
       max-height: 350px;
 
       overflow-y: auto;
 
       z-index: 12;
 
-      transform: scaleX(-1);
+      transform:
+        scaleX(-1);
 
     }
 
@@ -521,16 +667,29 @@
       position: fixed;
 
       bottom: 80px;
-
       left: 20px;
 
       z-index: 13;
 
-      padding: 8px 16px;
+      padding:
+        8px 16px;
 
-      background: rgba(0, 255, 0, 0.2);
+      background:
+        rgba(
+          0,
+          255,
+          0,
+          0.2
+        );
 
-      border: 2px solid rgba(0, 255, 0, 0.5);
+      border:
+        2px solid
+        rgba(
+          0,
+          255,
+          0,
+          0.5
+        );
 
       border-radius: 20px;
 
@@ -540,35 +699,52 @@
 
       font-size: 12px;
 
-      transform: scaleX(-1);
+      transform:
+        scaleX(-1);
 
     }
 
-    /* ===== LANGUES ===== */
+    /* ======================================================
+       LANGUES
+       ====================================================== */
 
     #languageSelector {
 
       position: fixed;
 
       top: 20px;
-
       left: 25px;
 
       z-index: 10;
 
       gap: 10px;
 
-      transform: scaleX(-1);
+      transform:
+        scaleX(-1);
 
     }
 
     .lang-btn {
 
-      padding: 8px 16px;
+      padding:
+        8px 16px;
 
-      background: rgba(255,255,255,0.1);
+      background:
+        rgba(
+          255,
+          255,
+          255,
+          0.1
+        );
 
-      border: 2px solid rgba(255,255,255,0.3);
+      border:
+        2px solid
+        rgba(
+          255,
+          255,
+          255,
+          0.3
+        );
 
       border-radius: 20px;
 
@@ -576,7 +752,10 @@
 
       cursor: pointer;
 
-      transition: all 0.3s ease;
+      transition:
+        all
+        0.3s
+        ease;
 
       font-size: 14px;
 
@@ -584,32 +763,56 @@
 
     .lang-btn:hover {
 
-      background: rgba(255,255,255,0.2);
+      background:
+        rgba(
+          255,
+          255,
+          255,
+          0.2
+        );
 
-      border-color: rgba(255,255,255,0.5);
+      border-color:
+        rgba(
+          255,
+          255,
+          255,
+          0.5
+        );
 
     }
 
     .lang-btn.active {
 
-      background: rgba(0, 255, 255, 0.3);
+      background:
+        rgba(
+          0,
+          255,
+          255,
+          0.3
+        );
 
-      border-color: rgba(0, 255, 255, 0.7);
+      border-color:
+        rgba(
+          0,
+          255,
+          255,
+          0.7
+        );
 
     }
 
-    /* ===== ZONE STAFF INVISIBLE ===== */
+    /* ======================================================
+       ZONE STAFF INVISIBLE
+       ====================================================== */
 
     #staffTapZone {
 
       position: fixed;
 
       top: 0;
-
       left: 0;
 
       width: 80px;
-
       height: 80px;
 
       z-index: 20;
@@ -620,342 +823,308 @@
 
 </head>
 
+
 <body>
 
-  <!-- Zone invisible de démarrage / staff -->
+  <!-- =====================================================
+       ZONE STAFF INVISIBLE
+       ===================================================== -->
 
   <div id="staffTapZone"></div>
 
-  <!-- =========================
 
+  <!-- =====================================================
        VIDÉOS ASTRA
-
-       ========================= -->
+       ===================================================== -->
 
   <video
-
     id="astraIdle"
-
     src="astra_idle.mp4"
-
     autoplay
-
     muted
-
     loop
-
     playsinline
-
     preload="auto">
-
   </video>
 
-  <video
 
+  <video
     id="astraIdle2"
-
     src="astra_idle2.mp4"
-
     muted
-
     loop
-
     playsinline
-
     preload="auto">
-
   </video>
+
 
   <video
-
     id="astraReaction"
-
     muted
-
     playsinline
-
     preload="auto">
-
   </video>
 
-  <!-- Transition -->
+
+  <!-- =====================================================
+       TRANSITION MAGIQUE
+       ===================================================== -->
 
   <div id="transitionFade"></div>
 
-  <!-- =========================
 
+  <!-- =====================================================
        LANGUES
-
-       ========================= -->
+       ===================================================== -->
 
   <div id="languageSelector">
 
     <button
-
       class="lang-btn active"
-
       data-lang="fr">
-
       🇫🇷 FR
-
     </button>
 
     <button
-
       class="lang-btn"
-
       data-lang="en">
-
       🇬🇧 EN
-
     </button>
 
     <button
-
       class="lang-btn"
-
       data-lang="de">
-
       🇩🇪 DE
-
     </button>
 
   </div>
 
-  <!-- =========================
 
+  <!-- =====================================================
        STATUT
-
-       ========================= -->
+       ===================================================== -->
 
   <div id="statusIndicator">
 
     <div class="status-dot"></div>
 
     <span id="statusText">
-
       Initialisation...
-
     </span>
 
   </div>
 
+
   <div
-
     id="fullscreenBtn"
-
     title="Plein écran">
-
     ⛶
-
   </div>
+
 
   <div id="errorMessage"></div>
 
+
   <button id="debugToggle">
-
     🐛 DEBUG
-
   </button>
+
 
   <div id="debugPanel"></div>
 
-  <!-- =========================
 
+  <!-- =====================================================
        INTERFACE JOUEURS
-
-       ========================= -->
+       ===================================================== -->
 
   <div id="bandeau">
 
     <span>
-
       ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE
-
     </span>
 
   </div>
 
- <video
-  id="parcheminImage"
-  muted
-  playsinline
-  preload="auto">
-</video>
+
+  <!-- =====================================================
+       VIDÉO PARCHEMIN
+       ===================================================== -->
+
+  <video
+    id="parcheminImage"
+    muted
+    playsinline
+    preload="auto">
+  </video>
+
 
 <script>
 
   /*
-
    ============================================================
-
    ASTRA — VERSION iPad / Safari
-
    ============================================================
-
-   VERSION AVEC :
-
-   - lecteur audio persistant
-
-   - préchargement des MP3
-
-   - biprobotic.mp3 avant chaque réponse
-
-   - FR / EN / DE
-
-   - mode staff
-
-   - debug
-
-   - parchemin
-
-   - mot de passe
-
-   - animations
-
-   - relance SpeechRecognition iPad
-
-   biprobotic.mp3 doit être placé
-
-   dans le même dossier que index.html.
-
-   ============================================================
-
   */
 
+
   // ==========================================================
-
   // ÉLÉMENTS DOM
-
   // ==========================================================
 
   const elements = {
 
     bandeau:
-
-      document.getElementById("bandeau"),
+      document.getElementById(
+        "bandeau"
+      ),
 
     parcheminImage:
-
-      document.getElementById("parcheminImage"),
+      document.getElementById(
+        "parcheminImage"
+      ),
 
     astraIdle:
-
-      document.getElementById("astraIdle"),
+      document.getElementById(
+        "astraIdle"
+      ),
 
     astraIdle2:
-
-      document.getElementById("astraIdle2"),
+      document.getElementById(
+        "astraIdle2"
+      ),
 
     astraReaction:
-
-      document.getElementById("astraReaction"),
+      document.getElementById(
+        "astraReaction"
+      ),
 
     fullscreenBtn:
-
-      document.getElementById("fullscreenBtn"),
+      document.getElementById(
+        "fullscreenBtn"
+      ),
 
     fade:
-
-      document.getElementById("transitionFade"),
+      document.getElementById(
+        "transitionFade"
+      ),
 
     statusIndicator:
-
-      document.getElementById("statusIndicator"),
+      document.getElementById(
+        "statusIndicator"
+      ),
 
     statusText:
-
-      document.getElementById("statusText"),
+      document.getElementById(
+        "statusText"
+      ),
 
     statusDot:
-
-      document.querySelector(".status-dot"),
+      document.querySelector(
+        ".status-dot"
+      ),
 
     errorMessage:
-
-      document.getElementById("errorMessage"),
+      document.getElementById(
+        "errorMessage"
+      ),
 
     languageSelector:
-
-      document.getElementById("languageSelector"),
+      document.getElementById(
+        "languageSelector"
+      ),
 
     debugPanel:
-
-      document.getElementById("debugPanel"),
+      document.getElementById(
+        "debugPanel"
+      ),
 
     debugToggle:
-
-      document.getElementById("debugToggle"),
+      document.getElementById(
+        "debugToggle"
+      ),
 
     staffTapZone:
-
-      document.getElementById("staffTapZone")
+      document.getElementById(
+        "staffTapZone"
+      )
 
   };
 
-  // ==========================================================
 
+  // ==========================================================
   // ÉTAT GLOBAL
+  // ==========================================================
+const state = {
+
+  mdpValid: false,
+
+  // Astra reste silencieuse tant que les joueurs
+  // ne l'ont pas saluée.
+  awake: false,
+
+  isPlaying: false,
+
+  recognition: null,
+
+  currentLang: "fr",
+
+  manualStop: false,
+
+  needsGestureRestart: false,
+
+  started: false,
+
+  recognitionRunning: false
+
+};
 
   // ==========================================================
-
-  const state = {
-
-    mdpValid: false,
-
-    isPlaying: false,
-
-    recognition: null,
-
-    currentLang: "fr",
-
-    manualStop: false,
-
-    needsGestureRestart: false,
-
-    started: false,
-
-    recognitionRunning: false
-
-  };
-
-  // ==========================================================
-
   // DEBUG
-
   // ==========================================================
 
   const debugLogger = {
 
     logs: [],
 
-    log(message, type = "info") {
+
+    log(
+      message,
+      type = "info"
+    ) {
 
       const timestamp =
-
-        new Date().toLocaleTimeString();
+        new Date()
+          .toLocaleTimeString();
 
       const logEntry =
-
         `[${timestamp}] ${type.toUpperCase()}: ${message}`;
 
-      this.logs.push(logEntry);
+      this.logs.push(
+        logEntry
+      );
 
-      if (this.logs.length > 100) {
+      if (
+        this.logs.length > 100
+      ) {
 
         this.logs.shift();
 
       }
 
-      console.log(logEntry);
+      console.log(
+        logEntry
+      );
 
       this.update();
 
     },
 
+
     update() {
 
-      if (!elements.debugPanel) {
+      if (
+        !elements.debugPanel
+      ) {
 
         return;
 
@@ -964,16 +1133,19 @@
       elements.debugPanel.innerHTML =
 
         this.logs
-
-          .map(log => `<div>${log}</div>`)
-
+          .map(
+            log =>
+              `<div>${log}</div>`
+          )
           .join("");
 
       elements.debugPanel.scrollTop =
 
-        elements.debugPanel.scrollHeight;
+        elements.debugPanel
+          .scrollHeight;
 
     },
+
 
     clear() {
 
@@ -985,26 +1157,27 @@
 
   };
 
-  elements.debugToggle.addEventListener(
 
-    "click",
+  elements.debugToggle
+    .addEventListener(
 
-    () => {
+      "click",
 
-      elements.debugPanel
+      () => {
 
-        .classList
+        elements.debugPanel
+          .classList
+          .toggle(
+            "visible"
+          );
 
-        .toggle("visible");
+      }
 
-    }
+    );
 
-  );
 
   // ==========================================================
-
   // TRADUCTIONS
-
   // ==========================================================
 
   const translations = {
@@ -1012,646 +1185,499 @@
     fr: {
 
       bandeau:
-
         "ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE",
 
       initializing:
-
         "Initialisation...",
 
       ready:
-
         "Prêt - Parlez à Astra",
 
       listening:
-
         "Écoute active",
 
       micDisabled:
-
         "Micro désactivé",
 
       micError:
-
         "Erreur micro",
 
       errorInit:
-
         "Erreur d'initialisation",
 
       errorFullscreen:
-
         "Impossible de passer en plein écran",
 
       errorSpeechNotSupported:
-
         "Reconnaissance vocale non supportée",
 
       errorMicDenied:
-
         "Micro refusé ou non disponible",
 
       errorSpeechNotAvailable:
-
         "Reconnaissance vocale non disponible"
 
     },
 
+
     en: {
 
       bandeau:
-
         "ASTRA IS LISTENING… BUT SHE'S WAITING FOR YOUR PASSWORD",
 
       initializing:
-
         "Initializing...",
 
       ready:
-
         "Ready - Speak to Astra",
 
       listening:
-
         "Listening",
 
       micDisabled:
-
         "Microphone disabled",
 
       micError:
-
         "Microphone error",
 
       errorInit:
-
         "Initialization error",
 
       errorFullscreen:
-
         "Unable to enter fullscreen",
 
       errorSpeechNotSupported:
-
         "Speech recognition not supported",
 
       errorMicDenied:
-
         "Microphone denied or unavailable",
 
       errorSpeechNotAvailable:
-
         "Speech recognition unavailable"
 
     },
 
+
     de: {
 
       bandeau:
-
         "ASTRA HÖRT ZU… ABER SIE WARTET AUF IHR PASSWORT",
 
       initializing:
-
         "Initialisierung...",
 
       ready:
-
         "Bereit - Sprechen Sie mit Astra",
 
       listening:
-
         "Hört zu",
 
       micDisabled:
-
         "Mikrofon deaktiviert",
 
       micError:
-
         "Mikrofonfehler",
 
       errorInit:
-
         "Initialisierungsfehler",
 
       errorFullscreen:
-
         "Vollbildmodus nicht möglich",
 
       errorSpeechNotSupported:
-
         "Spracherkennung nicht unterstützt",
 
       errorMicDenied:
-
         "Mikrofon verweigert oder nicht verfügbar",
 
       errorSpeechNotAvailable:
-
         "Spracherkennung nicht verfügbar"
 
     }
 
   };
 
+
   // ==========================================================
-
-  // VIDÉOS
-
+  // VIDÉOS ASTRA
   // ==========================================================
 
   const VIDEO = {
 
     idle1:
-
       "astra_idle.mp4",
 
     idle2:
-
       "astra_idle2.mp4",
 
     talk:
-
       "astra_parle.mp4",
 
     suspicious:
-
       "astra_suspecte.mp4",
 
     angry:
-
       "astra_colere.mp4",
 
     happy:
-
       "astra_heureuse.mp4",
 
     walkTalk:
-
       "marche2.mp4",
 
     anxious:
-
       "inquiete.mp4",
 
     read:
-
       "lecture.mp4",
 
     joy:
-
       "joie.mp4",
 
     suspicionAlt:
-
       "suspicion.mp4",
 
     confident:
-
       "confiant.mp4"
 
   };
 
-  // ==========================================================
 
+  // ==========================================================
   // VIDÉOS PARCHEMIN
-
   // ==========================================================
+
+  /*
+   Ces vidéos sont les animations d'Astra
+   pendant qu'elle explique le parchemin.
+  */
 
   const PARCHEMIN_VIDEO = {
 
     fr:
-
       "astra_parchemin_fr.mp4",
 
     en:
-
       "astra_parchemin_en.mp4",
 
     de:
-
       "astra_parchemin_de.mp4"
 
   };
-    // ==========================================================
 
+
+  // ==========================================================
   // FICHIERS AUDIO MULTILINGUES
-
   // ==========================================================
 
   const audioFiles = {
 
     // ========================================================
-
     // FRANÇAIS
-
     // ========================================================
 
     fr: {
 
       bonjour:
-
         "salutation_bonjour.mp3",
 
       qui:
-
         "qui_es_tu.mp3",
 
       ou:
-
         "ou_sommes_nous.mp3",
 
       mdp:
-
         "mdp_confirme.mp3",
 
       mdp_faux: [
-
         "mdp_faux.mp3",
-
         "mdp_faux_petunia.mp3"
-
       ],
 
       petunia:
-
         "mdp_faux_petunia.mp3",
 
       invite_mdp:
-
         "invite_mdp.mp3",
 
       pas_compris: [
-
         "phrase_non_reconnue.mp3",
-
         "phrase_non_reconnue2.mp3",
-
         "phrase_non_reconnue3.mp3",
-
         "phrase_non_reconnue4.mp3"
-
       ],
 
       ca_va:
-
         "ca_va.mp3",
 
       tu_es_la:
-
         "tu_es_la.mp3",
 
       berceuse:
-
         "berceuse.mp3",
 
       notif:
-
         "notification_mdp_valide.mp3",
 
       reve_croire:
-
         "reve_croire.mp3",
 
       pq_reve_plus:
-
         "pq_les_humains_reve_plus.mp3",
 
       qui_morpheus:
-
         "c_qui_morpheus.mp3",
 
       parchemin:
-
         "parchemin_liberation.mp3",
 
       faire_quoi_mtn:
-
         "faire_quoi_mtn.mp3",
 
       rire:
-
         "rire.mp3",
 
       c_toi_qui_controles:
-
         "c_toi_qui_controles.mp3",
 
       blague:
-
         "blague.mp3",
 
       tu_aime_morpheus:
-
         "tu_aime_morpheus.mp3",
 
       la_solution:
-
         "la_solution.mp3",
 
       voix_preenregistree:
-
         "voix_preenregistree.mp3",
 
       mdp_oublie:
-
         "mdp_oublie.mp3",
 
       morpheus_apparence:
-
         "morpheus_apparence.mp3",
 
       indice_aide:
-
         "indice_aide.mp3"
 
     },
 
+
     // ========================================================
-
     // ANGLAIS
-
     // ========================================================
 
     en: {
 
       bonjour:
-
         "greeting_hello.mp3",
 
       qui:
-
         "who_are_you.mp3",
 
       ou:
-
         "where_are_we.mp3",
 
       mdp:
-
         "password_confirmed.mp3",
 
       mdp_faux: [
-
         "password_wrong.mp3",
-
         "password_wrong_petunia.mp3"
-
       ],
 
       petunia:
-
         "password_wrong_petunia.mp3",
 
       invite_mdp:
-
         "invite_password.mp3",
 
       pas_compris: [
-
         "phrase_not_recognized.mp3",
-
         "phrase_not_recognized2.mp3",
-
         "phrase_not_recognized3.mp3",
-
         "phrase_not_recognized4.mp3"
-
       ],
 
       ca_va:
-
         "how_are_you.mp3",
 
       tu_es_la:
-
         "are_you_there.mp3",
 
       berceuse:
-
         "lullaby.mp3",
 
       notif:
-
         "notification_password_valid.mp3",
 
       reve_croire:
-
         "dream_believe.mp3",
 
       pq_reve_plus:
-
         "why_humans_dont_dream.mp3",
 
       qui_morpheus:
-
         "who_is_morpheus.mp3",
 
       parchemin:
-
         "liberation_scroll.mp3",
 
       faire_quoi_mtn:
-
         "what_to_do_now.mp3",
 
       rire:
-
         "laugh.mp3",
 
       c_toi_qui_controles:
-
         "you_control.mp3",
 
       blague:
-
         "joke.mp3",
 
       tu_aime_morpheus:
-
         "you_love_morpheus.mp3",
 
       la_solution:
-
         "the_solution.mp3",
 
       voix_preenregistree:
-
         "prerecorded_voice.mp3",
 
       mdp_oublie:
-
         "password_forgotten.mp3",
 
       morpheus_apparence:
-
         "morpheus_appearance.mp3",
 
       indice_aide:
-
         "hint_help.mp3"
 
     },
 
+
     // ========================================================
-
     // ALLEMAND
-
     // ========================================================
 
     de: {
 
       bonjour:
-
         "begruessung_hallo.mp3",
 
       qui:
-
         "wer_bist_du.mp3",
 
       ou:
-
         "wo_sind_wir.mp3",
 
       mdp:
-
         "passwort_bestaetigt.mp3",
 
       mdp_faux: [
-
         "passwort_falsch.mp3",
-
         "passwort_falsch_petunia.mp3"
-
       ],
 
       petunia:
-
         "passwort_falsch_petunia.mp3",
 
       invite_mdp:
-
         "einladung_passwort.mp3",
 
       pas_compris: [
-
         "phrase_nicht_erkannt.mp3",
-
         "phrase_nicht_erkannt2.mp3",
-
         "phrase_nicht_erkannt3.mp3",
-
         "phrase_nicht_erkannt4.mp3"
-
       ],
 
       ca_va:
-
         "wie_gehts.mp3",
 
       tu_es_la:
-
         "bist_du_da.mp3",
 
       berceuse:
-
         "wiegenlied.mp3",
 
       notif:
-
         "benachrichtigung_passwort_gueltig.mp3",
 
       reve_croire:
-
         "traum_glauben.mp3",
 
       pq_reve_plus:
-
         "warum_menschen_nicht_traeumen.mp3",
 
       qui_morpheus:
-
         "wer_ist_morpheus.mp3",
 
       parchemin:
-
         "befreiungsrolle.mp3",
 
       faire_quoi_mtn:
-
         "was_jetzt_tun.mp3",
 
       rire:
-
         "lachen.mp3",
 
       c_toi_qui_controles:
-
         "du_kontrollierst.mp3",
 
       blague:
-
         "witz.mp3",
 
       tu_aime_morpheus:
-
         "du_liebst_morpheus.mp3",
 
       la_solution:
-
         "die_loesung.mp3",
 
       voix_preenregistree:
-
         "voraufgezeichnete_stimme.mp3",
 
       mdp_oublie:
-
         "passwort_vergessen.mp3",
 
       morpheus_apparence:
-
         "morpheus_aussehen.mp3",
 
       indice_aide:
-
         "hinweis_hilfe.mp3"
 
     }
 
   };
 
+
   // ==========================================================
-
   // UTILITAIRES
-
   // ==========================================================
 
   const utils = {
 
     showError(
-
       message,
-
       duration = 2000
-
     ) {
 
-      elements.errorMessage.textContent =
-
+      elements.errorMessage
+        .textContent =
         message;
 
-      elements.errorMessage.style.display =
-
+      elements.errorMessage
+        .style.display =
         "block";
 
       setTimeout(
 
         () => {
 
-          elements.errorMessage.style.display =
-
+          elements.errorMessage
+            .style.display =
             "none";
 
         },
@@ -1662,54 +1688,55 @@
 
     },
 
+
     updateStatus(
-
       textKey,
-
       isListening = false
-
     ) {
 
       const text =
 
-        translations[state.currentLang][textKey]
+        translations[
+          state.currentLang
+        ][textKey]
 
         || textKey;
 
-      elements.statusText.textContent =
-
+      elements.statusText
+        .textContent =
         text;
 
-      if (isListening) {
+      if (
+        isListening
+      ) {
 
         elements.statusDot
-
           .classList
-
-          .add("listening");
+          .add(
+            "listening"
+          );
 
       } else {
 
         elements.statusDot
-
           .classList
-
-          .remove("listening");
+          .remove(
+            "listening"
+          );
 
       }
 
       elements.statusIndicator
-
         .classList
-
-        .add("visible");
+        .add(
+          "visible"
+        );
 
     },
 
+
     hideStatus(
-
       delay = 2000
-
     ) {
 
       setTimeout(
@@ -1717,10 +1744,10 @@
         () => {
 
           elements.statusIndicator
-
             .classList
-
-            .remove("visible");
+            .remove(
+              "visible"
+            );
 
         },
 
@@ -1730,64 +1757,55 @@
 
     },
 
+
     getRandomFromArray(
-
       arr
-
     ) {
 
       return arr[
-
         Math.floor(
-
           Math.random()
-
           * arr.length
-
         )
-
       ];
 
     },
+
 
     updateBandeau() {
 
       const bandeauSpan =
 
         elements.bandeau
-
-          .querySelector("span");
+          .querySelector(
+            "span"
+          );
 
       bandeauSpan.textContent =
 
         translations[
-
           state.currentLang
-
         ].bandeau;
 
     }
 
   };
 
+
   // ==========================================================
-
   // GESTION DES LANGUES
-
   // ==========================================================
 
   const languageManager = {
 
     initialized:
-
       false,
+
 
     init() {
 
       if (
-
         this.initialized
-
       ) {
 
         return;
@@ -1795,17 +1813,13 @@
       }
 
       this.initialized =
-
         true;
 
       const langButtons =
 
         elements.languageSelector
-
           .querySelectorAll(
-
             ".lang-btn"
-
           );
 
       langButtons.forEach(
@@ -1819,13 +1833,10 @@
             () => {
 
               const lang =
-
                 btn.dataset.lang;
 
               this.switchLanguage(
-
                 lang
-
               );
 
             }
@@ -1838,18 +1849,14 @@
 
     },
 
+
     switchLanguage(
-
       lang
-
     ) {
 
       if (
-
         lang ===
-
         state.currentLang
-
       ) {
 
         return;
@@ -1865,19 +1872,13 @@
       );
 
       state.currentLang =
-
         lang;
-
-      // Mise à jour des boutons
 
       const langButtons =
 
         elements.languageSelector
-
           .querySelectorAll(
-
             ".lang-btn"
-
           );
 
       langButtons.forEach(
@@ -1885,25 +1886,18 @@
         btn => {
 
           if (
-
             btn.dataset.lang ===
-
             lang
-
           ) {
 
             btn.classList.add(
-
               "active"
-
             );
 
           } else {
 
             btn.classList.remove(
-
               "active"
-
             );
 
           }
@@ -1912,25 +1906,19 @@
 
       );
 
-      // Bandeau
-
       utils.updateBandeau();
 
-      // Redémarrage reconnaissance
-
       if (
-
         state.recognition
-
       ) {
 
         state.manualStop =
-
           true;
 
         try {
 
-          state.recognition.stop();
+          state.recognition
+            .stop();
 
         } catch (_) {}
 
@@ -1939,25 +1927,18 @@
           () => {
 
             speechRecognition
-
               .updateLanguage();
 
             speechRecognition
-
               .start();
 
             utils.updateStatus(
-
               "ready",
-
               true
-
             );
 
             utils.hideStatus(
-
               3000
-
             );
 
             debugLogger.log(
@@ -1980,14 +1961,12 @@
 
   };
 
+
   // ==========================================================
-
   // PLEIN ÉCRAN
-
   // ==========================================================
 
   elements.fullscreenBtn
-
     .addEventListener(
 
       "click",
@@ -1995,21 +1974,15 @@
       () => {
 
         if (
-
           !document.fullscreenElement
-
         ) {
 
           if (
-
             document.documentElement
-
               .requestFullscreen
-
           ) {
 
             document.documentElement
-
               .requestFullscreen()
 
               .catch(
@@ -2027,9 +2000,7 @@
                   utils.showError(
 
                     translations[
-
                       state.currentLang
-
                     ].errorFullscreen
 
                   );
@@ -2043,9 +2014,7 @@
         } else {
 
           if (
-
             document.exitFullscreen
-
           ) {
 
             document.exitFullscreen();
@@ -2058,24 +2027,21 @@
 
     );
 
+
   // ==========================================================
-
   // GESTION VIDÉOS
-
   // ==========================================================
 
   const videoManager = {
 
     loopsInitialized:
-
       false,
+
 
     setupLoops() {
 
       if (
-
         this.loopsInitialized
-
       ) {
 
         return;
@@ -2083,15 +2049,11 @@
       }
 
       this.loopsInitialized =
-
         true;
 
       [
-
         elements.astraIdle,
-
         elements.astraIdle2
-
       ]
 
       .forEach(
@@ -2105,15 +2067,11 @@
             () => {
 
               video.currentTime =
-
                 0.01;
 
               video.play()
-
                 .catch(
-
                   () => {}
-
                 );
 
             }
@@ -2126,56 +2084,42 @@
 
     },
 
+
     activateIdle(
-
       idleVideo
-
     ) {
 
       elements.astraIdle
-
         .classList
-
         .remove(
-
           "active"
-
         );
 
       elements.astraIdle2
-
         .classList
-
         .remove(
-
           "active"
-
         );
 
       elements.astraIdle
-
         .style.display =
-
         "none";
 
       elements.astraIdle2
-
         .style.display =
-
         "none";
 
-      idleVideo.style.display =
-
+      idleVideo
+        .style.display =
         "block";
 
-      idleVideo.classList.add(
-
-        "active"
-
-      );
+      idleVideo
+        .classList
+        .add(
+          "active"
+        );
 
       idleVideo.muted =
-
         true;
 
       idleVideo.play()
@@ -2185,15 +2129,11 @@
           () => {
 
             idleVideo.muted =
-
               true;
 
             idleVideo.play()
-
               .catch(
-
                 () => {}
-
               );
 
           }
@@ -2202,10 +2142,9 @@
 
     },
 
+
     playReaction(
-
       videoName
-
     ) {
 
       debugLogger.log(
@@ -2217,35 +2156,33 @@
       );
 
       elements.astraReaction.src =
-
         videoName;
 
-      elements.astraReaction.style.display =
-
+      elements.astraReaction
+        .style.display =
         "block";
 
-      elements.astraIdle.style.opacity =
-
+      elements.astraIdle
+        .style.opacity =
         "0.3";
 
-      elements.astraIdle2.style.opacity =
-
+      elements.astraIdle2
+        .style.opacity =
         "0.3";
 
-      elements.astraReaction.style.opacity =
-
+      elements.astraReaction
+        .style.opacity =
         "1";
 
-      elements.astraReaction.currentTime =
-
+      elements.astraReaction
+        .currentTime =
         0;
 
-      elements.astraReaction.muted =
-
+      elements.astraReaction
+        .muted =
         true;
 
       return elements.astraReaction
-
         .play()
 
         .catch(
@@ -2266,18 +2203,19 @@
 
     },
 
+
     endReaction() {
 
-      elements.astraReaction.style.opacity =
-
+      elements.astraReaction
+        .style.opacity =
         "0";
 
       setTimeout(
 
         () => {
 
-          elements.astraReaction.style.display =
-
+          elements.astraReaction
+            .style.display =
             "none";
 
           const activeIdle =
@@ -2288,18 +2226,15 @@
 
               : elements.astraIdle;
 
-          activeIdle.style.opacity =
-
+          activeIdle
+            .style.opacity =
             "1";
 
           this.activateIdle(
-
             activeIdle
-
           );
 
           state.isPlaying =
-
             false;
 
         },
@@ -2312,10 +2247,141 @@
 
   };
 
+
+  // ==========================================================
+  // PARCHEMIN
   // ==========================================================
 
-  // EFFETS MAGIQUES
+  const parcheminManager = {
 
+    videos: {
+
+      fr:
+        "parchemin_fr.mp4",
+
+      en:
+        "parchemin_en.mp4",
+
+      de:
+        "parchemin_de.mp4"
+
+    },
+
+
+    show() {
+
+      const video =
+        elements.parcheminImage;
+
+      video.src =
+
+        this.videos[
+          state.currentLang
+        ]
+
+        || this.videos.fr;
+
+      video.style.display =
+        "block";
+
+      /*
+       Petit délai pour laisser Safari
+       appliquer display:block avant
+       la transition d'opacité.
+      */
+
+      requestAnimationFrame(
+
+        () => {
+
+          video.classList.add(
+            "visible"
+          );
+
+        }
+
+      );
+
+      try {
+
+        video.currentTime =
+          0;
+
+      } catch (_) {}
+
+
+      video.play()
+
+        .catch(
+
+          err => {
+
+            debugLogger.log(
+
+              `Erreur vidéo parchemin : ${err.message}`,
+
+              "error"
+
+            );
+
+          }
+
+        );
+
+
+      video.onended =
+
+        () => {
+
+          this.hide();
+
+        };
+
+    },
+
+
+    hide() {
+
+      const video =
+        elements.parcheminImage;
+
+      video.classList.remove(
+        "visible"
+      );
+
+      setTimeout(
+
+        () => {
+
+          try {
+
+            video.pause();
+
+          } catch (_) {}
+
+          video.style.display =
+            "none";
+
+          try {
+
+            video.currentTime =
+              0;
+
+          } catch (_) {}
+
+        },
+
+        500
+
+      );
+
+    }
+
+  };
+
+
+  // ==========================================================
+  // EFFETS MAGIQUES
   // ==========================================================
 
   const magicEffects = {
@@ -2325,43 +2391,31 @@
       const particle =
 
         document.createElement(
-
           "div"
-
         );
 
       particle.className =
-
         "magic";
 
       particle.style.left =
 
         Math.random()
-
         * 100
-
         + "vw";
 
       particle.style.top =
-
         "-40px";
 
       particle.style.animationDuration =
 
         3
-
         + Math.random()
-
         * 5
-
         + "s";
 
       document.body
-
         .appendChild(
-
           particle
-
         );
 
       setTimeout(
@@ -2378,22 +2432,16 @@
 
     },
 
+
     cascade(
-
       count = 40,
-
       interval = 150
-
     ) {
 
       for (
-
         let i = 0;
-
         i < count;
-
         i++
-
       ) {
 
         setTimeout(
@@ -2414,10 +2462,9 @@
 
   };
 
+
   // ==========================================================
-
   // PRÉCHARGEMENT AUDIO
-
   // ==========================================================
 
   /*
@@ -3584,39 +3631,110 @@ const parcheminManager = {
 
   // ==========================================================
 
-  const phraseDetector = {
+  detect(text) {
 
-    normalize(text) {
+  const t =
+    this.normalize(text);
 
-      return text
+  const lang =
+    state.currentLang;
 
-        .toLowerCase()
+  const audio =
+    audioFiles[lang];
 
-        .trim();
+  debugLogger.log(
+    `Analyse phrase (${lang}) : "${t}"`,
+    "info"
+  );
 
-    },
 
-    detect(text) {
+  // ======================================================
+  // ASTRA EN VEILLE
+  // ======================================================
 
-      const t =
+  if (!state.awake) {
 
-        this.normalize(text);
+    let wakeDetected = false;
 
-      const lang =
 
-        state.currentLang;
+    // FRANÇAIS
+    if (
+      lang === "fr" &&
+      /bonjour astra|salut astra|coucou astra|bonsoir astra|astra bonjour|astra salut|astra coucou|astra bonsoir/i.test(t)
+    ) {
 
-      const audio =
+      wakeDetected = true;
 
-        audioFiles[lang];
+    }
+
+
+    // ANGLAIS
+    if (
+      lang === "en" &&
+      /hello astra|hi astra|hey astra|good morning astra|good evening astra|astra hello|astra hi|astra hey/i.test(t)
+    ) {
+
+      wakeDetected = true;
+
+    }
+
+
+    // ALLEMAND
+    if (
+      lang === "de" &&
+      /hallo astra|guten tag astra|guten morgen astra|guten abend astra|astra hallo/i.test(t)
+    ) {
+
+      wakeDetected = true;
+
+    }
+
+
+    // ====================================================
+    // ASTRA A ÉTÉ SALUÉE
+    // ====================================================
+
+    if (wakeDetected) {
+
+      state.awake = true;
 
       debugLogger.log(
-
-        `Analyse phrase (${lang}) : "${t}"`,
-
-        "info"
-
+        "✓ ASTRA RÉVEILLÉE",
+        "success"
       );
+
+      return {
+
+        file:
+          audio.bonjour,
+
+        video:
+          VIDEO.happy
+
+      };
+
+    }
+
+
+    // ====================================================
+    // ELLE N'A PAS ÉTÉ SALUÉE
+    // → ELLE IGNORE TOUT
+    // ====================================================
+
+    debugLogger.log(
+      `Astra en veille — phrase ignorée : "${t}"`,
+      "info"
+    );
+
+    return null;
+
+  }
+
+
+  // ======================================================
+  // ASTRA EST RÉVEILLÉE
+  // → fonctionnement normal à partir d'ici
+  // ======================================================
 
       // ======================================================
 
@@ -5057,94 +5175,61 @@ const parcheminManager = {
     // PARCHEMIN
 
     // ========================================================
+handleParchemin() {
 
-    handleParchemin() {
+  const audio =
+    audioFiles[
+      state.currentLang
+    ];
 
-      const audio =
+  if (
+    state.mdpValid
+  ) {
 
-        audioFiles[
+    debugLogger.log(
+      "✓ Affichage parchemin",
+      "success"
+    );
 
-          state.currentLang
+    // Lance la vidéo du parchemin au centre de l'écran
+    parcheminManager.show();
 
-        ];
+    // Animation d'Astra pendant son explication
+    const video =
+      PARCHEMIN_VIDEO[
+        state.currentLang
+      ]
+      || VIDEO.read;
 
-      if (
+    return {
+      file:
+        audio.parchemin,
+      video:
+        video
+    };
 
-        state.mdpValid
+  }
 
-      ) {
+  // Parchemin demandé avant validation du mot de passe
 
-        debugLogger.log(
+  debugLogger.log(
+    "Parchemin demandé avant mot de passe",
+    "warn"
+  );
 
-          "✓ Affichage parchemin",
+  const faux =
+    utils.getRandomFromArray(
+      audio.mdp_faux
+    );
 
-          "success"
+  return {
+    file:
+      faux,
+    video:
+      VIDEO.angry
+  };
 
-        );
-
-        parcheminManager.show( 
-
-        const video =
-
-          PARCHEMIN_VIDEO[
-
-            state.currentLang
-
-          ]
-
-          || VIDEO.read;
-
-        return {
-
-          file:
-
-            audio.parchemin,
-
-          video:
-
-            video
-
-        };
-
-      }
-
-      /*
-
-       Le parchemin ne doit pas être donné
-
-       avant le mot de passe.
-
-      */
-
-      debugLogger.log(
-
-        "Parchemin demandé avant mot de passe",
-
-        "warn"
-
-      );
-
-      const faux =
-
-        utils.getRandomFromArray(
-
-          audio.mdp_faux
-
-        );
-
-      return {
-
-        file:
-
-          faux,
-
-        video:
-
-          VIDEO.angry
-
-      };
-
-    },
+},
 
     // ========================================================
 
