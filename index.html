@@ -3447,13 +3447,11 @@ try {
 
   };
 
-  // ==========================================================
+ // ==========================================================
+// PARCHEMIN
+// ==========================================================
 
-  // PARCHEMIN
-
-  // ==========================================================
-
-  const parcheminManager = {
+const parcheminManager = {
 
   videos: {
     fr: "parchemin_fr.mp4",
@@ -3470,10 +3468,11 @@ try {
       || this.videos.fr;
 
     video.style.display = "block";
-
     video.classList.add("visible");
 
-    video.currentTime = 0;
+    try {
+      video.currentTime = 0;
+    } catch (_) {}
 
     video.play().catch(err => {
       debugLogger.log(
@@ -3496,7 +3495,6 @@ try {
     setTimeout(() => {
 
       video.pause();
-
       video.style.display = "none";
 
       try {
@@ -5084,11 +5082,7 @@ try {
 
         );
 
-        parcheminManager.show(
-
-          15000
-
-        );
+        parcheminManager.show( 
 
         const video =
 
