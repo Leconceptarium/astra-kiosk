@@ -3344,49 +3344,40 @@ const parcheminManager = {
           false;
 
 
-        // ----------------------------------------------------
-        // FRANÇAIS
-        // ----------------------------------------------------
+       // ----------------------------------------------------
+// FRANÇAIS
+// ----------------------------------------------------
 
-        if (
-          lang === "fr" &&
-          /bonjour astra|salut astra|coucou astra|bonsoir astra|astra bonjour|astra salut|astra coucou|astra bonsoir/i.test(t)
-        ) {
-
-          wakeDetected =
-            true;
-
-        }
+if (
+  lang === "fr" &&
+  /^(bonjour|salut|coucou|bonsoir|hey|hello|yo|wesh)(\s+astra)?[.!? ]*$/i.test(t)
+) {
+  wakeDetected = true;
+}
 
 
-        // ----------------------------------------------------
-        // ANGLAIS
-        // ----------------------------------------------------
+// ----------------------------------------------------
+// ANGLAIS
+// ----------------------------------------------------
 
-        if (
-          lang === "en" &&
-          /hello astra|hi astra|hey astra|good morning astra|good evening astra|astra hello|astra hi|astra hey/i.test(t)
-        ) {
-
-          wakeDetected =
-            true;
-
-        }
+if (
+  lang === "en" &&
+  /^(hello|hi|hey|good morning|good evening|good afternoon|yo)(\s+astra)?[.!? ]*$/i.test(t)
+) {
+  wakeDetected = true;
+}
 
 
-        // ----------------------------------------------------
-        // ALLEMAND
-        // ----------------------------------------------------
+// ----------------------------------------------------
+// ALLEMAND
+// ----------------------------------------------------
 
-        if (
-          lang === "de" &&
-          /hallo astra|guten tag astra|guten morgen astra|guten abend astra|astra hallo/i.test(t)
-        ) {
-
-          wakeDetected =
-            true;
-
-        }
+if (
+  lang === "de" &&
+  /^(hallo|hi|hey|guten tag|guten morgen|guten abend)(\s+astra)?[.!? ]*$/i.test(t)
+) {
+  wakeDetected = true;
+}
 
 
         // ====================================================
