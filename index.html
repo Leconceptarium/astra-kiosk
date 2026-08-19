@@ -1255,13 +1255,13 @@
   const PARCHEMIN_VIDEO = {
 
     fr:
-      "astra_parchemin_fr.mp4",
+      "parchemin_fr.mp4",
 
     en:
-      "astra_parchemin_en.mp4",
+      "parchemin_en.mp4",
 
     de:
-      "astra_parchemin_de.mp4"
+      "parchemin_de.mp4"
 
   };
 
@@ -2117,186 +2117,122 @@
   // DE → parchemin_de.mp4
   //
   // ==========================================================
+const parcheminManager = {
 
-  const parcheminManager = {
+  videos: {
+    fr: "parchemin_fr.mp4",
+    en: "parchemin_en.mp4",
+    de: "parchemin_de.mp4"
+  },
 
-    videos: {
+  show() {
 
-      fr:
-        "parchemin_fr.mp4",
+    const video = elements.parcheminImage;
 
-      en:
-        "parchemin_en.mp4",
+    const fichier =
+      this.videos[state.currentLang]
+      || this.videos.fr;
 
-      de:
-        "parchemin_de.mp4"
+    debugLogger.log(
+      `Ouverture parchemin : ${fichier}`,
+      "info"
+    );
 
-    },
+    // Nettoyage
+    try {
+      video.pause();
+    } catch (_) {}
 
+    video.classList.remove("visible");
 
-    show() {
+    // Charge la bonne vidéo
+    video.src = fichier;
+    video.load();
 
-      const video =
-        elements.parcheminImage;
+    video.style.display = "block";
 
-
-      // ------------------------------------------------------
-      // Sélection de la bonne langue
-      // ------------------------------------------------------
-
-      video.src =
-
-        this.videos[
-          state.currentLang
-        ]
-
-        || this.videos.fr;
-
+    // Attend que la vidéo soit réellement prête
+    video.onloadeddata = () => {
 
       debugLogger.log(
-        `Affichage parchemin : ${video.src}`,
-        "video"
+        `✓ Vidéo parchemin chargée : ${fichier}`,
+        "success"
       );
 
-
-      // ------------------------------------------------------
-      // Affichage
-      // ------------------------------------------------------
-
-      video.style.display =
-        "block";
-
-
-      /*
-       On attend une frame avant d'ajouter
-       "visible".
-
-       Safari/iPad applique ainsi correctement
-       la transition d'opacité.
-      */
-
-      requestAnimationFrame(
-        () => {
-
-          video.classList.add(
-            "visible"
-          );
-
-        }
-      );
-
-
-      // ------------------------------------------------------
-      // Retour au début
-      // ------------------------------------------------------
+      video.classList.add("visible");
 
       try {
-
-        video.currentTime =
-          0;
-
+        video.currentTime = 0;
       } catch (_) {}
 
-
-      // ------------------------------------------------------
-      // Lecture
-      // ------------------------------------------------------
-
-      const playPromise =
-        video.play();
-
-
-      if (
-        playPromise &&
-        playPromise.then
-      ) {
-
-        playPromise
-
-          .then(
-            () => {
-
-              debugLogger.log(
-                "✓ Vidéo parchemin lancée",
-                "success"
-              );
-
-            }
-          )
-
-          .catch(
-            err => {
-
-              debugLogger.log(
-                `Erreur vidéo parchemin : ${err.name} / ${err.message}`,
-                "error"
-              );
-
-            }
-          );
-
-      }
-
-
-      // ------------------------------------------------------
-      // À la fin de la vidéo → disparition
-      // ------------------------------------------------------
-
-      video.onended =
-        () => {
+      video.play()
+        .then(() => {
 
           debugLogger.log(
-            "Vidéo parchemin terminée",
-            "info"
+            "▶ Vidéo parchemin lancée",
+            "success"
           );
 
-          this.hide();
+        })
+        .catch(err => {
 
-        };
+          debugLogger.log(
+            `Erreur lecture parchemin : ${err.name} / ${err.message}`,
+            "error"
+          );
 
-    },
+        });
 
+    };
 
-    hide() {
+    video.onended = () => {
 
-      const video =
-        elements.parcheminImage;
-
-
-      video.classList.remove(
-        "visible"
+      debugLogger.log(
+        "Vidéo parchemin terminée",
+        "info"
       );
 
+      this.hide();
 
-      setTimeout(
-        () => {
+    };
 
-          try {
+    video.onerror = () => {
 
-            video.pause();
-
-          } catch (_) {}
-
-
-          video.style.display =
-            "none";
-
-
-          try {
-
-            video.currentTime =
-              0;
-
-          } catch (_) {}
-
-        },
-        500
+      debugLogger.log(
+        `ERREUR fichier parchemin : ${fichier}`,
+        "error"
       );
 
-    }
+      this.hide();
 
-  };
+    };
 
+  },
+
+
+  hide() {
+
+    const video = elements.parcheminImage;
+
+    video.classList.remove("visible");
+
+    setTimeout(() => {
+
+      try {
+        video.pause();
+      } catch (_) {}
+
+      video.style.display = "none";
+
+      try {
+        video.currentTime = 0;
+      } catch (_) {}
+
+    }, 500);
+
+  }
+
+};
 
   // ==========================================================
   // EFFETS MAGIQUES
