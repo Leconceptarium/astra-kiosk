@@ -310,8 +310,7 @@
       }
 
     }
-
-    /* ======================================================
+        /* ======================================================
        TRANSITION MAGIQUE
        ====================================================== */
 
@@ -322,38 +321,12 @@
       inset: 0;
 
       background:
-
         radial-gradient(
-
           circle at center,
-
-          rgba(
-            0,
-            255,
-            255,
-            0.9
-          )
-          0%,
-
-          rgba(
-            0,
-            255,
-            150,
-            0.4
-          )
-          30%,
-
-          rgba(
-            0,
-            100,
-            100,
-            0.2
-          )
-          55%,
-
-          transparent
-          75%
-
+          rgba(0, 255, 255, 0.9) 0%,
+          rgba(0, 255, 150, 0.4) 30%,
+          rgba(0, 100, 100, 0.2) 55%,
+          transparent 75%
         );
 
       opacity: 0;
@@ -367,6 +340,7 @@
 
       z-index: 9;
     }
+
 
     /* ======================================================
        INTERFACE STAFF
@@ -408,6 +382,7 @@
 
     }
 
+
     /* ======================================================
        PLEIN ÉCRAN
        ====================================================== */
@@ -426,12 +401,7 @@
 
       border:
         2px solid
-        rgba(
-          255,
-          255,
-          255,
-          0.3
-        );
+        rgba(255, 255, 255, 0.3);
 
       border-radius: 50%;
 
@@ -446,12 +416,7 @@
       cursor: pointer;
 
       background:
-        rgba(
-          255,
-          255,
-          255,
-          0.08
-        );
+        rgba(255, 255, 255, 0.08);
 
       transition:
         all
@@ -468,26 +433,17 @@
     #fullscreenBtn:hover {
 
       background:
-        rgba(
-          255,
-          255,
-          255,
-          0.2
-        );
+        rgba(255, 255, 255, 0.2);
 
       border-color:
-        rgba(
-          255,
-          255,
-          255,
-          0.6
-        );
+        rgba(255, 255, 255, 0.6);
 
       transform:
         scaleX(-1)
         scale(1.1);
 
     }
+
 
     /* ======================================================
        STATUT
@@ -510,12 +466,7 @@
         10px 15px;
 
       background:
-        rgba(
-          0,
-          0,
-          0,
-          0.5
-        );
+        rgba(0, 0, 0, 0.5);
 
       border-radius: 20px;
 
@@ -578,6 +529,7 @@
 
     }
 
+
     /* ======================================================
        ERREURS
        ====================================================== */
@@ -590,19 +542,11 @@
       left: 50%;
 
       transform:
-        translate(
-          -50%,
-          -50%
-        )
+        translate(-50%, -50%)
         scaleX(-1);
 
       background:
-        rgba(
-          255,
-          50,
-          50,
-          0.9
-        );
+        rgba(255, 50, 50, 0.9);
 
       color: white;
 
@@ -621,6 +565,7 @@
 
     }
 
+
     /* ======================================================
        DEBUG
        ====================================================== */
@@ -633,12 +578,7 @@
       left: 20px;
 
       background:
-        rgba(
-          0,
-          0,
-          0,
-          0.9
-        );
+        rgba(0, 0, 0, 0.9);
 
       color: #0f0;
 
@@ -675,21 +615,11 @@
         8px 16px;
 
       background:
-        rgba(
-          0,
-          255,
-          0,
-          0.2
-        );
+        rgba(0, 255, 0, 0.2);
 
       border:
         2px solid
-        rgba(
-          0,
-          255,
-          0,
-          0.5
-        );
+        rgba(0, 255, 0, 0.5);
 
       border-radius: 20px;
 
@@ -703,6 +633,7 @@
         scaleX(-1);
 
     }
+
 
     /* ======================================================
        LANGUES
@@ -730,21 +661,11 @@
         8px 16px;
 
       background:
-        rgba(
-          255,
-          255,
-          255,
-          0.1
-        );
+        rgba(255, 255, 255, 0.1);
 
       border:
         2px solid
-        rgba(
-          255,
-          255,
-          255,
-          0.3
-        );
+        rgba(255, 255, 255, 0.3);
 
       border-radius: 20px;
 
@@ -764,42 +685,23 @@
     .lang-btn:hover {
 
       background:
-        rgba(
-          255,
-          255,
-          255,
-          0.2
-        );
+        rgba(255, 255, 255, 0.2);
 
       border-color:
-        rgba(
-          255,
-          255,
-          255,
-          0.5
-        );
+        rgba(255, 255, 255, 0.5);
 
     }
 
     .lang-btn.active {
 
       background:
-        rgba(
-          0,
-          255,
-          255,
-          0.3
-        );
+        rgba(0, 255, 255, 0.3);
 
       border-color:
-        rgba(
-          0,
-          255,
-          255,
-          0.7
-        );
+        rgba(0, 255, 255, 0.7);
 
     }
+
 
     /* ======================================================
        ZONE STAFF INVISIBLE
@@ -1054,38 +956,41 @@
   // ==========================================================
   // ÉTAT GLOBAL
   // ==========================================================
-const state = {
 
-  mdpValid: false,
+  const state = {
 
-  // Astra reste silencieuse tant que les joueurs
-  // ne l'ont pas saluée.
-  awake: false,
+    mdpValid: false,
 
-  isPlaying: false,
+    /*
+     IMPORTANT :
+     Astra écoute techniquement le micro,
+     mais elle ignore absolument tout
+     tant qu'elle n'a pas été saluée.
+    */
+    awake: false,
 
-  recognition: null,
+    isPlaying: false,
 
-  currentLang: "fr",
+    recognition: null,
 
-  manualStop: false,
+    currentLang: "fr",
 
-  needsGestureRestart: false,
+    manualStop: false,
 
-  started: false,
+    needsGestureRestart: false,
 
-  recognitionRunning: false
+    started: false,
 
-};
+    recognitionRunning: false
 
-  // ==========================================================
+  };
+    // ==========================================================
   // DEBUG
   // ==========================================================
 
   const debugLogger = {
 
     logs: [],
-
 
     log(
       message,
@@ -1346,11 +1251,6 @@ const state = {
   // ==========================================================
   // VIDÉOS PARCHEMIN
   // ==========================================================
-
-  /*
-   Ces vidéos sont les animations d'Astra
-   pendant qu'elle explique le parchemin.
-  */
 
   const PARCHEMIN_VIDEO = {
 
@@ -1651,9 +1551,7 @@ const state = {
     }
 
   };
-
-
-  // ==========================================================
+    // ==========================================================
   // UTILITAIRES
   // ==========================================================
 
@@ -1664,26 +1562,20 @@ const state = {
       duration = 2000
     ) {
 
-      elements.errorMessage
-        .textContent =
+      elements.errorMessage.textContent =
         message;
 
-      elements.errorMessage
-        .style.display =
+      elements.errorMessage.style.display =
         "block";
 
       setTimeout(
-
         () => {
 
-          elements.errorMessage
-            .style.display =
+          elements.errorMessage.style.display =
             "none";
 
         },
-
         duration
-
       );
 
     },
@@ -1702,8 +1594,7 @@ const state = {
 
         || textKey;
 
-      elements.statusText
-        .textContent =
+      elements.statusText.textContent =
         text;
 
       if (
@@ -1740,7 +1631,6 @@ const state = {
     ) {
 
       setTimeout(
-
         () => {
 
           elements.statusIndicator
@@ -1750,9 +1640,7 @@ const state = {
             );
 
         },
-
         delay
-
       );
 
     },
@@ -1764,8 +1652,7 @@ const state = {
 
       return arr[
         Math.floor(
-          Math.random()
-          * arr.length
+          Math.random() * arr.length
         )
       ];
 
@@ -1798,8 +1685,7 @@ const state = {
 
   const languageManager = {
 
-    initialized:
-      false,
+    initialized: false,
 
 
     init() {
@@ -1823,13 +1709,10 @@ const state = {
           );
 
       langButtons.forEach(
-
         btn => {
 
           btn.addEventListener(
-
             "click",
-
             () => {
 
               const lang =
@@ -1840,11 +1723,9 @@ const state = {
               );
 
             }
-
           );
 
         }
-
       );
 
     },
@@ -1855,8 +1736,7 @@ const state = {
     ) {
 
       if (
-        lang ===
-        state.currentLang
+        lang === state.currentLang
       ) {
 
         return;
@@ -1864,11 +1744,8 @@ const state = {
       }
 
       debugLogger.log(
-
         `Changement langue : ${state.currentLang} → ${lang}`,
-
         "info"
-
       );
 
       state.currentLang =
@@ -1882,12 +1759,10 @@ const state = {
           );
 
       langButtons.forEach(
-
         btn => {
 
           if (
-            btn.dataset.lang ===
-            lang
+            btn.dataset.lang === lang
           ) {
 
             btn.classList.add(
@@ -1903,10 +1778,14 @@ const state = {
           }
 
         }
-
       );
 
       utils.updateBandeau();
+
+
+      // ------------------------------------------------------
+      // Redémarrage de la reconnaissance dans la bonne langue
+      // ------------------------------------------------------
 
       if (
         state.recognition
@@ -1917,13 +1796,12 @@ const state = {
 
         try {
 
-          state.recognition
-            .stop();
+          state.recognition.stop();
 
         } catch (_) {}
 
-        setTimeout(
 
+        setTimeout(
           () => {
 
             speechRecognition
@@ -1942,17 +1820,12 @@ const state = {
             );
 
             debugLogger.log(
-
               `Reconnaissance redémarrée en ${lang}`,
-
               "success"
-
             );
 
           },
-
           500
-
         );
 
       }
@@ -1968,9 +1841,7 @@ const state = {
 
   elements.fullscreenBtn
     .addEventListener(
-
       "click",
-
       () => {
 
         if (
@@ -1986,27 +1857,20 @@ const state = {
               .requestFullscreen()
 
               .catch(
-
                 err => {
 
                   debugLogger.log(
-
                     `Erreur fullscreen : ${err.message}`,
-
                     "error"
-
                   );
 
                   utils.showError(
-
                     translations[
                       state.currentLang
                     ].errorFullscreen
-
                   );
 
                 }
-
               );
 
           }
@@ -2024,18 +1888,16 @@ const state = {
         }
 
       }
-
     );
 
 
   // ==========================================================
-  // GESTION VIDÉOS
+  // GESTION VIDÉOS ASTRA
   // ==========================================================
 
   const videoManager = {
 
-    loopsInitialized:
-      false,
+    loopsInitialized: false,
 
 
     setupLoops() {
@@ -2051,19 +1913,17 @@ const state = {
       this.loopsInitialized =
         true;
 
+
       [
         elements.astraIdle,
         elements.astraIdle2
       ]
 
       .forEach(
-
         video => {
 
           video.addEventListener(
-
             "ended",
-
             () => {
 
               video.currentTime =
@@ -2075,15 +1935,17 @@ const state = {
                 );
 
             }
-
           );
 
         }
-
       );
 
     },
 
+
+    // --------------------------------------------------------
+    // Active l'une des deux vidéos IDLE
+    // --------------------------------------------------------
 
     activateIdle(
       idleVideo
@@ -2101,16 +1963,15 @@ const state = {
           "active"
         );
 
-      elements.astraIdle
-        .style.display =
+
+      elements.astraIdle.style.display =
         "none";
 
-      elements.astraIdle2
-        .style.display =
+      elements.astraIdle2.style.display =
         "none";
 
-      idleVideo
-        .style.display =
+
+      idleVideo.style.display =
         "block";
 
       idleVideo
@@ -2123,9 +1984,7 @@ const state = {
         true;
 
       idleVideo.play()
-
         .catch(
-
           () => {
 
             idleVideo.muted =
@@ -2137,86 +1996,82 @@ const state = {
               );
 
           }
-
         );
 
     },
 
+
+    // --------------------------------------------------------
+    // Joue une animation de réaction
+    // --------------------------------------------------------
 
     playReaction(
       videoName
     ) {
 
       debugLogger.log(
-
         `Vidéo réaction : ${videoName}`,
-
         "video"
-
       );
+
 
       elements.astraReaction.src =
         videoName;
 
-      elements.astraReaction
-        .style.display =
+      elements.astraReaction.style.display =
         "block";
 
-      elements.astraIdle
-        .style.opacity =
+
+      elements.astraIdle.style.opacity =
         "0.3";
 
-      elements.astraIdle2
-        .style.opacity =
+      elements.astraIdle2.style.opacity =
         "0.3";
 
-      elements.astraReaction
-        .style.opacity =
+
+      elements.astraReaction.style.opacity =
         "1";
 
-      elements.astraReaction
-        .currentTime =
+      elements.astraReaction.currentTime =
         0;
 
-      elements.astraReaction
-        .muted =
+      elements.astraReaction.muted =
         true;
+
 
       return elements.astraReaction
         .play()
 
         .catch(
-
           err => {
 
             debugLogger.log(
-
               `Vidéo réaction refusée : ${err.message}`,
-
               "warn"
-
             );
 
           }
-
         );
 
     },
 
 
+    // --------------------------------------------------------
+    // Termine une réaction et retourne en IDLE
+    // --------------------------------------------------------
+
     endReaction() {
 
-      elements.astraReaction
-        .style.opacity =
+      elements.astraReaction.style.opacity =
         "0";
 
-      setTimeout(
 
+      setTimeout(
         () => {
 
-          elements.astraReaction
-            .style.display =
+          elements.astraReaction.style.display =
             "none";
+
 
           const activeIdle =
 
@@ -2226,21 +2081,21 @@ const state = {
 
               : elements.astraIdle;
 
-          activeIdle
-            .style.opacity =
+
+          activeIdle.style.opacity =
             "1";
+
 
           this.activateIdle(
             activeIdle
           );
 
+
           state.isPlaying =
             false;
 
         },
-
         300
-
       );
 
     }
@@ -2250,6 +2105,17 @@ const state = {
 
   // ==========================================================
   // PARCHEMIN
+  // ==========================================================
+  //
+  // IMPORTANT :
+  // Il ne doit exister QU'UN SEUL parcheminManager.
+  //
+  // Le parchemin est maintenant une VIDÉO :
+  //
+  // FR → parchemin_fr.mp4
+  // EN → parchemin_en.mp4
+  // DE → parchemin_de.mp4
+  //
   // ==========================================================
 
   const parcheminManager = {
@@ -2273,6 +2139,11 @@ const state = {
       const video =
         elements.parcheminImage;
 
+
+      // ------------------------------------------------------
+      // Sélection de la bonne langue
+      // ------------------------------------------------------
+
       video.src =
 
         this.videos[
@@ -2281,17 +2152,30 @@ const state = {
 
         || this.videos.fr;
 
+
+      debugLogger.log(
+        `Affichage parchemin : ${video.src}`,
+        "video"
+      );
+
+
+      // ------------------------------------------------------
+      // Affichage
+      // ------------------------------------------------------
+
       video.style.display =
         "block";
 
+
       /*
-       Petit délai pour laisser Safari
-       appliquer display:block avant
+       On attend une frame avant d'ajouter
+       "visible".
+
+       Safari/iPad applique ainsi correctement
        la transition d'opacité.
       */
 
       requestAnimationFrame(
-
         () => {
 
           video.classList.add(
@@ -2299,8 +2183,12 @@ const state = {
           );
 
         }
-
       );
+
+
+      // ------------------------------------------------------
+      // Retour au début
+      // ------------------------------------------------------
 
       try {
 
@@ -2310,28 +2198,57 @@ const state = {
       } catch (_) {}
 
 
-      video.play()
+      // ------------------------------------------------------
+      // Lecture
+      // ------------------------------------------------------
 
-        .catch(
+      const playPromise =
+        video.play();
 
-          err => {
 
-            debugLogger.log(
+      if (
+        playPromise &&
+        playPromise.then
+      ) {
 
-              `Erreur vidéo parchemin : ${err.message}`,
+        playPromise
 
-              "error"
+          .then(
+            () => {
 
-            );
+              debugLogger.log(
+                "✓ Vidéo parchemin lancée",
+                "success"
+              );
 
-          }
+            }
+          )
 
-        );
+          .catch(
+            err => {
 
+              debugLogger.log(
+                `Erreur vidéo parchemin : ${err.name} / ${err.message}`,
+                "error"
+              );
+
+            }
+          );
+
+      }
+
+
+      // ------------------------------------------------------
+      // À la fin de la vidéo → disparition
+      // ------------------------------------------------------
 
       video.onended =
-
         () => {
+
+          debugLogger.log(
+            "Vidéo parchemin terminée",
+            "info"
+          );
 
           this.hide();
 
@@ -2345,12 +2262,13 @@ const state = {
       const video =
         elements.parcheminImage;
 
+
       video.classList.remove(
         "visible"
       );
 
-      setTimeout(
 
+      setTimeout(
         () => {
 
           try {
@@ -2359,8 +2277,10 @@ const state = {
 
           } catch (_) {}
 
+
           video.style.display =
             "none";
+
 
           try {
 
@@ -2370,9 +2290,7 @@ const state = {
           } catch (_) {}
 
         },
-
         500
-
       );
 
     }
@@ -2394,8 +2312,10 @@ const state = {
           "div"
         );
 
+
       particle.className =
         "magic";
+
 
       particle.style.left =
 
@@ -2403,8 +2323,10 @@ const state = {
         * 100
         + "vw";
 
+
       particle.style.top =
         "-40px";
+
 
       particle.style.animationDuration =
 
@@ -2413,21 +2335,20 @@ const state = {
         * 5
         + "s";
 
+
       document.body
         .appendChild(
           particle
         );
 
-      setTimeout(
 
+      setTimeout(
         () => {
 
           particle.remove();
 
         },
-
         8000
-
       );
 
     },
@@ -2445,15 +2366,12 @@ const state = {
       ) {
 
         setTimeout(
-
           () => {
 
             this.spawn();
 
           },
-
           i * interval
-
         );
 
       }
@@ -2461,228 +2379,194 @@ const state = {
     }
 
   };
-
-
-  // ==========================================================
+    // ==========================================================
   // PRÉCHARGEMENT AUDIO
   // ==========================================================
 
   /*
+   On demande à Safari de charger les fichiers audio
+   le plus tôt possible.
 
-   Le but est de demander à Safari de récupérer
-
-   les fichiers AVANT qu'Astra en ait besoin.
-
-   Cela ne supprime pas le temps nécessaire à
-
-   SpeechRecognition pour comprendre la phrase,
-
-   mais ça réduit le délai entre la compréhension
-
-   et le début de la réponse.
-
+   Ça permet de réduire le délai entre :
+   → la phrase reconnue
+   → la réponse d'Astra
   */
 
   const audioPreloader = {
 
-    cache:
+    cache: [],
 
-      [],
 
     preloadAll() {
 
       const files =
-
         new Set();
 
+
       // Bip robotique
-
       files.add(
-
         "biprobotic.mp3"
-
       );
 
-      // Toutes les réponses
+
+      // ------------------------------------------------------
+      // Toutes les réponses dans toutes les langues
+      // ------------------------------------------------------
 
       Object.values(
-
         audioFiles
-
       )
 
       .forEach(
-
         languageFiles => {
 
           Object.values(
-
             languageFiles
-
           )
 
           .forEach(
-
             value => {
 
               if (
-
                 Array.isArray(
-
                   value
-
                 )
-
               ) {
 
                 value.forEach(
-
                   file => {
 
                     files.add(
-
                       file
-
                     );
 
                   }
-
                 );
 
-              } else if (
+              }
 
+              else if (
                 typeof value ===
-
                 "string"
-
               ) {
 
                 files.add(
-
                   value
-
                 );
 
               }
 
             }
-
           );
 
         }
-
       );
 
-      files.forEach(
 
+      // ------------------------------------------------------
+      // Création des lecteurs de préchargement
+      // ------------------------------------------------------
+
+      files.forEach(
         file => {
 
           const audio =
-
             new Audio();
 
           audio.preload =
-
             "auto";
 
           audio.src =
-
             file;
+
 
           try {
 
             audio.load();
 
-          } catch (_) {}
+          }
+
+          catch (_) {}
+
 
           this.cache.push(
-
             audio
-
           );
 
         }
-
       );
 
+
       debugLogger.log(
-
         `${files.size} fichiers audio demandés en préchargement`,
-
         "success"
-
       );
 
     }
 
   };
 
+
   // ==========================================================
-
   // GESTION AUDIO
-
   // ==========================================================
 
   /*
+   IMPORTANT POUR L'IPAD :
 
-   IMPORTANT POUR iPAD :
+   On garde toujours les mêmes lecteurs Audio.
 
-   On réutilise toujours le MÊME élément Audio
+   currentAudio
+      = voix d'Astra
 
-   pour les réponses d'Astra.
+   thinkingAudio
+      = biprobotic.mp3
 
-   On utilise un deuxième élément Audio persistant
 
-   uniquement pour biprobotic.mp3.
-
-   Le déroulement devient :
+   Fonctionnement :
 
    phrase reconnue
-
         ↓
-
-   biprobotic.mp3
-
+   bip robotique
         ↓
-
-   pendant le bip → préparation du MP3
-
+   attente 100 ms seulement
         ↓
-
-   fin du bip
-
+   bip coupé
         ↓
-
    Astra répond
-
   */
+
 
   const audioManager = {
 
-    currentAudio:
+    // --------------------------------------------------------
+    // Lecteur principal Astra
+    // --------------------------------------------------------
 
+    currentAudio:
       new Audio(),
 
+
+    // --------------------------------------------------------
+    // Lecteur du bip
+    // --------------------------------------------------------
+
     thinkingAudio:
-
       new Audio(
-
         "biprobotic.mp3"
-
       ),
 
-    unlocked:
 
+    unlocked:
       false,
 
-    safetyTimeout:
 
+    safetyTimeout:
       null,
 
+
     // ========================================================
-
     // DÉBLOCAGE AUDIO iOS
-
     // ========================================================
 
     unlock() {
@@ -2690,527 +2574,456 @@ const state = {
       try {
 
         const audio =
-
           this.currentAudio;
 
+
         /*
+         Petit fichier WAV silencieux.
 
-         Petit WAV silencieux.
-
-         Il est lancé DIRECTEMENT depuis
-
-         le premier tap staff.
-
+         Il est joué lors du premier tap staff
+         pour autoriser ensuite Safari à lire
+         les fichiers audio.
         */
 
         audio.src =
-
           "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
 
-        audio.volume =
 
+        audio.volume =
           0.01;
 
-        const promise =
 
+        const promise =
           audio.play();
 
+
         if (
-
           promise &&
-
           promise.then
-
         ) {
 
           promise
 
             .then(
-
               () => {
 
                 audio.pause();
 
+
                 try {
 
                   audio.currentTime =
-
                     0;
 
-                } catch (_) {}
+                }
+
+                catch (_) {}
+
 
                 audio.volume =
-
                   1;
 
-                this.unlocked =
 
+                this.unlocked =
                   true;
 
+
                 debugLogger.log(
-
                   "✓ Audio principal débloqué sur iOS",
-
                   "success"
-
                 );
 
-                /*
 
-                 Préparation du bip.
-
-                */
+                // Préparation du bip
 
                 this.thinkingAudio.preload =
-
                   "auto";
+
 
                 try {
 
                   this.thinkingAudio.load();
 
-                } catch (_) {}
+                }
+
+                catch (_) {}
 
               }
-
             )
 
-            .catch(
 
+            .catch(
               err => {
 
                 this.unlocked =
-
                   false;
 
+
                 debugLogger.log(
-
                   `Échec unlock audio : ${err.name} / ${err.message}`,
-
                   "error"
-
                 );
 
               }
-
             );
 
-        } else {
+        }
+
+        else {
 
           this.unlocked =
-
             true;
 
         }
 
-      } catch (err) {
+      }
+
+      catch (err) {
 
         this.unlocked =
-
           false;
 
+
         debugLogger.log(
-
           `Erreur unlock audio : ${err.message}`,
-
           "error"
-
         );
 
       }
 
     },
 
+
     // ========================================================
-
-    // LECTURE D'UNE RÉPONSE
-
+    // LECTURE D'UNE RÉPONSE ASTRA
     // ========================================================
 
     play(
-
       file,
-
       videoName = VIDEO.talk
-
     ) {
 
       debugLogger.log(
-
         `Réponse demandée : ${file}`,
-
         "audio"
-
       );
+
 
       debugLogger.log(
-
         `Audio débloqué : ${this.unlocked}`,
-
         "info"
-
       );
 
-      /*
 
-       Si Astra parle déjà, on ignore
-
-       une nouvelle reconnaissance.
-
-       Ça évite qu'elle entende sa propre voix
-
-       et qu'elle s'interrompe elle-même.
-
-      */
+      // ------------------------------------------------------
+      // Astra parle déjà
+      // ------------------------------------------------------
 
       if (
-
         state.isPlaying
-
       ) {
 
         debugLogger.log(
-
           "Astra parle déjà — nouvelle réponse ignorée",
-
           "warn"
-
         );
 
         return;
 
       }
 
-      state.isPlaying =
 
+      state.isPlaying =
         true;
 
-      const audio =
 
+      const audio =
         this.currentAudio;
 
-      const bip =
 
+      const bip =
         this.thinkingAudio;
 
-      // Nettoyage ancien audio
+
+      // ======================================================
+      // NETTOYAGE
+      // ======================================================
 
       try {
 
         audio.pause();
 
-      } catch (_) {}
+      }
+
+      catch (_) {}
+
 
       try {
 
         bip.pause();
 
         bip.currentTime =
-
           0;
 
-      } catch (_) {}
+      }
+
+      catch (_) {}
+
 
       audio.onended =
-
         null;
 
       audio.onerror =
-
         null;
 
       audio.onloadeddata =
-
         null;
 
       audio.oncanplay =
-
         null;
 
       audio.oncanplaythrough =
-
         null;
 
+
+      bip.onended =
+        null;
+
+      bip.onerror =
+        null;
+
+
       // ======================================================
-
       // PRÉPARATION IMMÉDIATE DE LA RÉPONSE
-
       // ======================================================
 
       audio.src =
-
         file;
 
-      audio.volume =
 
+      audio.volume =
         1;
 
-      audio.preload =
 
+      audio.preload =
         "auto";
 
+
       /*
-
-       On démarre tout de suite la vidéo
-
+       On lance immédiatement l'animation
        correspondant à la réponse.
-
       */
 
       videoManager.playReaction(
-
         videoName
-
       );
 
+
       // ======================================================
-
       // FILET DE SÉCURITÉ
-
       // ======================================================
 
       if (
-
         this.safetyTimeout
-
       ) {
 
         clearTimeout(
-
           this.safetyTimeout
-
         );
 
       }
 
+
       this.safetyTimeout =
 
         setTimeout(
-
           () => {
 
             if (
-
               !state.isPlaying
-
             ) {
 
               return;
 
             }
 
+
             debugLogger.log(
-
               "Timeout audio — déblocage forcé",
-
               "warn"
-
             );
+
 
             try {
 
               audio.pause();
 
-            } catch (_) {}
+            }
+
+            catch (_) {}
+
 
             try {
 
               bip.pause();
 
-            } catch (_) {}
+            }
+
+            catch (_) {}
+
 
             videoManager.endReaction();
 
-            state.isPlaying =
 
+            state.isPlaying =
               false;
 
           },
 
           30000
-
         );
 
+
       // ======================================================
-
-      // SYNCHRONISATION BIP + RÉPONSE
-
+      // ÉTAT DE CHARGEMENT
       // ======================================================
 
       let responseReady =
-
         audio.readyState >= 3;
 
-      let bipFinished =
 
+      let bipFinished =
         false;
+
 
       let responseStarted =
-
         false;
 
-      const maybeStartResponse =
 
+      // ======================================================
+      // DÉMARRAGE DE LA RÉPONSE
+      // ======================================================
+
+      const maybeStartResponse =
         () => {
 
-          /*
-
-           La vraie réponse ne démarre que lorsque :
-
-           1. son fichier est prêt
-
-           2. le bip est terminé
-
-           3. elle n'a pas déjà été lancée
-
-          */
-
           if (
-
-            responseStarted
-
-            ||
-
-            !responseReady
-
-            ||
-
+            responseStarted ||
+            !responseReady ||
             !bipFinished
-
           ) {
 
             return;
 
           }
 
-          responseStarted =
 
+          responseStarted =
             true;
 
+
           debugLogger.log(
-
             `▶ Démarrage réponse Astra : ${file}`,
-
             "success"
-
           );
 
-          const playPromise =
 
+          const playPromise =
             audio.play();
 
+
           if (
-
             playPromise &&
-
             playPromise.then
-
           ) {
 
             playPromise
 
               .then(
-
                 () => {
 
                   debugLogger.log(
-
                     `✓ ASTRA PARLE : ${file}`,
-
                     "success"
-
                   );
 
                 }
-
               )
 
-              .catch(
 
+              .catch(
                 err => {
 
                   debugLogger.log(
-
                     `✗ Lecture réponse refusée : ${err.name} / ${err.message}`,
-
                     "error"
-
                   );
 
+
                   if (
-
                     this.safetyTimeout
-
                   ) {
 
                     clearTimeout(
-
                       this.safetyTimeout
-
                     );
 
                   }
 
+
                   videoManager.endReaction();
 
-                  state.isPlaying =
 
+                  state.isPlaying =
                     false;
 
                 }
-
               );
 
           }
 
         };
 
+
       // ======================================================
-
-      // RÉPONSE PRÊTE
-
+      // RÉPONSE AUDIO PRÊTE
       // ======================================================
 
       const markResponseReady =
-
         () => {
 
           responseReady =
-
             true;
 
+
           debugLogger.log(
-
             `Réponse audio prête : ${file}`,
-
             "success"
-
           );
+
 
           maybeStartResponse();
 
         };
 
-      audio.onloadeddata =
 
+      audio.onloadeddata =
         markResponseReady;
+
 
       audio.oncanplay =
-
         markResponseReady;
+
 
       audio.oncanplaythrough =
-
         markResponseReady;
 
+
       // ======================================================
-
-      // ERREUR RÉPONSE
-
+      // ERREUR AUDIO
       // ======================================================
 
       audio.onerror =
-
         () => {
 
           const errorCode =
@@ -3221,271 +3034,304 @@ const state = {
 
               : "inconnu";
 
+
           debugLogger.log(
-
             `✗ ERREUR AUDIO : ${file} / code ${errorCode}`,
-
             "error"
-
           );
 
+
           if (
-
             this.safetyTimeout
-
           ) {
 
             clearTimeout(
-
               this.safetyTimeout
-
             );
 
           }
+
 
           try {
 
             bip.pause();
 
-          } catch (_) {}
+          }
+
+          catch (_) {}
+
 
           videoManager.endReaction();
 
-          state.isPlaying =
 
+          state.isPlaying =
             false;
 
+
           utils.showError(
-
             `Audio introuvable : ${file}`,
-
             3000
-
           );
 
         };
 
+
       // ======================================================
-
       // FIN DE LA RÉPONSE
-
       // ======================================================
 
       audio.onended =
-
         () => {
 
           debugLogger.log(
-
             `Audio terminé : ${file}`,
-
             "info"
-
           );
 
+
           if (
-
             this.safetyTimeout
-
           ) {
 
             clearTimeout(
-
               this.safetyTimeout
-
             );
 
           }
 
+
           videoManager.endReaction();
 
-          state.isPlaying =
 
+          state.isPlaying =
             false;
 
         };
 
-      // ======================================================
-
-      // BIP ROBOTIQUE
 
       // ======================================================
-
-      bip.onended =
-
-        null;
-
-      bip.onerror =
-
-        null;
-
-      bip.onended =
-
-        () => {
-
-          bipFinished =
-
-            true;
-
-          debugLogger.log(
-
-            "✓ Bip robotique terminé",
-
-            "info"
-
-          );
-
-          maybeStartResponse();
-
-        };
+      // BIP ROBOTIQUE RAPIDE
+      // ======================================================
 
       /*
+       IMPORTANT :
 
-       Si biprobotic.mp3 est absent,
+       On ne laisse PLUS le bip se jouer entièrement.
 
-       on ne bloque surtout pas Astra.
+       Il démarre...
 
+       puis 100 ms plus tard :
+
+       → on considère l'attente terminée
+       → on coupe le bip
+       → Astra peut parler immédiatement
       */
 
-      bip.onerror =
 
+      bip.onerror =
         () => {
 
           bipFinished =
-
             true;
 
+
           debugLogger.log(
-
             "biprobotic.mp3 indisponible — réponse sans bip",
-
             "warn"
-
           );
+
 
           maybeStartResponse();
 
         };
 
-      // ======================================================
 
+      // ======================================================
       // LANCEMENT DU BIP
-
       // ======================================================
-// ======================================================
-// LANCEMENT DU BIP — VERSION RAPIDE
-// ======================================================
 
-try {
+      try {
 
-  bip.currentTime = 0;
+        bip.currentTime =
+          0;
 
-  const bipPromise = bip.play();
 
-  if (bipPromise && bipPromise.then) {
+        const bipPromise =
+          bip.play();
 
-    bipPromise
-      .then(() => {
 
-        debugLogger.log(
-          "🤖 Bip robotique",
-          "success"
-        );
+        if (
+          bipPromise &&
+          bipPromise.then
+        ) {
 
-        // On n'attend PAS la fin du bip.
-        // Astra peut répondre après seulement 300 ms.
-        setTimeout(() => {
+          bipPromise
 
-          bipFinished = true;
+            .then(
+              () => {
 
-          // On coupe le bip pour éviter qu'il continue
-          // pendant qu'Astra parle.
-          try {
-            bip.pause();
-            bip.currentTime = 0;
-          } catch (_) {}
+                debugLogger.log(
+                  "🤖 Bip robotique",
+                  "success"
+                );
 
-          debugLogger.log(
-            "⚡ Fin attente bip rapide → réponse Astra",
-            "info"
+
+                // --------------------------------------------
+                // ATTENTE ULTRA COURTE : 100 ms
+                // --------------------------------------------
+
+                setTimeout(
+                  () => {
+
+                    bipFinished =
+                      true;
+
+
+                    /*
+                     On coupe le bip afin qu'il
+                     ne continue pas pendant
+                     la voix d'Astra.
+                    */
+
+                    try {
+
+                      bip.pause();
+
+                      bip.currentTime =
+                        0;
+
+                    }
+
+                    catch (_) {}
+
+
+                    debugLogger.log(
+                      "⚡ Fin attente bip → réponse Astra",
+                      "info"
+                    );
+
+
+                    maybeStartResponse();
+
+                  },
+
+                  100
+                );
+
+              }
+            )
+
+
+            .catch(
+              err => {
+
+                bipFinished =
+                  true;
+
+
+                debugLogger.log(
+                  `Bip refusé : ${err.name} / ${err.message}`,
+                  "warn"
+                );
+
+
+                maybeStartResponse();
+
+              }
+            );
+
+        }
+
+        else {
+
+          /*
+           Très vieux navigateur :
+           on ne bloque pas la réponse.
+          */
+
+          setTimeout(
+            () => {
+
+              bipFinished =
+                true;
+
+
+              try {
+
+                bip.pause();
+
+                bip.currentTime =
+                  0;
+
+              }
+
+              catch (_) {}
+
+
+              maybeStartResponse();
+
+            },
+
+            100
           );
 
-          maybeStartResponse();
+        }
 
-        }, 100);
+      }
 
-      })
-      .catch(err => {
+      catch (err) {
 
-        bipFinished = true;
+        bipFinished =
+          true;
+
 
         debugLogger.log(
-          `Bip refusé : ${err.name} / ${err.message}`,
+          `Erreur bip : ${err.message}`,
           "warn"
         );
 
+
         maybeStartResponse();
 
-      });
+      }
 
-  }
 
-} catch (err) {
-
-  bipFinished = true;
-
-  debugLogger.log(
-    `Erreur bip : ${err.message}`,
-    "warn"
-  );
-
-  maybeStartResponse();
-
-}
       // ======================================================
-
       // CHARGEMENT DU MP3 DE RÉPONSE
-
       // ======================================================
 
       /*
-
-       Le fichier commence donc à charger
-
-       PENDANT le bip.
-
+       Pendant les 100 ms du bip,
+       Safari commence déjà à préparer
+       le fichier de réponse.
       */
 
       if (
-
         !responseReady
-
       ) {
 
         try {
 
           audio.load();
 
-        } catch (err) {
+        }
+
+        catch (err) {
 
           debugLogger.log(
-
             `Erreur audio.load() : ${err.message}`,
-
             "error"
-
           );
 
         }
 
-      } else {
+      }
+
+      else {
 
         debugLogger.log(
-
           `Réponse déjà en cache : ${file}`,
-
           "success"
-
         );
 
       }
@@ -3494,629 +3340,619 @@ try {
 
   };
 
- // ==========================================================
-// PARCHEMIN
-// ==========================================================
 
-const parcheminManager = {
+  // ==========================================================
+  // FIN PARTIE 5
+  // ==========================================================
 
-  videos: {
-    fr: "parchemin_fr.mp4",
-    en: "parchemin_en.mp4",
-    de: "parchemin_de.mp4"
-  },
+    // ==========================================================
+  // DÉTECTION DES PHRASES
+  // ==========================================================
 
-  show() {
+  const phraseDetector = {
 
-    const video = elements.parcheminImage;
+    // ========================================================
+    // NORMALISATION DU TEXTE
+    // ========================================================
 
-    video.src =
-      this.videos[state.currentLang]
-      || this.videos.fr;
+    normalize(text) {
 
-    video.style.display = "block";
-    video.classList.add("visible");
-
-    try {
-      video.currentTime = 0;
-    } catch (_) {}
-
-    video.play().catch(err => {
-      debugLogger.log(
-        `Erreur vidéo parchemin : ${err.message}`,
-        "error"
-      );
-    });
-
-    video.onended = () => {
-      this.hide();
-    };
-  },
-
-  hide() {
-
-    const video = elements.parcheminImage;
-
-    video.classList.remove("visible");
-
-    setTimeout(() => {
-
-      video.pause();
-      video.style.display = "none";
-
-      try {
-        video.currentTime = 0;
-      } catch (_) {}
-
-    }, 500);
-  }
-
-};
-
-    elements.parcheminImage.src =
-      parchemins[state.currentLang] || parchemins.fr;
-
-    elements.parcheminImage
-      .style.display =
-      "block";
-
-      setTimeout(
-
-        () => {
-
-          elements.parcheminImage
-
-            .classList
-
-            .add(
-
-              "visible"
-
-            );
-
-        },
-
-        10
-
-      );
-
-      setTimeout(
-
-        () => {
-
-          this.hide();
-
-        },
-
-        duration
-
-      );
+      return text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[’']/g, "'")
+        .trim();
 
     },
 
-    hide() {
 
-      elements.parcheminImage
+    // ========================================================
+    // DÉTECTION
+    // ========================================================
 
-        .classList
+    detect(text) {
 
-        .remove(
+      const t =
+        this.normalize(text);
 
-          "visible"
+      const lang =
+        state.currentLang;
 
-        );
+      const audio =
+        audioFiles[lang];
 
-      setTimeout(
-
-        () => {
-
-          elements.parcheminImage
-
-            .style.display =
-
-            "none";
-
-        },
-
-        500
-
-      );
-
-    }
-
-  };
-    // ==========================================================
-
-  // DÉTECTION DES PHRASES MULTILINGUE
-
-  // ==========================================================
-
-  detect(text) {
-
-  const t =
-    this.normalize(text);
-
-  const lang =
-    state.currentLang;
-
-  const audio =
-    audioFiles[lang];
-
-  debugLogger.log(
-    `Analyse phrase (${lang}) : "${t}"`,
-    "info"
-  );
-
-
-  // ======================================================
-  // ASTRA EN VEILLE
-  // ======================================================
-
-  if (!state.awake) {
-
-    let wakeDetected = false;
-
-
-    // FRANÇAIS
-    if (
-      lang === "fr" &&
-      /bonjour astra|salut astra|coucou astra|bonsoir astra|astra bonjour|astra salut|astra coucou|astra bonsoir/i.test(t)
-    ) {
-
-      wakeDetected = true;
-
-    }
-
-
-    // ANGLAIS
-    if (
-      lang === "en" &&
-      /hello astra|hi astra|hey astra|good morning astra|good evening astra|astra hello|astra hi|astra hey/i.test(t)
-    ) {
-
-      wakeDetected = true;
-
-    }
-
-
-    // ALLEMAND
-    if (
-      lang === "de" &&
-      /hallo astra|guten tag astra|guten morgen astra|guten abend astra|astra hallo/i.test(t)
-    ) {
-
-      wakeDetected = true;
-
-    }
-
-
-    // ====================================================
-    // ASTRA A ÉTÉ SALUÉE
-    // ====================================================
-
-    if (wakeDetected) {
-
-      state.awake = true;
 
       debugLogger.log(
-        "✓ ASTRA RÉVEILLÉE",
-        "success"
+        `Analyse phrase (${lang}) : "${t}"`,
+        "info"
       );
 
-      return {
-
-        file:
-          audio.bonjour,
-
-        video:
-          VIDEO.happy
-
-      };
-
-    }
-
-
-    // ====================================================
-    // ELLE N'A PAS ÉTÉ SALUÉE
-    // → ELLE IGNORE TOUT
-    // ====================================================
-
-    debugLogger.log(
-      `Astra en veille — phrase ignorée : "${t}"`,
-      "info"
-    );
-
-    return null;
-
-  }
-
-
-  // ======================================================
-  // ASTRA EST RÉVEILLÉE
-  // → fonctionnement normal à partir d'ici
-  // ======================================================
 
       // ======================================================
+      // ASTRA EST EN VEILLE
+      // ======================================================
+      //
+      // Tant qu'elle n'a pas été explicitement saluée,
+      // Astra écoute mais NE RÉPOND À RIEN.
+      //
+      // Cela évite qu'elle intervienne pendant le brief.
+      //
+      // ======================================================
 
+      if (
+        !state.awake
+      ) {
+
+        let wakeDetected =
+          false;
+
+
+        // ----------------------------------------------------
+        // FRANÇAIS
+        // ----------------------------------------------------
+
+        if (
+          lang === "fr" &&
+          /bonjour astra|salut astra|coucou astra|bonsoir astra|astra bonjour|astra salut|astra coucou|astra bonsoir/i.test(t)
+        ) {
+
+          wakeDetected =
+            true;
+
+        }
+
+
+        // ----------------------------------------------------
+        // ANGLAIS
+        // ----------------------------------------------------
+
+        if (
+          lang === "en" &&
+          /hello astra|hi astra|hey astra|good morning astra|good evening astra|astra hello|astra hi|astra hey/i.test(t)
+        ) {
+
+          wakeDetected =
+            true;
+
+        }
+
+
+        // ----------------------------------------------------
+        // ALLEMAND
+        // ----------------------------------------------------
+
+        if (
+          lang === "de" &&
+          /hallo astra|guten tag astra|guten morgen astra|guten abend astra|astra hallo/i.test(t)
+        ) {
+
+          wakeDetected =
+            true;
+
+        }
+
+
+        // ====================================================
+        // ASTRA A ÉTÉ SALUÉE
+        // ====================================================
+
+        if (
+          wakeDetected
+        ) {
+
+          state.awake =
+            true;
+
+
+          debugLogger.log(
+            "✓ ASTRA RÉVEILLÉE",
+            "success"
+          );
+
+
+          return {
+
+            file:
+              audio.bonjour,
+
+            video:
+              VIDEO.happy
+
+          };
+
+        }
+
+
+        // ====================================================
+        // PAS DE SALUTATION
+        // ====================================================
+        //
+        // Astra entend la phrase mais l'ignore complètement.
+        //
+        // Aucun bip.
+        // Aucun MP3.
+        // Aucune animation.
+        //
+        // ====================================================
+
+        debugLogger.log(
+          `Astra en veille — phrase ignorée : "${t}"`,
+          "info"
+        );
+
+
+        return null;
+
+      }
+
+
+      // ======================================================
+      // ASTRA EST RÉVEILLÉE
+      // ======================================================
+
+
+      // ======================================================
       // FRANÇAIS
-
       // ======================================================
 
-      if (lang === "fr") {
+      if (
+        lang === "fr"
+      ) {
 
-        // Bonjour / salut
+
+        // ----------------------------------------------------
+        // Bonjour / Salut
+        // ----------------------------------------------------
 
         if (
-
           /bonjour|salut|coucou|bonsoir|wesh|yo/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.bonjour,
+            file:
+              audio.bonjour,
 
-            video: VIDEO.happy
+            video:
+              VIDEO.happy
 
           };
 
         }
 
+
+        // ----------------------------------------------------
         // Qui es-tu ?
+        // ----------------------------------------------------
 
         if (
-
-          /qui (tu es|es-tu)|t'es qui|c'est quoi toi|astra|c'est quoi ce truc/i.test(t)
-
+          /qui (tu es|es-tu)|t'es qui|c'est quoi toi|qui est astra|c'est quoi astra|c'est quoi ce truc/i.test(t)
         ) {
 
           return {
 
-            file: audio.qui,
+            file:
+              audio.qui,
 
-            video: VIDEO.happy
+            video:
+              VIDEO.happy
 
           };
 
         }
 
+
+        // ----------------------------------------------------
         // Où sommes-nous ?
+        // ----------------------------------------------------
 
         if (
-
-          /où sommes|on est où|quel est cet endroit/i.test(t)
-
+          /ou sommes|on est ou|quel est cet endroit|c'est quoi cet endroit/i.test(t)
         ) {
 
           return {
 
-            file: audio.ou,
+            file:
+              audio.ou,
 
-            video: VIDEO.anxious
+            video:
+              VIDEO.anxious
 
           };
 
         }
 
-        // Mot de passe
+
+        // ----------------------------------------------------
+        // MOT DE PASSE
+        // ----------------------------------------------------
 
         if (
-
           /bonne nuit|le mot de passe c'est bonne nuit/i.test(t)
-
         ) {
 
           return this.handlePassword();
 
         }
 
-        // Mot de passe oublié
+
+        // ----------------------------------------------------
+        // MOT DE PASSE OUBLIÉ
+        // ----------------------------------------------------
 
         if (
-
-          /mot de passe oublié|j'ai oublié|comment trouver/i.test(t)
-
+          /mot de passe oublie|j'ai oublie|comment trouver.*mot de passe/i.test(t)
         ) {
 
           return {
 
-            file: audio.mdp_oublie,
+            file:
+              audio.mdp_oublie,
 
-            video: VIDEO.anxious
+            video:
+              VIDEO.anxious
 
           };
 
         }
 
-        // Pétunia
+
+        // ----------------------------------------------------
+        // PÉTUNIA
+        // ----------------------------------------------------
 
         if (
-
-          /pétunia|petunia/i.test(t)
-
+          /petunia/i.test(t)
         ) {
 
           return {
 
-            file: audio.petunia,
+            file:
+              audio.petunia,
 
-            video: VIDEO.angry
+            video:
+              VIDEO.angry
 
           };
 
         }
 
-        // Parchemin
+
+        // ----------------------------------------------------
+        // PARCHEMIN
+        // ----------------------------------------------------
 
         if (
-
-          /parchemin|marchemin|par chemin|potion.*libération|potion.*liberation|recette.*libération|recette.*liberation/i.test(t)
-
+          /parchemin|marchemin|par chemin|potion.*liberation|recette.*liberation/i.test(t)
         ) {
 
           return this.handleParchemin();
 
         }
 
-        // Mot de passe trouvé
+
+        // ----------------------------------------------------
+        // MOT DE PASSE TROUVÉ
+        // ----------------------------------------------------
 
         if (
-
-          /je connais le mot de passe|j'ai trouvé le mot de passe|on a trouvé le mot de passe/i.test(t)
-
+          /je connais le mot de passe|j'ai trouve le mot de passe|on a trouve le mot de passe/i.test(t)
         ) {
 
           return {
 
-            file: audio.invite_mdp,
+            file:
+              audio.invite_mdp,
 
-            video: VIDEO.anxious
+            video:
+              VIDEO.anxious
 
           };
 
         }
 
-        // Ça va ?
+
+        // ----------------------------------------------------
+        // ÇA VA ?
+        // ----------------------------------------------------
 
         if (
-
-          /ça va|ca va|comment tu vas|tu vas bien/i.test(t)
-
+          /ca va|comment tu vas|tu vas bien/i.test(t)
         ) {
 
           return {
 
-            file: audio.ca_va,
+            file:
+              audio.ca_va,
 
-            video: VIDEO.happy
+            video:
+              VIDEO.happy
 
           };
 
         }
 
-        // Tu es là ?
+
+        // ----------------------------------------------------
+        // TU ES LÀ ?
+        // ----------------------------------------------------
 
         if (
-
-          /tu es là|tu es la|t'es là|t'es la|hé ho|hey ho|tu m'entends|tu nous entends/i.test(t)
-
+          /tu es la|t'es la|he ho|hey ho|tu m'entends|tu nous entends/i.test(t)
         ) {
 
           return {
 
-            file: audio.tu_es_la,
+            file:
+              audio.tu_es_la,
 
-            video: VIDEO.anxious
+            video:
+              VIDEO.anxious
 
           };
 
         }
 
-        // Berceuse
+
+        // ----------------------------------------------------
+        // BERCEUSE
+        // ----------------------------------------------------
 
         if (
-
           /berceuse|musique pour dormir|chante.*berceuse/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.berceuse,
+            file:
+              audio.berceuse,
 
-            video: VIDEO.talk
+            video:
+              VIDEO.talk
 
           };
 
         }
 
-        // Tu crois en nous ?
+
+        // ----------------------------------------------------
+        // TU CROIS EN NOUS ?
+        // ----------------------------------------------------
 
         if (
-
-          /tu crois en nous|on va réussir|on va reussir|tu penses qu'on va réussir|tu penses qu'on va reussir/i.test(t)
-
+          /tu crois en nous|on va reussir|tu penses qu'on va reussir/i.test(t)
         ) {
 
           return {
 
-            file: audio.reve_croire,
+            file:
+              audio.reve_croire,
 
-            video: VIDEO.confident
+            video:
+              VIDEO.confident
 
           };
 
         }
 
-        // Pourquoi les humains ne rêvent plus ?
+
+        // ----------------------------------------------------
+        // POURQUOI LES HUMAINS NE RÊVENT PLUS ?
+        // ----------------------------------------------------
 
         if (
-
-          /pourquoi les humains ne rêvent plus|pourquoi les humains ne revent plus|pourquoi on ne rêve plus|pourquoi on ne reve plus/i.test(t)
-
+          /pourquoi les humains ne revent plus|pourquoi on ne reve plus/i.test(t)
         ) {
 
           return {
 
-            file: audio.pq_reve_plus,
+            file:
+              audio.pq_reve_plus,
 
-            video: VIDEO.suspicionAlt
+            video:
+              VIDEO.suspicionAlt
 
           };
 
         }
 
-        // Qui est Morpheus ?
+
+        // ----------------------------------------------------
+        // QUI EST MORPHEUS ?
+        // ----------------------------------------------------
 
         if (
-
           /qui est morpheus|c'est qui morpheus|qui c'est morpheus/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.qui_morpheus,
+            file:
+              audio.qui_morpheus,
 
-            video: VIDEO.walkTalk
+            video:
+              VIDEO.walkTalk
 
           };
 
         }
 
-        // Apparence de Morpheus
+
+        // ----------------------------------------------------
+        // APPARENCE DE MORPHEUS
+        // ----------------------------------------------------
 
         if (
-
-          /à quoi ressemble morpheus|a quoi ressemble morpheus|apparence.*morpheus|morpheus ressemble à quoi|morpheus ressemble a quoi/i.test(t)
-
+          /a quoi ressemble morpheus|apparence.*morpheus|morpheus ressemble a quoi/i.test(t)
         ) {
 
           return {
 
-            file: audio.morpheus_apparence,
+            file:
+              audio.morpheus_apparence,
 
-            video: VIDEO.suspicionAlt
+            video:
+              VIDEO.suspicionAlt
 
           };
 
         }
 
-        // Blague
+
+        // ----------------------------------------------------
+        // BLAGUE
+        // ----------------------------------------------------
 
         if (
-
           /blague|raconte.*blague|fais.*blague/i.test(t)
-
         ) {
 
           return this.handleJoke();
 
         }
 
-        // Tu aimes Morpheus ?
+
+        // ----------------------------------------------------
+        // TU AIMES MORPHEUS ?
+        // ----------------------------------------------------
 
         if (
-
           /tu aimes morpheus|tu aime morpheus|tu nous aimes|tu nous aime/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.tu_aime_morpheus,
+            file:
+              audio.tu_aime_morpheus,
 
-            video: VIDEO.happy
+            video:
+              VIDEO.happy
 
           };
 
         }
 
-        // Solution
+
+        // ----------------------------------------------------
+        // SOLUTION
+        // ----------------------------------------------------
 
         if (
-
-          /solution|donne.*réponse|donne.*reponse/i.test(t)
-
+          /solution|donne.*reponse/i.test(t)
         ) {
 
           return {
 
-            file: audio.la_solution,
+            file:
+              audio.la_solution,
 
-            video: VIDEO.walkTalk
+            video:
+              VIDEO.walkTalk
 
           };
 
         }
 
-        // Tu contrôles ?
+
+        // ----------------------------------------------------
+        // TU CONTRÔLES ?
+        // ----------------------------------------------------
 
         if (
-
-          /contrôles|controle|contrôle|tu contrôles|tu controles/i.test(t)
-
+          /controle|controles|tu controles/i.test(t)
         ) {
 
           return {
 
-            file: audio.c_toi_qui_controles,
+            file:
+              audio.c_toi_qui_controles,
 
-            video: VIDEO.suspicious
+            video:
+              VIDEO.suspicious
 
           };
 
         }
 
-        // Voix préenregistrée
+
+        // ----------------------------------------------------
+        // VOIX PRÉENREGISTRÉE
+        // ----------------------------------------------------
 
         if (
-
-          /préenregistrée|preenregistree|pré enregistrée|pre enregistree|voix enregistrée|voix enregistree/i.test(t)
-
+          /preenregistree|pre enregistree|voix enregistree/i.test(t)
         ) {
 
           return {
 
-            file: audio.voix_preenregistree,
+            file:
+              audio.voix_preenregistree,
 
-            video: VIDEO.suspicious
+            video:
+              VIDEO.suspicious
 
           };
 
         }
 
-        // Indice / aide
+
+        // ----------------------------------------------------
+        // INDICE / AIDE
+        // ----------------------------------------------------
 
         if (
-
           /indice|aide|aide-nous|aide nous|tu peux nous aider/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.indice_aide,
+            file:
+              audio.indice_aide,
 
-            video: VIDEO.suspicionAlt
+            video:
+              VIDEO.suspicionAlt
 
           };
 
         }
 
-        // Que faire maintenant ?
+
+        // ----------------------------------------------------
+        // QUE FAIRE MAINTENANT ?
+        // ----------------------------------------------------
 
         if (
-
           /faut faire quoi|on fait quoi|qu'est-ce qu'on fait|que doit-on faire|quoi faire maintenant|on doit faire quoi/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.faire_quoi_mtn,
+            file:
+              audio.faire_quoi_mtn,
 
-            video: VIDEO.walkTalk
+            video:
+              VIDEO.walkTalk
 
           };
 
@@ -4124,387 +3960,404 @@ const parcheminManager = {
 
       }
 
-      // ======================================================
 
+      // ======================================================
       // ANGLAIS
-
       // ======================================================
 
-      if (lang === "en") {
+      if (
+        lang === "en"
+      ) {
+
 
         // Hello
 
         if (
-
           /hello|hi|hey|good morning|good evening|yo/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.bonjour,
+            file:
+              audio.bonjour,
 
-            video: VIDEO.happy
+            video:
+              VIDEO.happy
 
           };
 
         }
+
 
         // Who are you?
 
         if (
-
           /who are you|what are you|who's astra|who is astra|what is this/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.qui,
+            file:
+              audio.qui,
 
-            video: VIDEO.happy
+            video:
+              VIDEO.happy
 
           };
 
         }
+
 
         // Where are we?
 
         if (
-
           /where are we|where is this place|what is this place/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.ou,
+            file:
+              audio.ou,
 
-            video: VIDEO.anxious
+            video:
+              VIDEO.anxious
 
           };
 
         }
+
 
         // Password
 
         if (
-
           /good night|the password is good night/i.test(t)
-
         ) {
 
           return this.handlePassword();
 
         }
+
 
         // Forgotten password
 
         if (
-
           /forgot.*password|forgotten.*password|how to find.*password/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.mdp_oublie,
+            file:
+              audio.mdp_oublie,
 
-            video: VIDEO.anxious
+            video:
+              VIDEO.anxious
 
           };
 
         }
+
 
         // Petunia
 
         if (
-
           /petunia/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.petunia,
+            file:
+              audio.petunia,
 
-            video: VIDEO.angry
+            video:
+              VIDEO.angry
 
           };
 
         }
 
+
         // Scroll
 
         if (
-
           /scroll|parchment|potion.*liberation|recipe.*liberation/i.test(t)
-
         ) {
 
           return this.handleParchemin();
 
         }
 
+
         // Password found
 
         if (
-
           /i know the password|i found the password|we found the password/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.invite_mdp,
+            file:
+              audio.invite_mdp,
 
-            video: VIDEO.anxious
+            video:
+              VIDEO.anxious
 
           };
 
         }
+
 
         // How are you?
 
         if (
-
           /how are you|are you okay|are you ok|you good/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.ca_va,
+            file:
+              audio.ca_va,
 
-            video: VIDEO.happy
+            video:
+              VIDEO.happy
 
           };
 
         }
+
 
         // Are you there?
 
         if (
-
           /are you there|you there|can you hear me|can you hear us/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.tu_es_la,
+            file:
+              audio.tu_es_la,
 
-            video: VIDEO.anxious
+            video:
+              VIDEO.anxious
 
           };
 
         }
+
 
         // Lullaby
 
         if (
-
           /lullaby|music to sleep|sleep music|sing.*lullaby/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.berceuse,
+            file:
+              audio.berceuse,
 
-            video: VIDEO.talk
+            video:
+              VIDEO.talk
 
           };
 
         }
+
 
         // Believe in us
 
         if (
-
           /do you believe in us|will we succeed|can we succeed|do you think we'll succeed/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.reve_croire,
+            file:
+              audio.reve_croire,
 
-            video: VIDEO.confident
+            video:
+              VIDEO.confident
 
           };
 
         }
+
 
         // Why humans don't dream
 
         if (
-
           /why don't humans dream anymore|why humans don't dream|why do humans not dream|why don't we dream anymore/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.pq_reve_plus,
+            file:
+              audio.pq_reve_plus,
 
-            video: VIDEO.suspicionAlt
+            video:
+              VIDEO.suspicionAlt
 
           };
 
         }
+
 
         // Morpheus
 
         if (
-
           /who is morpheus|who's morpheus/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.qui_morpheus,
+            file:
+              audio.qui_morpheus,
 
-            video: VIDEO.walkTalk
+            video:
+              VIDEO.walkTalk
 
           };
 
         }
+
 
         // Morpheus appearance
 
         if (
-
           /what does morpheus look like|morpheus appearance|describe morpheus/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.morpheus_apparence,
+            file:
+              audio.morpheus_apparence,
 
-            video: VIDEO.suspicionAlt
+            video:
+              VIDEO.suspicionAlt
 
           };
 
         }
 
+
         // Joke
 
         if (
-
           /joke|tell me a joke|tell a joke|make a joke/i.test(t)
-
         ) {
 
           return this.handleJoke();
 
         }
 
+
         // Love Morpheus
 
         if (
-
           /do you love morpheus|do you like morpheus|do you love us/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.tu_aime_morpheus,
+            file:
+              audio.tu_aime_morpheus,
 
-            video: VIDEO.happy
+            video:
+              VIDEO.happy
 
           };
 
         }
+
 
         // Solution
 
         if (
-
           /solution|answer|give.*answer/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.la_solution,
+            file:
+              audio.la_solution,
 
-            video: VIDEO.walkTalk
+            video:
+              VIDEO.walkTalk
 
           };
 
         }
+
 
         // Control
 
         if (
-
           /control|controlling|do you control/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.c_toi_qui_controles,
+            file:
+              audio.c_toi_qui_controles,
 
-            video: VIDEO.suspicious
+            video:
+              VIDEO.suspicious
 
           };
 
         }
+
 
         // Prerecorded
 
         if (
-
           /prerecorded|pre-recorded|recorded voice/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.voix_preenregistree,
+            file:
+              audio.voix_preenregistree,
 
-            video: VIDEO.suspicious
+            video:
+              VIDEO.suspicious
 
           };
 
         }
+
 
         // Help
 
         if (
-
           /hint|help|clue|help us|can you help us/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.indice_aide,
+            file:
+              audio.indice_aide,
 
-            video: VIDEO.suspicionAlt
+            video:
+              VIDEO.suspicionAlt
 
           };
 
         }
 
+
         // What now?
 
         if (
-
           /what should we do|what do we do now|what to do now|what now|what are we supposed to do/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.faire_quoi_mtn,
+            file:
+              audio.faire_quoi_mtn,
 
-            video: VIDEO.walkTalk
+            video:
+              VIDEO.walkTalk
 
           };
 
@@ -4512,387 +4365,404 @@ const parcheminManager = {
 
       }
 
-      // ======================================================
 
+      // ======================================================
       // ALLEMAND
-
       // ======================================================
 
-      if (lang === "de") {
+      if (
+        lang === "de"
+      ) {
+
 
         // Hallo
 
         if (
-
           /hallo|guten tag|guten morgen|guten abend|hey|hi/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.bonjour,
+            file:
+              audio.bonjour,
 
-            video: VIDEO.happy
+            video:
+              VIDEO.happy
 
           };
 
         }
+
 
         // Wer bist du?
 
         if (
-
           /wer bist du|was bist du|wer ist astra|was ist das/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.qui,
+            file:
+              audio.qui,
 
-            video: VIDEO.happy
+            video:
+              VIDEO.happy
 
           };
 
         }
+
 
         // Wo sind wir?
 
         if (
-
           /wo sind wir|wo ist dieser ort|was ist dieser ort/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.ou,
+            file:
+              audio.ou,
 
-            video: VIDEO.anxious
+            video:
+              VIDEO.anxious
 
           };
 
         }
 
+
         // Passwort
 
         if (
-
           /gute nacht|das passwort ist gute nacht/i.test(t)
-
         ) {
 
           return this.handlePassword();
 
         }
 
+
         // Passwort vergessen
 
         if (
-
           /passwort vergessen|ich habe.*vergessen|wie finde ich.*passwort/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.mdp_oublie,
+            file:
+              audio.mdp_oublie,
 
-            video: VIDEO.anxious
+            video:
+              VIDEO.anxious
 
           };
 
         }
+
 
         // Petunie
 
         if (
-
           /petunie|petunia/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.petunia,
+            file:
+              audio.petunia,
 
-            video: VIDEO.angry
+            video:
+              VIDEO.angry
 
           };
 
         }
 
+
         // Pergament
 
         if (
-
           /pergament|schriftrolle|trank.*befreiung|rezept.*befreiung/i.test(t)
-
         ) {
 
           return this.handleParchemin();
 
         }
 
+
         // Passwort gefunden
 
         if (
-
           /ich kenne das passwort|ich habe das passwort gefunden|wir haben das passwort gefunden/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.invite_mdp,
+            file:
+              audio.invite_mdp,
 
-            video: VIDEO.anxious
+            video:
+              VIDEO.anxious
 
           };
 
         }
+
 
         // Wie geht es dir?
 
         if (
-
           /wie geht es dir|wie geht's dir|geht es dir gut|alles gut/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.ca_va,
+            file:
+              audio.ca_va,
 
-            video: VIDEO.happy
+            video:
+              VIDEO.happy
 
           };
 
         }
+
 
         // Bist du da?
 
         if (
-
-          /bist du da|hörst du mich|horst du mich|kannst du mich hören|kannst du mich horen|hörst du uns|horst du uns/i.test(t)
-
+          /bist du da|horst du mich|kannst du mich horen|horst du uns/i.test(t)
         ) {
 
           return {
 
-            file: audio.tu_es_la,
+            file:
+              audio.tu_es_la,
 
-            video: VIDEO.anxious
+            video:
+              VIDEO.anxious
 
           };
 
         }
+
 
         // Wiegenlied
 
         if (
-
           /wiegenlied|schlafmusik|sing.*wiegenlied/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.berceuse,
+            file:
+              audio.berceuse,
 
-            video: VIDEO.talk
+            video:
+              VIDEO.talk
 
           };
 
         }
+
 
         // Glaubst du an uns?
 
         if (
-
           /glaubst du an uns|werden wir es schaffen|schaffen wir das/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.reve_croire,
+            file:
+              audio.reve_croire,
 
-            video: VIDEO.confident
+            video:
+              VIDEO.confident
 
           };
 
         }
+
 
         // Warum träumen Menschen nicht mehr?
 
         if (
-
-          /warum träumen menschen nicht mehr|warum traumen menschen nicht mehr|warum träumen wir nicht mehr|warum traumen wir nicht mehr/i.test(t)
-
+          /warum traumen menschen nicht mehr|warum traumen wir nicht mehr/i.test(t)
         ) {
 
           return {
 
-            file: audio.pq_reve_plus,
+            file:
+              audio.pq_reve_plus,
 
-            video: VIDEO.suspicionAlt
+            video:
+              VIDEO.suspicionAlt
 
           };
 
         }
+
 
         // Morpheus
 
         if (
-
           /wer ist morpheus/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.qui_morpheus,
+            file:
+              audio.qui_morpheus,
 
-            video: VIDEO.walkTalk
+            video:
+              VIDEO.walkTalk
 
           };
 
         }
 
-        // Apparence Morpheus
+
+        // Aussehen Morpheus
 
         if (
-
           /wie sieht morpheus aus|aussehen.*morpheus|beschreibe morpheus/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.morpheus_apparence,
+            file:
+              audio.morpheus_apparence,
 
-            video: VIDEO.suspicionAlt
+            video:
+              VIDEO.suspicionAlt
 
           };
 
         }
+
 
         // Witz
 
         if (
-
-          /witz|erzähl einen witz|erzahl einen witz|erzähl mir einen witz|erzahl mir einen witz/i.test(t)
-
+          /witz|erzahl einen witz|erzahl mir einen witz/i.test(t)
         ) {
 
           return this.handleJoke();
 
         }
 
+
         // Liebst du Morpheus?
 
         if (
-
           /liebst du morpheus|magst du morpheus|liebst du uns/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.tu_aime_morpheus,
+            file:
+              audio.tu_aime_morpheus,
 
-            video: VIDEO.happy
+            video:
+              VIDEO.happy
 
           };
 
         }
+
 
         // Lösung
 
         if (
-
-          /lösung|losung|antwort/i.test(t)
-
+          /losung|antwort/i.test(t)
         ) {
 
           return {
 
-            file: audio.la_solution,
+            file:
+              audio.la_solution,
 
-            video: VIDEO.walkTalk
+            video:
+              VIDEO.walkTalk
 
           };
 
         }
+
 
         // Kontrolle
 
         if (
-
           /kontrolle|kontrollierst|kontrollieren/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.c_toi_qui_controles,
+            file:
+              audio.c_toi_qui_controles,
 
-            video: VIDEO.suspicious
+            video:
+              VIDEO.suspicious
 
           };
 
         }
+
 
         // Voraufgezeichnet
 
         if (
-
           /voraufgezeichnet|aufgezeichnete stimme/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.voix_preenregistree,
+            file:
+              audio.voix_preenregistree,
 
-            video: VIDEO.suspicious
+            video:
+              VIDEO.suspicious
 
           };
 
         }
+
 
         // Hinweis / Hilfe
 
         if (
-
           /hinweis|hilfe|tipp|hilf uns|kannst du uns helfen/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.indice_aide,
+            file:
+              audio.indice_aide,
 
-            video: VIDEO.suspicionAlt
+            video:
+              VIDEO.suspicionAlt
 
           };
 
         }
 
+
         // Was jetzt?
 
         if (
-
           /was sollen wir tun|was jetzt tun|was machen wir jetzt|was nun/i.test(t)
-
         ) {
 
           return {
 
-            file: audio.faire_quoi_mtn,
+            file:
+              audio.faire_quoi_mtn,
 
-            video: VIDEO.walkTalk
+            video:
+              VIDEO.walkTalk
 
           };
 
@@ -4900,427 +4770,385 @@ const parcheminManager = {
 
       }
 
+
       // ======================================================
-
       // PHRASE NON RECONNUE
-
+      // ======================================================
+      //
+      // IMPORTANT :
+      // Cette partie n'est accessible qu'APRÈS le réveil.
+      //
+      // Donc pendant le brief :
+      // phrase inconnue = SILENCE.
+      //
+      // Après "Bonjour Astra" :
+      // phrase inconnue = réponse "pas compris".
+      //
       // ======================================================
 
       debugLogger.log(
-
         "Phrase entendue mais aucune intention correspondante",
-
         "warn"
-
       );
+
 
       return {
 
         file:
-
           utils.getRandomFromArray(
-
             audio.pas_compris
-
           ),
 
         video:
-
           VIDEO.anxious
 
       };
 
     },
 
+
     // ========================================================
-
     // MOT DE PASSE
-
     // ========================================================
 
     handlePassword() {
 
       const audio =
-
         audioFiles[
-
           state.currentLang
-
         ];
 
-      // Première validation
+
+      // ------------------------------------------------------
+      // PREMIÈRE VALIDATION
+      // ------------------------------------------------------
 
       if (
-
         !state.mdpValid
-
       ) {
 
         debugLogger.log(
-
           "✓ MOT DE PASSE CORRECT",
-
           "success"
-
         );
 
-        state.mdpValid =
 
+        state.mdpValid =
           true;
 
-        // On cache le bandeau
 
-        elements.bandeau
+        // Cache le bandeau
 
-          .style.display =
-
+        elements.bandeau.style.display =
           "none";
 
+
         /*
+         La réponse de confirmation est retournée
+         normalement.
 
-         On lance la suite magique séparément.
-
-         La réponse mdp_confirme est retournée
-
-         normalement à onresult.
-
-         startPasswordSequence attend ensuite
-
-         qu'Astra ait fini de parler avant de
-
-         jouer la notification.
-
+         La transformation magique est lancée
+         séparément après cette réponse.
         */
 
         this.startPasswordSequence();
 
+
         return {
 
           file:
-
             audio.mdp,
 
           video:
-
             VIDEO.happy
 
         };
 
       }
 
-      // Mot de passe déjà validé
+
+      // ------------------------------------------------------
+      // MOT DE PASSE DÉJÀ VALIDÉ
+      // ------------------------------------------------------
 
       return {
 
         file:
-
           audio.mdp,
 
         video:
-
           VIDEO.walkTalk
 
       };
 
     },
 
+
     // ========================================================
-
     // SÉQUENCE APRÈS MOT DE PASSE
-
     // ========================================================
 
     startPasswordSequence() {
 
       const audio =
-
         audioFiles[
-
           state.currentLang
-
         ];
 
-      /*
-
-       On laisse d'abord onresult appeler
-
-       audioManager.play(audio.mdp).
-
-       Puis on surveille state.isPlaying.
-
-       Lorsque la confirmation est terminée,
-
-       on déclenche la transformation.
-
-      */
 
       const waitForConfirmationEnd =
-
         () => {
 
+
+          /*
+           Tant qu'Astra dit la confirmation
+           du mot de passe, on attend.
+          */
+
           if (
-
             state.isPlaying
-
           ) {
 
             setTimeout(
-
               waitForConfirmationEnd,
-
-              200
-
+              150
             );
 
             return;
 
           }
 
+
           debugLogger.log(
-
             "Début transformation mot de passe",
-
             "success"
-
           );
 
-          // Particules magiques
+
+          // --------------------------------------------------
+          // PARTICULES
+          // --------------------------------------------------
 
           magicEffects.cascade(
-
             40,
-
             150
-
           );
 
-          // Transition
+
+          // --------------------------------------------------
+          // FLASH / TRANSITION
+          // --------------------------------------------------
 
           elements.fade.style.opacity =
-
             "1";
 
-          setTimeout(
 
+          setTimeout(
             () => {
 
               elements.astraIdle
-
                 .classList
-
                 .remove(
-
                   "active"
-
                 );
 
+
               videoManager.activateIdle(
-
                 elements.astraIdle2
-
               );
 
-              elements.fade.style.opacity =
 
+              elements.fade.style.opacity =
                 "0";
 
             },
-
             1500
-
           );
 
-          /*
 
-           Petite notification vocale.
-
-           audioManager ajoutera automatiquement
-
-           le bip robotique avant celle-ci aussi.
-
-          */
+          // --------------------------------------------------
+          // NOTIFICATION APRÈS VALIDATION
+          // --------------------------------------------------
 
           audioManager.play(
-
             audio.notif,
-
             VIDEO.walkTalk
-
           );
 
         };
 
+
       /*
-
-       300 ms permettent à onresult
-
-       de lancer la première réponse avant
-
-       qu'on vérifie state.isPlaying.
-
+       On laisse un petit instant à onresult
+       pour lancer mdp_confirme.mp3.
       */
 
       setTimeout(
-
         waitForConfirmationEnd,
-
         300
-
       );
 
     },
 
-    // ========================================================
 
+    // ========================================================
     // PARCHEMIN
-
-    // ========================================================
-handleParchemin() {
-
-  const audio =
-    audioFiles[
-      state.currentLang
-    ];
-
-  if (
-    state.mdpValid
-  ) {
-
-    debugLogger.log(
-      "✓ Affichage parchemin",
-      "success"
-    );
-
-    // Lance la vidéo du parchemin au centre de l'écran
-    parcheminManager.show();
-
-    // Animation d'Astra pendant son explication
-    const video =
-      PARCHEMIN_VIDEO[
-        state.currentLang
-      ]
-      || VIDEO.read;
-
-    return {
-      file:
-        audio.parchemin,
-      video:
-        video
-    };
-
-  }
-
-  // Parchemin demandé avant validation du mot de passe
-
-  debugLogger.log(
-    "Parchemin demandé avant mot de passe",
-    "warn"
-  );
-
-  const faux =
-    utils.getRandomFromArray(
-      audio.mdp_faux
-    );
-
-  return {
-    file:
-      faux,
-    video:
-      VIDEO.angry
-  };
-
-},
-
     // ========================================================
 
+    handleParchemin() {
+
+      const audio =
+        audioFiles[
+          state.currentLang
+        ];
+
+
+      // ------------------------------------------------------
+      // MOT DE PASSE VALIDÉ
+      // ------------------------------------------------------
+
+      if (
+        state.mdpValid
+      ) {
+
+        debugLogger.log(
+          "✓ Affichage parchemin",
+          "success"
+        );
+
+
+        /*
+         Lance la vidéo du parchemin
+         au centre de l'écran.
+        */
+
+        parcheminManager.show();
+
+
+        /*
+         Animation d'Astra pendant
+         son explication.
+        */
+
+        const video =
+
+          PARCHEMIN_VIDEO[
+            state.currentLang
+          ]
+
+          || VIDEO.read;
+
+
+        return {
+
+          file:
+            audio.parchemin,
+
+          video:
+            video
+
+        };
+
+      }
+
+
+      // ------------------------------------------------------
+      // PARCHEMIN DEMANDÉ AVANT MOT DE PASSE
+      // ------------------------------------------------------
+
+      debugLogger.log(
+        "Parchemin demandé avant mot de passe",
+        "warn"
+      );
+
+
+      const faux =
+
+        utils.getRandomFromArray(
+          audio.mdp_faux
+        );
+
+
+      return {
+
+        file:
+          faux,
+
+        video:
+          VIDEO.angry
+
+      };
+
+    },
+
+
+    // ========================================================
     // BLAGUE
-
     // ========================================================
 
     handleJoke() {
 
       const audio =
-
         audioFiles[
-
           state.currentLang
-
         ];
 
+
       /*
+       Astra raconte d'abord la blague.
 
-       La blague est retournée normalement.
-
-       Puis on attend qu'elle soit terminée
-
-       avant de jouer le rire.
-
+       Ensuite seulement, elle rit.
       */
 
       const waitForJokeEnd =
-
         () => {
 
+
           if (
-
             state.isPlaying
-
           ) {
 
             setTimeout(
-
               waitForJokeEnd,
-
               100
-
             );
 
             return;
 
           }
 
+
           debugLogger.log(
-
             "Blague terminée → rire Astra",
-
             "info"
-
           );
 
+
           audioManager.play(
-
             audio.rire,
-
             VIDEO.happy
-
           );
 
         };
 
+
       /*
-
-       On attend que onresult ait eu
-
-       le temps de démarrer la blague.
-
+       On laisse le temps à onresult
+       de lancer la blague.
       */
 
       setTimeout(
-
         waitForJokeEnd,
-
         200
-
       );
+
 
       return {
 
         file:
-
           audio.blague,
 
         video:
-
           VIDEO.joy
 
       };
@@ -5328,13 +5156,21 @@ handleParchemin() {
     }
 
   };
+
+
+  // ==========================================================
+  // FIN PARTIE 6
+  // ==========================================================
+
     // ==========================================================
-
   // RECONNAISSANCE VOCALE
-
   // ==========================================================
 
   const speechRecognition = {
+
+    // ========================================================
+    // CODE LANGUE
+    // ========================================================
 
     getLangCode() {
 
@@ -5348,14 +5184,15 @@ handleParchemin() {
 
       };
 
-      return codes[state.currentLang] || "fr-FR";
+      return codes[
+        state.currentLang
+      ] || "fr-FR";
 
     },
 
+
     // ========================================================
-
     // INITIALISATION
-
     // ========================================================
 
     init() {
@@ -5366,166 +5203,157 @@ handleParchemin() {
 
         window.webkitSpeechRecognition;
 
-      if (!SpeechRecognition) {
+
+      // ------------------------------------------------------
+      // API NON DISPONIBLE
+      // ------------------------------------------------------
+
+      if (
+        !SpeechRecognition
+      ) {
 
         debugLogger.log(
-
           "SpeechRecognition non disponible",
-
           "error"
-
         );
+
 
         utils.showError(
-
-          translations[state.currentLang]
-
-            .errorSpeechNotSupported,
-
+          translations[
+            state.currentLang
+          ].errorSpeechNotSupported,
           5000
-
         );
+
 
         return false;
 
       }
 
+
       debugLogger.log(
-
         "✓ API SpeechRecognition disponible",
-
         "success"
-
       );
 
-      // Nettoyage d'une éventuelle ancienne instance
 
-      if (state.recognition) {
+      // ------------------------------------------------------
+      // NETTOYAGE ANCIENNE INSTANCE
+      // ------------------------------------------------------
+
+      if (
+        state.recognition
+      ) {
 
         try {
 
           state.recognition.abort();
 
-        } catch (_) {}
+        }
+
+        catch (_) {}
 
       }
 
-      state.recognition =
 
+      // ------------------------------------------------------
+      // CRÉATION
+      // ------------------------------------------------------
+
+      state.recognition =
         new SpeechRecognition();
 
+
       /*
-
-       Safari peut quand même couper la reconnaissance
-
+       Safari peut arrêter la reconnaissance
        même avec continuous = true.
 
-       Le onend plus bas s'occupe donc de la relancer.
-
+       Le onend plus bas la relancera
+       automatiquement.
       */
 
       state.recognition.continuous =
-
         true;
 
-      state.recognition.interimResults =
 
+      state.recognition.interimResults =
         false;
 
-      state.recognition.maxAlternatives =
 
+      state.recognition.maxAlternatives =
         1;
 
-      state.recognition.lang =
 
+      state.recognition.lang =
         this.getLangCode();
 
+
       debugLogger.log(
-
         `Langue reconnaissance : ${state.recognition.lang}`,
-
         "info"
-
       );
 
+
       // ======================================================
-
       // DÉMARRAGE EFFECTIF
-
       // ======================================================
 
       state.recognition.onstart =
-
         () => {
 
           state.recognitionRunning =
-
             true;
 
-          state.needsGestureRestart =
 
+          state.needsGestureRestart =
             false;
 
+
           debugLogger.log(
-
             "🎙️ Astra écoute",
-
             "success"
-
           );
 
+
           utils.updateStatus(
-
             "listening",
-
             true
-
           );
 
         };
 
+
       // ======================================================
-
       // VOIX DÉTECTÉE
-
       // ======================================================
 
       state.recognition.onspeechstart =
-
         () => {
 
           debugLogger.log(
-
             "🎙️ Voix détectée",
-
             "speech"
-
           );
 
         };
+
 
       state.recognition.onspeechend =
-
         () => {
 
           debugLogger.log(
-
             "Fin de phrase détectée",
-
             "speech"
-
           );
 
         };
 
+
       // ======================================================
-
       // RÉSULTAT VOCAL
-
       // ======================================================
 
       state.recognition.onresult =
-
         event => {
 
           try {
@@ -5533,553 +5361,506 @@ handleParchemin() {
             const result =
 
               event.results[
-
                 event.results.length - 1
-
               ];
 
-            const alternative =
 
+            const alternative =
               result[0];
+
 
             const text =
 
               alternative.transcript
-
                 .trim();
+
 
             const confidence =
 
-              typeof alternative.confidence === "number"
+              typeof alternative.confidence ===
+              "number"
 
                 ? alternative.confidence
 
                 : 0;
 
-            debugLogger.log(
 
+            debugLogger.log(
               `🎙️ Entendu : "${text}"`,
-
               "speech"
-
             );
+
 
             debugLogger.log(
-
               `Confiance : ${Math.round(confidence * 100)}%`,
-
               "info"
-
             );
 
-            /*
 
-             Si Astra parle déjà,
+            // =================================================
+            // ASTRA PARLE DÉJÀ
+            // =================================================
+            //
+            // On ignore tout ce que le micro
+            // reconnaît pendant sa propre réponse.
+            //
+            // =================================================
 
-             on ignore les résultats.
-
-             Ça évite qu'elle entende
-
-             ses propres haut-parleurs.
-
-            */
-
-            if (state.isPlaying) {
+            if (
+              state.isPlaying
+            ) {
 
               debugLogger.log(
-
                 "Résultat ignoré : Astra parle déjà",
-
                 "warn"
-
               );
 
               return;
 
             }
 
-            // Analyse de la phrase
+
+            // =================================================
+            // ANALYSE DE LA PHRASE
+            // =================================================
 
             const response =
 
               phraseDetector.detect(
-
                 text
-
               );
 
+
+            /*
+             IMPORTANT :
+
+             Quand Astra est encore en veille,
+             phraseDetector.detect() retourne null.
+
+             Donc :
+             → aucun bip
+             → aucun audio
+             → aucune animation
+             → silence complet pendant le brief
+            */
+
             if (
-
               response &&
-
               response.file
-
             ) {
 
               debugLogger.log(
-
                 `✓ Réponse choisie : ${response.file}`,
-
                 "success"
-
               );
 
-              /*
-
-               audioManager va :
-
-               1. jouer biprobotic.mp3
-
-               2. charger la réponse pendant le bip
-
-               3. lancer la réponse à la fin du bip
-
-              */
 
               audioManager.play(
-
                 response.file,
-
                 response.video
-
-              );
-
-            } else {
-
-              debugLogger.log(
-
-                "Aucune réponse retournée",
-
-                "warn"
-
               );
 
             }
 
-          } catch (err) {
+            else {
+
+              /*
+               Ce cas est NORMAL lorsque
+               state.awake === false.
+
+               On ne joue surtout pas
+               phrase_non_reconnue.mp3 ici.
+              */
+
+              if (
+                !state.awake
+              ) {
+
+                debugLogger.log(
+                  "Astra dort encore → aucune réponse",
+                  "info"
+                );
+
+              }
+
+              else {
+
+                debugLogger.log(
+                  "Aucune réponse retournée",
+                  "warn"
+                );
+
+              }
+
+            }
+
+          }
+
+          catch (err) {
 
             debugLogger.log(
-
               `Erreur résultat vocal : ${err.message}`,
-
               "error"
-
             );
 
           }
 
         };
 
+
       // ======================================================
-
       // ERREURS SPEECH RECOGNITION
-
       // ======================================================
 
       state.recognition.onerror =
-
         event => {
 
           const error =
 
             event.error ||
-
             "inconnue";
 
+
           debugLogger.log(
-
             `Erreur reconnaissance : ${error}`,
-
             "error"
-
           );
 
-          // Aucun son détecté
+
+          // --------------------------------------------------
+          // AUCUNE PAROLE
+          // --------------------------------------------------
 
           if (
-
             error === "no-speech"
-
           ) {
 
             debugLogger.log(
-
               "Pas de parole détectée",
-
               "info"
-
             );
 
             return;
 
           }
 
-          // Arrêt volontaire
+
+          // --------------------------------------------------
+          // ARRÊT VOLONTAIRE
+          // --------------------------------------------------
 
           if (
-
             error === "aborted"
-
           ) {
 
             debugLogger.log(
-
               "Reconnaissance interrompue",
-
               "info"
-
             );
 
             return;
 
           }
 
-          /*
 
-           Safari peut renvoyer not-allowed
-
-           lors d'une tentative de restart
-
-           sans nouveau geste utilisateur.
-
-          */
+          // --------------------------------------------------
+          // SAFARI DEMANDE UN NOUVEAU GESTE
+          // --------------------------------------------------
 
           if (
-
             error === "not-allowed"
-
           ) {
 
             state.needsGestureRestart =
-
               true;
 
-            debugLogger.log(
 
+            debugLogger.log(
               "⚠️ Safari demande un nouveau tap pour relancer le micro",
-
               "warn"
-
             );
 
-            utils.updateStatus(
 
+            utils.updateStatus(
               "micDisabled",
-
               false
-
             );
 
             return;
 
           }
 
-          // Micro indisponible
+
+          // --------------------------------------------------
+          // MICRO INDISPONIBLE
+          // --------------------------------------------------
 
           if (
-
             error === "audio-capture"
-
           ) {
 
             debugLogger.log(
-
               "Microphone indisponible",
-
               "error"
-
             );
 
+
             utils.updateStatus(
-
               "micError",
-
               false
-
             );
 
             return;
 
           }
 
-          // Web Speech peut avoir besoin du réseau
+
+          // --------------------------------------------------
+          // ERREUR RÉSEAU
+          // --------------------------------------------------
 
           if (
-
             error === "network"
-
           ) {
 
             debugLogger.log(
-
               "Erreur réseau SpeechRecognition",
-
               "error"
-
             );
 
+
             utils.updateStatus(
-
               "micError",
-
               false
-
             );
 
             return;
 
           }
+
+
+          // --------------------------------------------------
+          // AUTRE ERREUR
+          // --------------------------------------------------
 
           utils.updateStatus(
-
             "micError",
-
             false
-
           );
 
         };
 
+
       // ======================================================
-
       // FIN DE RECONNAISSANCE
-
       // ======================================================
 
       state.recognition.onend =
-
         () => {
 
           state.recognitionRunning =
-
             false;
 
+
           debugLogger.log(
-
             "Reconnaissance arrêtée",
-
             "info"
-
           );
 
+
+          // --------------------------------------------------
+          // CHANGEMENT DE LANGUE
+          // --------------------------------------------------
+
           /*
-
-           Changement de langue :
-
-           languageManager gère lui-même
-
-           le redémarrage.
-
+           Si l'arrêt vient du changement
+           de langue, languageManager
+           s'occupe lui-même du redémarrage.
           */
 
           if (
-
             state.manualStop
-
           ) {
 
             state.manualStop =
-
               false;
 
             return;
 
           }
 
-          /*
 
-           Safari exige un nouveau geste :
-
-           on attend un tap.
-
-          */
+          // --------------------------------------------------
+          // SAFARI ATTEND UN TAP
+          // --------------------------------------------------
 
           if (
-
             state.needsGestureRestart
-
           ) {
 
             debugLogger.log(
-
               "En attente d'un tap écran",
-
               "warn"
-
             );
 
             return;
 
           }
 
+
+          // --------------------------------------------------
+          // ASTRA PAS ENCORE DÉMARRÉE
+          // --------------------------------------------------
+
           if (
-
             !state.started
-
           ) {
 
             return;
 
           }
 
+
+          // --------------------------------------------------
+          // REDÉMARRAGE AUTOMATIQUE
+          // --------------------------------------------------
+
           /*
+           Safari coupe parfois la reconnaissance
+           sans raison apparente.
 
-           Relance automatique.
-
-           350 ms au lieu d'une seconde :
-
-           Astra revient plus rapidement
-
-           en écoute.
-
+           On la relance après 350 ms.
           */
 
           setTimeout(
-
             () => {
 
               if (
-
                 !state.started ||
-
                 state.needsGestureRestart
-
               ) {
 
                 return;
 
               }
 
+
               this.start();
 
             },
 
             350
-
           );
 
         };
+
 
       return true;
 
     },
 
+
     // ========================================================
-
-    // LANGUE
-
+    // CHANGEMENT DE LANGUE MICRO
     // ========================================================
 
     updateLanguage() {
 
       if (
-
         !state.recognition
-
       ) {
 
         return;
 
       }
 
-      state.recognition.lang =
 
+      state.recognition.lang =
         this.getLangCode();
 
+
       debugLogger.log(
-
         `Nouvelle langue micro : ${state.recognition.lang}`,
-
         "info"
-
       );
 
     },
 
+
     // ========================================================
-
-    // START
-
+    // DÉMARRAGE RECONNAISSANCE
     // ========================================================
 
     start() {
 
       if (
-
         !state.recognition
-
       ) {
 
         return;
 
       }
+
+
+      /*
+       Évite d'envoyer plusieurs start()
+       simultanément à Safari.
+      */
 
       if (
-
         state.recognitionRunning
-
       ) {
 
         return;
 
       }
+
 
       try {
 
         state.recognition.start();
 
+
         debugLogger.log(
-
           "recognition.start() envoyé",
-
           "info"
-
         );
 
-      } catch (err) {
+      }
 
-        /*
+      catch (err) {
 
-         InvalidStateError = Safari pense
 
-         généralement que le micro tourne
-
-         encore.
-
-         Ce n'est pas grave.
-
-        */
+        // ----------------------------------------------------
+        // SAFARI PENSE QUE LE MICRO TOURNE ENCORE
+        // ----------------------------------------------------
 
         if (
-
           err.name ===
-
           "InvalidStateError"
-
         ) {
 
           debugLogger.log(
-
             "Reconnaissance déjà active selon Safari",
-
             "info"
-
           );
 
           return;
 
         }
 
+
+        // ----------------------------------------------------
+        // AUTRE ERREUR
+        // ----------------------------------------------------
+
         debugLogger.log(
-
           `Erreur start : ${err.name} / ${err.message}`,
-
           "error"
-
         );
 
-        state.needsGestureRestart =
 
+        state.needsGestureRestart =
           true;
 
       }
@@ -6088,126 +5869,122 @@ handleParchemin() {
 
   };
 
+
+  // ==========================================================
+  // FIN PARTIE 7
   // ==========================================================
 
+    // ==========================================================
   // APPLICATION
-
   // ==========================================================
 
   const app = {
 
-    initialized:
+    initialized: false,
 
-      false,
 
     init() {
 
       if (
-
         this.initialized
-
       ) {
 
         return;
 
       }
 
-      this.initialized =
 
-        true;
+      this.initialized = true;
+
 
       try {
 
         debugLogger.log(
-
           "Initialisation Astra...",
-
           "info"
-
         );
 
-        // Vidéos
+
+        // ====================================================
+        // VIDÉOS
+        // ====================================================
 
         videoManager.setupLoops();
 
+
         videoManager.activateIdle(
-
           elements.astraIdle
-
         );
 
-        // Langues
+
+        // ====================================================
+        // LANGUES
+        // ====================================================
 
         languageManager.init();
 
-        // Reconnaissance
+
+        // ====================================================
+        // RECONNAISSANCE VOCALE
+        // ====================================================
 
         if (
-
           speechRecognition.init()
-
         ) {
 
           speechRecognition.start();
 
+
           utils.updateStatus(
-
             "ready",
-
             true
-
           );
+
 
           utils.hideStatus(
-
             3000
-
           );
+
 
           debugLogger.log(
-
             "★★★★★ ASTRA EST PRÊTE ★★★★★",
-
             "success"
-
           );
 
-        } else {
 
-          utils.showError(
-
-            translations[
-
-              state.currentLang
-
-            ].errorSpeechNotAvailable,
-
-            5000
-
+          debugLogger.log(
+            "💤 Astra est en veille : elle attend d'être saluée",
+            "info"
           );
 
         }
 
-      } catch (err) {
+        else {
+
+          utils.showError(
+            translations[
+              state.currentLang
+            ].errorSpeechNotAvailable,
+            5000
+          );
+
+        }
+
+      }
+
+      catch (err) {
 
         debugLogger.log(
-
           `ERREUR INITIALISATION : ${err.message}`,
-
           "error"
-
         );
 
+
         utils.showError(
-
           translations[
-
             state.currentLang
-
           ].errorMicDenied,
-
           5000
-
         );
 
       }
@@ -6216,240 +5993,247 @@ handleParchemin() {
 
   };
 
-  // ==========================================================
 
+  // ==========================================================
   // PREMIER TAP STAFF + MODE STAFF
-
   // ==========================================================
 
-  let staffTapCount =
+  let staffTapCount = 0;
 
-    0;
+  let staffTapTimer = null;
 
-  let staffTapTimer =
-
-    null;
 
   elements.staffTapZone
-
     .addEventListener(
 
       "click",
 
       () => {
 
+
         // ====================================================
-
         // PREMIER TAP = DÉMARRAGE ASTRA
-
         // ====================================================
 
         if (
-
           !state.started
-
         ) {
 
-          state.started =
+          state.started = true;
 
-            true;
-
-          debugLogger.log(
-
-            "👆 Premier tap staff",
-
-            "success"
-
-          );
 
           /*
+           IMPORTANT :
 
+           Même après ce premier tap,
+           Astra reste "endormie".
+
+           Elle écoute le micro,
+           mais elle ne répond à RIEN
+           tant qu'elle n'entend pas :
+
+           FR :
+           Bonjour Astra
+           Salut Astra
+           Coucou Astra
+           Bonsoir Astra
+
+           EN :
+           Hello Astra
+           Hi Astra
+           Hey Astra
+
+           DE :
+           Hallo Astra
+           Guten Tag Astra
+           etc.
+          */
+
+          state.awake = false;
+
+
+          debugLogger.log(
+            "👆 Premier tap staff",
+            "success"
+          );
+
+
+          debugLogger.log(
+            "💤 Astra attend maintenant une salutation",
+            "info"
+          );
+
+
+          // ==================================================
+          // DÉBLOCAGE AUDIO iOS
+          // ==================================================
+
+          /*
            IMPORTANT IPAD :
 
-           audioManager.unlock() doit rester
+           audioManager.unlock()
+           doit rester DIRECTEMENT
+           dans l'événement click.
 
-           directement dans cet événement click.
-
-           Ne pas le mettre dans un setTimeout.
-
+           Ne pas le déplacer dans
+           un setTimeout.
           */
 
           audioManager.unlock();
 
-          /*
 
-           On débloque également le bip
-
-           avec le geste utilisateur.
-
-           On le joue silencieusement puis
-
-           on le remet au début.
-
-          */
+          // ==================================================
+          // DÉBLOCAGE DU BIP
+          // ==================================================
 
           try {
 
             const bip =
-
               audioManager.thinkingAudio;
 
-            bip.volume =
 
+            bip.volume =
               0.01;
 
-            const bipUnlock =
 
+            const bipUnlock =
               bip.play();
 
+
             if (
-
               bipUnlock &&
-
               bipUnlock.then
-
             ) {
 
               bipUnlock
 
                 .then(
-
                   () => {
 
                     bip.pause();
 
+
                     try {
 
                       bip.currentTime =
-
                         0;
 
-                    } catch (_) {}
+                    }
+
+                    catch (_) {}
+
 
                     bip.volume =
-
                       1;
 
+
                     debugLogger.log(
-
                       "✓ Lecteur bip débloqué",
-
                       "success"
-
                     );
 
                   }
-
                 )
 
                 .catch(
-
                   err => {
 
                     bip.volume =
-
                       1;
 
+
                     debugLogger.log(
-
                       `Unlock bip refusé : ${err.message}`,
-
                       "warn"
-
                     );
 
                   }
-
                 );
 
             }
 
-          } catch (err) {
+          }
+
+          catch (err) {
 
             debugLogger.log(
-
               `Erreur unlock bip : ${err.message}`,
-
               "warn"
-
             );
 
           }
 
-          // Vidéo initiale
+
+          // ==================================================
+          // VIDÉO INITIALE
+          // ==================================================
 
           try {
 
             elements.astraIdle.muted =
-
               true;
 
-            elements.astraIdle.style.display =
 
+            elements.astraIdle.style.display =
               "block";
 
-            elements.astraIdle
 
+            elements.astraIdle
               .classList
-
               .add(
-
                 "active"
-
               );
+
 
             elements.astraIdle
-
               .play()
-
               .catch(
-
                 () => {}
-
               );
 
-          } catch (_) {}
+          }
+
+          catch (_) {}
+
+
+          // ==================================================
+          // INITIALISATION ASTRA
+          // ==================================================
 
           /*
+           Pas de await ici.
 
-           Initialisation immédiate.
-
-           On ne met pas de await ici :
-
-           on veut rester le plus proche
-
-           possible du geste utilisateur.
-
+           On veut rester le plus proche
+           possible du geste utilisateur
+           pour Safari / iPad.
           */
 
           app.init();
+
 
           return;
 
         }
 
+
         // ====================================================
-
         // 5 TAPS = MODE STAFF
-
         // ====================================================
 
         staffTapCount++;
 
+
         clearTimeout(
-
           staffTapTimer
-
         );
 
-        staffTapTimer =
 
+        staffTapTimer =
           setTimeout(
 
             () => {
 
               staffTapCount =
-
                 0;
 
             },
@@ -6458,36 +6242,28 @@ handleParchemin() {
 
           );
 
+
         if (
-
           staffTapCount >= 5
-
         ) {
 
           document.body
-
             .classList
-
             .toggle(
-
               "staffMode"
-
             );
 
-          staffTapCount =
 
+          staffTapCount =
             0;
+
 
           debugLogger.log(
 
             document.body
-
               .classList
-
               .contains(
-
                 "staffMode"
-
               )
 
               ? "Mode staff activé"
@@ -6504,22 +6280,27 @@ handleParchemin() {
 
     );
 
+
   // ==========================================================
-
   // TAP DE SECOURS iPAD
-
   // ==========================================================
 
   /*
+   Safari peut parfois arrêter
+   SpeechRecognition.
 
-   Si Safari a coupé SpeechRecognition
+   Dans certains cas il refuse
+   de redémarrer le micro sans
+   un nouveau geste utilisateur.
 
-   et exige un geste utilisateur,
+   Dans ce cas :
+   → un tap n'importe où
+   → relance le micro
 
-   n'importe quel tap sur l'écran
+   IMPORTANT :
+   ce tap NE RÉVEILLE PAS Astra.
 
-   permet de le relancer.
-
+   state.awake reste inchangé.
   */
 
   document.addEventListener(
@@ -6528,62 +6309,58 @@ handleParchemin() {
 
     () => {
 
-      if (
 
+      if (
         !state.started
-
       ) {
 
         return;
 
       }
+
 
       if (
-
         !state.needsGestureRestart
-
       ) {
 
         return;
 
       }
+
 
       debugLogger.log(
-
         "👆 Tap secours iOS",
-
         "info"
-
       );
 
-      state.needsGestureRestart =
 
+      state.needsGestureRestart =
         false;
 
-      /*
 
-       Nouveau geste utilisateur =
-
-       nouvelle tentative de déblocage audio.
-
-      */
+      // ======================================================
+      // NOUVEL ESSAI DE DÉBLOCAGE AUDIO
+      // ======================================================
 
       audioManager.unlock();
 
+
+      // ======================================================
+      // RELANCE MICRO
+      // ======================================================
+
       if (
-
         state.recognition
-
       ) {
 
         speechRecognition.start();
 
-      } else {
+      }
+
+      else {
 
         if (
-
           speechRecognition.init()
-
         ) {
 
           speechRecognition.start();
@@ -6595,17 +6372,14 @@ handleParchemin() {
     },
 
     {
-
       passive: true
-
     }
 
   );
 
+
   // ==========================================================
-
   // RETOUR APRÈS VEILLE / CHANGEMENT D'APPLICATION
-
   // ==========================================================
 
   document.addEventListener(
@@ -6614,54 +6388,59 @@ handleParchemin() {
 
     () => {
 
+
+      // ======================================================
+      // PAGE MASQUÉE
+      // ======================================================
+
       if (
-
         document.visibilityState !==
-
         "visible"
-
       ) {
 
         debugLogger.log(
-
           "Page en arrière-plan",
-
           "info"
-
         );
+
 
         return;
 
       }
 
+
+      // ======================================================
+      // PAGE REDEVENUE VISIBLE
+      // ======================================================
+
       debugLogger.log(
-
         "Page redevenue visible",
-
         "info"
-
       );
 
+
       if (
-
         !state.started
-
       ) {
 
         return;
 
       }
+
+
+      /*
+       On laisse Safari respirer
+       un petit moment avant
+       de tenter le redémarrage.
+      */
 
       setTimeout(
 
         () => {
 
           if (
-
             !state.recognitionRunning &&
-
             !state.needsGestureRestart
-
           ) {
 
             speechRecognition.start();
@@ -6678,10 +6457,9 @@ handleParchemin() {
 
   );
 
+
   // ==========================================================
-
   // CHARGEMENT INITIAL
-
   // ==========================================================
 
   window.addEventListener(
@@ -6690,74 +6468,101 @@ handleParchemin() {
 
     () => {
 
+
+      // ======================================================
+      // BANDEAU
+      // ======================================================
+
       utils.updateBandeau();
 
+
+      // ======================================================
+      // ÉTAT INITIAL
+      // ======================================================
+
       /*
+       Sécurité supplémentaire :
 
-       On demande immédiatement au navigateur
+       au chargement de la page,
+       Astra est TOUJOURS endormie.
+      */
 
-       de précharger les MP3.
+      state.awake =
+        false;
 
-       Le bip et la réponse auront ainsi
 
-       beaucoup plus de chances d'être
+      state.mdpValid =
+        false;
 
-       déjà disponibles au moment où
 
-       le joueur parle.
+      // ======================================================
+      // PRÉCHARGEMENT DES MP3
+      // ======================================================
 
+      /*
+       On demande immédiatement
+       au navigateur de récupérer
+       les fichiers audio.
+
+       Cela permet de réduire
+       le délai entre :
+
+       phrase reconnue
+             ↓
+       bip
+             ↓
+       réponse Astra
       */
 
       audioPreloader.preloadAll();
 
-      debugLogger.log(
 
+      // ======================================================
+      // LOGS
+      // ======================================================
+
+      debugLogger.log(
         "================================",
-
         "info"
-
       );
 
+
       debugLogger.log(
-
-        "ASTRA — VERSION iPad + BIP",
-
+        "ASTRA — VERSION iPad + VEILLE",
         "success"
-
       );
 
-      debugLogger.log(
 
+      debugLogger.log(
         "Page chargée",
-
         "success"
-
       );
 
-      debugLogger.log(
 
+      debugLogger.log(
+        "💤 Astra est endormie",
+        "info"
+      );
+
+
+      debugLogger.log(
         "En attente du premier tap staff...",
-
         "info"
-
       );
 
+
       debugLogger.log(
-
         "================================",
-
         "info"
-
       );
 
     }
 
   );
 
+
   // ==========================================================
-
   // ERREURS JAVASCRIPT GLOBALES
-
   // ==========================================================
 
   window.addEventListener(
@@ -6767,21 +6572,17 @@ handleParchemin() {
     event => {
 
       debugLogger.log(
-
         `ERREUR JS : ${event.message} — ligne ${event.lineno}`,
-
         "error"
-
       );
 
     }
 
   );
 
+
   // ==========================================================
-
   // PROMESSES REJETÉES
-
   // ==========================================================
 
   window.addEventListener(
@@ -6790,53 +6591,53 @@ handleParchemin() {
 
     event => {
 
-      const reason =
 
+      const reason =
         event.reason;
 
-      let message =
 
+      let message =
         "Erreur Promise inconnue";
 
+
       if (
-
         reason
-
       ) {
 
         if (
-
           reason.name ||
-
           reason.message
-
         ) {
 
           message =
 
             `${reason.name || "Error"} / ${reason.message || reason}`;
 
-        } else {
+        }
+
+        else {
 
           message =
-
             String(reason);
 
         }
 
       }
 
+
       debugLogger.log(
-
         `PROMISE REJETÉE : ${message}`,
-
         "error"
-
       );
 
     }
 
   );
+
+
+  // ==========================================================
+  // FIN ASTRA
+  // ==========================================================
 
 </script>
 
