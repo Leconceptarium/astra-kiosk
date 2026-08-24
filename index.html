@@ -80,6 +80,15 @@
       z-index: 2;
     }
 
+    /* Vidéo indice chaudron : taille proche des animations Astra habituelles */
+    #astraReaction.cauldron-hint {
+      width: auto;
+      height: auto;
+      max-width: 78vw;
+      max-height: 78vh;
+      object-fit: contain;
+    }
+
     /* ======================================================
        BANDEAU
        ====================================================== */
@@ -2017,6 +2026,11 @@ const PARCHEMIN_VIDEO = {
         "video"
       );
 
+
+      elements.astraReaction.classList.toggle(
+        "cauldron-hint",
+        videoName === VIDEO.cauldronHint
+      );
 
       elements.astraReaction.src =
         videoName;
