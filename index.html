@@ -1828,7 +1828,7 @@ const PARCHEMIN_VIDEO = {
 
         try {
 
-          state.recognition.stop();
+          /* Safari minimal : pas de stop() forcé */
 
         } catch (_) {}
 
@@ -2560,64 +2560,9 @@ voiceGain: 4,
 
 
 initAmplifier() {
-
-  // Déjà initialisé → ne surtout pas recréer la source
-  if (this.audioContext) {
-    return;
-  }
-
-  try {
-
-    const AudioContext =
-      window.AudioContext ||
-      window.webkitAudioContext;
-
-    if (!AudioContext) {
-      debugLogger.log(
-        "Web Audio API indisponible",
-        "warn"
-      );
-      return;
-    }
-
-    this.audioContext =
-      new AudioContext();
-
-    this.audioSource =
-      this.audioContext.createMediaElementSource(
-        this.currentAudio
-      );
-
-    this.gainNode =
-      this.audioContext.createGain();
-
-    this.gainNode.gain.value =
-      this.voiceGain;
-
-    this.audioSource.connect(
-      this.gainNode
-    );
-
-    this.gainNode.connect(
-      this.audioContext.destination
-    );
-
-    debugLogger.log(
-      `🔊 Amplificateur Astra activé : x${this.voiceGain}`,
-      "success"
-    );
-
-  }
-
-  catch (err) {
-
-    debugLogger.log(
-      `Erreur amplificateur : ${err.message}`,
-      "error"
-    );
-
-  }
-
+  // Safari minimal : audio natif uniquement, sans WebAudio/GainNode.
+  this.voiceGain = 1;
+  debugLogger.log("Audio natif Safari activé (sans amplification WebAudio)", "success");
 },
     currentAudio:
       new Audio(),
@@ -2813,15 +2758,9 @@ initAmplifier() {
         true;
 
 
-      // iPad / Safari : on libère le micro pendant qu'Astra parle.
-      // Cela évite SpeechRecognition + audio + vidéo en concurrence.
-      if (state.recognition && state.recognitionRunning) {
-        state.pausedForAstra = true;
-        state.manualStop = true;
-        try {
-          state.recognition.stop();
-        } catch (_) {}
-      }
+      // Safari minimal : NE JAMAIS arrêter la reconnaissance quand Astra parle.
+      // Les résultats vocaux reçus pendant state.isPlaying sont simplement ignorés.
+      // Cela évite les erreurs "aborted" de Safari/iPadOS.
 
 
       const audio =
@@ -3154,10 +3093,6 @@ initAmplifier() {
           state.isPlaying =
             false;
 
-          if (state.pausedForAstra) {
-            state.pausedForAstra = false;
-            setTimeout(() => speechRecognition.start(), 120);
-          }
 
 
           utils.showError(
@@ -3198,10 +3133,6 @@ initAmplifier() {
           state.isPlaying =
             false;
 
-          if (state.pausedForAstra) {
-            state.pausedForAstra = false;
-            setTimeout(() => speechRecognition.start(), 120);
-          }
 
         };
 
@@ -5365,7 +5296,7 @@ initAmplifier() {
 
         try {
 
-          state.recognition.abort();
+          /* Safari minimal : pas de abort() forcé */
 
         }
 
@@ -5392,8 +5323,7 @@ initAmplifier() {
 
       // Safari iPad est nettement plus stable en sessions courtes.
       // Le onend relance automatiquement l'écoute quand nécessaire.
-      state.recognition.continuous =
-        !(/iPad|iPhone|iPod/.test(navigator.userAgent));
+      state.recognition.continuous = true;
 
 
       state.recognition.interimResults =
