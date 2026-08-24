@@ -5015,13 +5015,10 @@ initAmplifier() {
          son explication.
         */
 
-        const video =
-
-          PARCHEMIN_VIDEO[
-            state.currentLang
-          ]
-
-          || VIDEO.read;
+        // Astra garde son animation de lecture pendant que
+        // le parcheminManager affiche la vidéo du parchemin.
+        // Cela évite d'afficher parchemin_fr.mp4 deux fois.
+        const video = VIDEO.read;
 
 
         return {
