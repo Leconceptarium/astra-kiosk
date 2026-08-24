@@ -842,7 +842,7 @@
   <div id="bandeau">
 
     <span>
-      ASTRA VOUS SALUT… MAIS ELLE ATTEND VOTRE MOT DE PASSE 🍲
+      ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE 🫕
     </span>
 
   </div>
@@ -2486,7 +2486,7 @@ audioContext: null,
 gainNode: null,
 audioSource: null,
 
-voiceGain: 3,
+voiceGain: 4,
 
 
 initAmplifier() {
@@ -3126,7 +3126,7 @@ initAmplifier() {
 
        Il démarre...
 
-       puis 100 ms plus tard :
+       puis 20 ms plus tard :
 
        → on considère l'attente terminée
        → on coupe le bip
@@ -3183,7 +3183,7 @@ initAmplifier() {
 
 
                 // --------------------------------------------
-                // ATTENTE ULTRA COURTE : 100 ms
+                // ATTENTE ULTRA COURTE : 20 ms
                 // --------------------------------------------
 
                 setTimeout(
@@ -3221,7 +3221,7 @@ initAmplifier() {
 
                   },
 
-                  100
+                  20
                 );
 
               }
@@ -3278,7 +3278,7 @@ initAmplifier() {
 
             },
 
-            100
+            20
           );
 
         }
@@ -3307,7 +3307,7 @@ initAmplifier() {
       // ======================================================
 
       /*
-       Pendant les 100 ms du bip,
+       Pendant les 20 ms du bip,
        Safari commence déjà à préparer
        le fichier de réponse.
       */
