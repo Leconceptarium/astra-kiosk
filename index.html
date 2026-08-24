@@ -738,14 +738,12 @@
     :fullscreen #debugToggle,
     :fullscreen #debugPanel,
     :fullscreen #staffTapZone,
-    :fullscreen #bandeau,
     :-webkit-full-screen #fullscreenBtn,
     :-webkit-full-screen #statusIndicator,
     :-webkit-full-screen #languageSelector,
     :-webkit-full-screen #debugToggle,
     :-webkit-full-screen #debugPanel,
-    :-webkit-full-screen #staffTapZone,
-    :-webkit-full-screen #bandeau {
+    :-webkit-full-screen #staffTapZone {
       display: none !important;
     }
 
@@ -803,6 +801,14 @@
     body:not(.staffMode) #debugToggle,
     body:not(.staffMode) #debugPanel {
       display: none !important;
+    }
+
+  
+
+    /* Le message mot de passe reste visible en jeu, y compris en plein écran. */
+    :fullscreen #bandeau,
+    :-webkit-full-screen #bandeau {
+      display: block !important;
     }
 
   </style>
@@ -2178,6 +2184,22 @@ const PARCHEMIN_VIDEO = {
 
       const reaction = elements.astraReaction;
 
+      // Indice chaudron : taille fixe demandée 130 x 130.
+      // Les autres animations gardent leur taille habituelle.
+      if (videoName === VIDEO.cauldronHint) {
+        reaction.style.width = "130px";
+        reaction.style.height = "130px";
+        reaction.style.maxWidth = "130px";
+        reaction.style.maxHeight = "130px";
+        reaction.style.objectFit = "contain";
+      } else {
+        reaction.style.width = "";
+        reaction.style.height = "";
+        reaction.style.maxWidth = "";
+        reaction.style.maxHeight = "";
+        reaction.style.objectFit = "";
+      }
+
       reaction.onended = null;
       reaction.onerror = null;
 
@@ -2210,6 +2232,13 @@ const PARCHEMIN_VIDEO = {
 
           elements.astraReaction.style.display =
             "none";
+
+          // Remet la taille normale après un éventuel indice chaudron.
+          elements.astraReaction.style.width = "";
+          elements.astraReaction.style.height = "";
+          elements.astraReaction.style.maxWidth = "";
+          elements.astraReaction.style.maxHeight = "";
+          elements.astraReaction.style.objectFit = "";
 
 
           const activeIdle =
