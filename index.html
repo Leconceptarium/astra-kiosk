@@ -84,8 +84,8 @@
     #astraReaction.cauldron-hint {
       width: auto;
       height: auto;
-      max-width:130vw;
-      max-height: 130vh;
+      max-width: 78vw;
+      max-height: 78vh;
       object-fit: contain;
     }
 
@@ -724,6 +724,26 @@
 
       z-index: 20;
 
+    }
+
+
+
+    /* MODE PLEIN ECRAN JOUEURS : uniquement Astra / parchemin */
+    :fullscreen #fullscreenBtn,
+    :fullscreen #statusIndicator,
+    :fullscreen #languageSelector,
+    :fullscreen #debugToggle,
+    :fullscreen #debugPanel,
+    :fullscreen #staffTapZone,
+    :fullscreen #bandeau,
+    :-webkit-full-screen #fullscreenBtn,
+    :-webkit-full-screen #statusIndicator,
+    :-webkit-full-screen #languageSelector,
+    :-webkit-full-screen #debugToggle,
+    :-webkit-full-screen #debugPanel,
+    :-webkit-full-screen #staffTapZone,
+    :-webkit-full-screen #bandeau {
+      display: none !important;
     }
 
   </style>
@@ -1860,13 +1880,13 @@ const PARCHEMIN_VIDEO = {
           !document.fullscreenElement
         ) {
 
-          if (
-            document.documentElement
-              .requestFullscreen
-          ) {
+          const requestFS =
+            document.documentElement.requestFullscreen ||
+            document.documentElement.webkitRequestFullscreen;
 
-            document.documentElement
-              .requestFullscreen()
+          if (requestFS) {
+
+            Promise.resolve(requestFS.call(document.documentElement))
 
               .catch(
                 err => {
@@ -1889,11 +1909,13 @@ const PARCHEMIN_VIDEO = {
 
         } else {
 
-          if (
-            document.exitFullscreen
-          ) {
+          const exitFS =
+            document.exitFullscreen ||
+            document.webkitExitFullscreen;
 
-            document.exitFullscreen();
+          if (exitFS) {
+
+            exitFS.call(document);
 
           }
 
@@ -2791,6 +2813,17 @@ initAmplifier() {
         true;
 
 
+      // iPad / Safari : on libère le micro pendant qu'Astra parle.
+      // Cela évite SpeechRecognition + audio + vidéo en concurrence.
+      if (state.recognition && state.recognitionRunning) {
+        state.pausedForAstra = true;
+        state.manualStop = true;
+        try {
+          state.recognition.stop();
+        } catch (_) {}
+      }
+
+
       const audio =
         this.currentAudio;
 
@@ -3121,6 +3154,11 @@ initAmplifier() {
           state.isPlaying =
             false;
 
+          if (state.pausedForAstra) {
+            state.pausedForAstra = false;
+            setTimeout(() => speechRecognition.start(), 120);
+          }
+
 
           utils.showError(
             `Audio introuvable : ${file}`,
@@ -3159,6 +3197,11 @@ initAmplifier() {
 
           state.isPlaying =
             false;
+
+          if (state.pausedForAstra) {
+            state.pausedForAstra = false;
+            setTimeout(() => speechRecognition.start(), 120);
+          }
 
         };
 
@@ -5347,8 +5390,10 @@ initAmplifier() {
        automatiquement.
       */
 
+      // Safari iPad est nettement plus stable en sessions courtes.
+      // Le onend relance automatiquement l'écoute quand nécessaire.
       state.recognition.continuous =
-        true;
+        !(/iPad|iPhone|iPod/.test(navigator.userAgent));
 
 
       state.recognition.interimResults =
