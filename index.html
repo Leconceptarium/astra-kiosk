@@ -5,6 +5,9 @@
 <head>
 
   <meta charset="UTF-8" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
 
   <meta
     name="viewport"
@@ -746,12 +749,78 @@
       display: none !important;
     }
 
+  
+    /* ======================================================
+       ÉCRAN DE LANCEMENT GM — choix langue
+       ====================================================== */
+    #launchScreen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      background: #000;
+      transform: scaleX(-1); /* annule le miroir global pour le GM */
+      color: rgba(0,255,220,.95);
+      font-family: 'Unica One', serif;
+      text-align: center;
+    }
+
+    #launchScreen.hidden { display: none !important; }
+
+    #launchScreen .launchTitle {
+      font-size: clamp(1.6rem, 5vw, 3rem);
+      letter-spacing: 3px;
+      text-shadow: 0 0 18px rgba(0,255,220,.65);
+    }
+
+    #launchScreen .launchLanguages {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    #launchScreen .launchLang {
+      min-width: 120px;
+      padding: 18px 24px;
+      border: 2px solid rgba(0,255,220,.65);
+      border-radius: 18px;
+      background: rgba(0,255,220,.10);
+      color: white;
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+
+    /* En jeu, les contrôles GM restent cachés.
+       5 taps en haut à gauche = mode staff de secours. */
+    body:not(.staffMode) #fullscreenBtn,
+    body:not(.staffMode) #statusIndicator,
+    body:not(.staffMode) #languageSelector,
+    body:not(.staffMode) #debugToggle,
+    body:not(.staffMode) #debugPanel {
+      display: none !important;
+    }
+
   </style>
 
 </head>
 
 
 <body>
+
+  <div id="launchScreen">
+    <div class="launchTitle">CHOISIR LA LANGUE</div>
+    <div class="launchLanguages">
+      <button class="launchLang" data-launch-lang="fr">🇫🇷 FRANÇAIS</button>
+      <button class="launchLang" data-launch-lang="en">🇬🇧 ENGLISH</button>
+      <button class="launchLang" data-launch-lang="de">🇩🇪 DEUTSCH</button>
+    </div>
+  </div>
+
 
   <!-- =====================================================
        ZONE STAFF INVISIBLE
@@ -2556,13 +2625,34 @@ audioContext: null,
 gainNode: null,
 audioSource: null,
 
-voiceGain: 4,
+voiceGain: 3.5,
 
 
 initAmplifier() {
-  // Safari minimal : audio natif uniquement, sans WebAudio/GainNode.
-  this.voiceGain = 1;
-  debugLogger.log("Audio natif Safari activé (sans amplification WebAudio)", "success");
+  if (this.audioContext) return;
+
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      debugLogger.log("Web Audio indisponible — audio natif", "warn");
+      return;
+    }
+
+    this.audioContext = new AudioContext();
+    this.audioSource = this.audioContext.createMediaElementSource(this.currentAudio);
+    this.gainNode = this.audioContext.createGain();
+    this.gainNode.gain.value = this.voiceGain;
+    this.audioSource.connect(this.gainNode);
+    this.gainNode.connect(this.audioContext.destination);
+
+    if (this.audioContext.state === "suspended") {
+      this.audioContext.resume().catch(() => {});
+    }
+
+    debugLogger.log(`🔊 Amplification Astra x${this.voiceGain}`, "success");
+  } catch (err) {
+    debugLogger.log(`Amplification indisponible : ${err.message} — audio natif conservé`, "warn");
+  }
 },
     currentAudio:
       new Audio(),
@@ -6044,6 +6134,39 @@ initAmplifier() {
   };
 
 
+
+  // ==========================================================
+  // LANCEMENT GM : LANGUE → DÉMARRAGE IMMÉDIAT
+  // ==========================================================
+  document.querySelectorAll("[data-launch-lang]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const lang = btn.dataset.launchLang || "fr";
+
+      // Choix langue avant le démarrage.
+      state.currentLang = lang;
+      utils.updateBandeau();
+
+      document.querySelectorAll(".lang-btn").forEach(b => {
+        b.classList.toggle("active", b.dataset.lang === lang);
+      });
+
+      // Le clic du GM sert aussi de geste iOS pour audio + micro.
+      elements.staffTapZone.click();
+
+      // Tentative plein écran navigateur quand l'API le permet.
+      const root = document.documentElement;
+      const requestFS = root.requestFullscreen || root.webkitRequestFullscreen;
+      if (requestFS) {
+        try {
+          const p = requestFS.call(root);
+          if (p && p.catch) p.catch(() => {});
+        } catch (_) {}
+      }
+
+      document.getElementById("launchScreen").classList.add("hidden");
+    });
+  });
+
   // ==========================================================
   // PREMIER TAP STAFF + MODE STAFF
   // ==========================================================
@@ -6117,6 +6240,7 @@ initAmplifier() {
            un setTimeout.
           */
 
+          audioManager.initAmplifier();
           audioManager.unlock();
 
 
@@ -6611,7 +6735,7 @@ initAmplifier() {
 
 
       debugLogger.log(
-        "En attente du premier tap staff...",
+        "En attente du choix de langue GM...",
         "info"
       );
 
