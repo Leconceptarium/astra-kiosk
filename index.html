@@ -965,7 +965,7 @@
      IMPORTANT :
      Astra écoute techniquement le micro,
      mais elle ignore absolument tout
-     tant qu'elle n'a pas été saluée.
+     tant que le bon mot de passe n'a pas été prononcé.
     */
     awake: false,
 
@@ -3396,13 +3396,14 @@ initAmplifier() {
 
 
       // ======================================================
-      // ASTRA EST EN VEILLE
+      // ASTRA EST VERROUILLÉE
       // ======================================================
       //
-      // Tant qu'elle n'a pas été explicitement saluée,
-      // Astra écoute mais NE RÉPOND À RIEN.
-      //
-      // Cela évite qu'elle intervienne pendant le brief.
+      // Plus besoin de saluer Astra.
+      // Tant que le mot de passe n'est pas prononcé,
+      // elle ignore toutes les autres phrases.
+      // Le mot de passe la réveille ET la déverrouille
+      // en une seule étape.
       //
       // ======================================================
 
@@ -3410,52 +3411,52 @@ initAmplifier() {
         !state.awake
       ) {
 
-        let wakeDetected =
+        let passwordDetected =
           false;
 
 
-       // ----------------------------------------------------
-// FRANÇAIS
-// ----------------------------------------------------
+        // ----------------------------------------------------
+        // FRANÇAIS
+        // ----------------------------------------------------
 
-if (
-  lang === "fr" &&
-  /^(bonjour|salut|coucou|bonsoir|hey|hello|yo|wesh)(\s+astra)?[.!? ]*$/i.test(t)
-) {
-  wakeDetected = true;
-}
-
-
-// ----------------------------------------------------
-// ANGLAIS
-// ----------------------------------------------------
-
-if (
-  lang === "en" &&
-  /^(hello|hi|hey|good morning|good evening|good afternoon|yo)(\s+astra)?[.!? ]*$/i.test(t)
-) {
-  wakeDetected = true;
-}
+        if (
+          lang === "fr" &&
+          /bonne nuit|le mot de passe c'est bonne nuit/i.test(t)
+        ) {
+          passwordDetected = true;
+        }
 
 
-// ----------------------------------------------------
-// ALLEMAND
-// ----------------------------------------------------
+        // ----------------------------------------------------
+        // ANGLAIS
+        // ----------------------------------------------------
 
-if (
-  lang === "de" &&
-  /^(hallo|hi|hey|guten tag|guten morgen|guten abend)(\s+astra)?[.!? ]*$/i.test(t)
-) {
-  wakeDetected = true;
-}
+        if (
+          lang === "en" &&
+          /good night|the password is good night/i.test(t)
+        ) {
+          passwordDetected = true;
+        }
+
+
+        // ----------------------------------------------------
+        // ALLEMAND
+        // ----------------------------------------------------
+
+        if (
+          lang === "de" &&
+          /gute nacht|das passwort ist gute nacht/i.test(t)
+        ) {
+          passwordDetected = true;
+        }
 
 
         // ====================================================
-        // ASTRA A ÉTÉ SALUÉE
+        // BON MOT DE PASSE : RÉVEIL + DÉVERROUILLAGE
         // ====================================================
 
         if (
-          wakeDetected
+          passwordDetected
         ) {
 
           state.awake =
@@ -3463,38 +3464,27 @@ if (
 
 
           debugLogger.log(
-            "✓ ASTRA RÉVEILLÉE",
+            "✓ ASTRA RÉVEILLÉE PAR LE MOT DE PASSE",
             "success"
           );
 
 
-          return {
-
-            file:
-              audio.bonjour,
-
-            video:
-              VIDEO.happy
-
-          };
+          return this.handlePassword();
 
         }
 
 
         // ====================================================
-        // PAS DE SALUTATION
+        // PAS LE MOT DE PASSE
         // ====================================================
         //
         // Astra entend la phrase mais l'ignore complètement.
-        //
-        // Aucun bip.
-        // Aucun MP3.
-        // Aucune animation.
+        // Aucun bip, aucun MP3, aucune animation.
         //
         // ====================================================
 
         debugLogger.log(
-          `Astra en veille — phrase ignorée : "${t}"`,
+          `Astra verrouillée — phrase ignorée : "${t}"`,
           "info"
         );
 
@@ -5429,7 +5419,7 @@ if (
             /*
              IMPORTANT :
 
-             Quand Astra est encore en veille,
+             Quand Astra est encore verrouillée,
              phraseDetector.detect() retourne null.
 
              Donc :
@@ -5461,7 +5451,7 @@ if (
 
               /*
                Ce cas est NORMAL lorsque
-               state.awake === false.
+               state.awake === false (mot de passe non validé).
 
                On ne joue surtout pas
                phrase_non_reconnue.mp3 ici.
@@ -5472,7 +5462,7 @@ if (
               ) {
 
                 debugLogger.log(
-                  "Astra dort encore → aucune réponse",
+                  "Astra attend le mot de passe → aucune réponse",
                   "info"
                 );
 
@@ -6025,23 +6015,11 @@ if (
 
            Elle écoute le micro,
            mais elle ne répond à RIEN
-           tant qu'elle n'entend pas :
+           tant qu'elle n'entend pas le mot de passe :
 
-           FR :
-           Bonjour Astra
-           Salut Astra
-           Coucou Astra
-           Bonsoir Astra
-
-           EN :
-           Hello Astra
-           Hi Astra
-           Hey Astra
-
-           DE :
-           Hallo Astra
-           Guten Tag Astra
-           etc.
+           FR : Bonne nuit
+           EN : Good night
+           DE : Gute Nacht
           */
 
           state.awake = false;
@@ -6054,7 +6032,7 @@ if (
 
 
           debugLogger.log(
-            "💤 Astra attend maintenant une salutation",
+            "🔒 Astra attend maintenant le mot de passe",
             "info"
           );
 
@@ -6479,7 +6457,7 @@ if (
        Sécurité supplémentaire :
 
        au chargement de la page,
-       Astra est TOUJOURS endormie.
+       Astra est TOUJOURS verrouillée et attend le mot de passe.
       */
 
       state.awake =
