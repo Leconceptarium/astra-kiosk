@@ -805,10 +805,16 @@
 
   
 
-    /* Le message mot de passe reste visible en jeu, y compris en plein écran. */
-    :fullscreen #bandeau,
-    :-webkit-full-screen #bandeau {
+    /* Message mot de passe : visible uniquement tant que le mot de passe n'est pas validé. */
+    body:not(.passwordFound):fullscreen #bandeau,
+    body:not(.passwordFound):-webkit-full-screen #bandeau {
       display: block !important;
+    }
+
+    body.passwordFound #bandeau,
+    body.passwordFound:fullscreen #bandeau,
+    body.passwordFound:-webkit-full-screen #bandeau {
+      display: none !important;
     }
 
   </style>
@@ -4962,6 +4968,24 @@ initAmplifier() {
         "warn"
       );
 
+      // Ne répond "pas compris" que si Google/Safari semble réellement
+      // avoir entendu une phrase. Les petits faux résultats de bruit
+      // ambiant sont ignorés silencieusement.
+      const fallbackText = (state.lastSpeechText || "").trim();
+      const fallbackConfidence = Number(state.lastSpeechConfidence || 0);
+      const wordCount = fallbackText ? fallbackText.split(/\s+/).length : 0;
+
+      if (
+        fallbackConfidence < 0.55 ||
+        fallbackText.length < 4 ||
+        wordCount < 2
+      ) {
+        debugLogger.log(
+          `Fallback ignoré (confiance ${Math.round(fallbackConfidence * 100)}%, ${wordCount} mot(s))`,
+          "info"
+        );
+        return null;
+      }
 
       return {
 
@@ -5006,6 +5030,8 @@ initAmplifier() {
 
         state.mdpValid =
           true;
+
+        document.body.classList.add("passwordFound");
 
 
         // Cache le bandeau
@@ -5588,6 +5614,20 @@ initAmplifier() {
 
             }
 
+
+            // =================================================
+            // FILTRE ANTI-FAUX POSITIFS
+            // =================================================
+            // Safari/Google peut parfois fabriquer un petit résultat
+            // à partir du bruit ambiant. On ne laisse Astra dire
+            // "je n'ai pas compris" que si la reconnaissance est
+            // suffisamment crédible.
+            state.lastSpeechConfidence = confidence;
+            state.lastSpeechText = text;
+
+            // Les vraies intentions (mot de passe, aide, etc.) restent
+            // analysées même avec une confiance imparfaite. Le seuil
+            // sert uniquement au fallback "pas compris".
 
             // =================================================
             // ANALYSE DE LA PHRASE
@@ -6711,6 +6751,8 @@ initAmplifier() {
 
       state.mdpValid =
         false;
+
+      document.body.classList.remove("passwordFound");
 
 
       // ======================================================
