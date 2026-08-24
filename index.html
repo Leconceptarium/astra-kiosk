@@ -977,7 +977,10 @@
 
     started: false,
 
-    recognitionRunning: false
+    recognitionRunning: false,
+
+    // Timer de secours : montre le chaudron après 5 min sans mot de passe
+    passwordHintTimer: null
 
   };
     // ==========================================================
@@ -1239,7 +1242,11 @@
       "suspicion.mp4",
 
     confident:
-      "confiant.mp4"
+      "confiant.mp4",
+
+    // Indice visuel : Astra énervée avec le chaudron dans les bras
+    cauldronHint:
+      "indice_chaudron.mp4"
 
   };
 
@@ -2049,6 +2056,37 @@ const PARCHEMIN_VIDEO = {
           }
         );
 
+    },
+
+
+    // --------------------------------------------------------
+    // Joue une réaction SANS audio (utilisé pour l'indice 5 min)
+    // --------------------------------------------------------
+
+    playStandaloneReaction(videoName) {
+
+      if (state.isPlaying || state.mdpValid) {
+        return;
+      }
+
+      state.isPlaying = true;
+
+      const reaction = elements.astraReaction;
+
+      reaction.onended = null;
+      reaction.onerror = null;
+
+      this.playReaction(videoName);
+
+      reaction.onended = () => {
+        reaction.onended = null;
+        this.endReaction();
+      };
+
+      reaction.onerror = () => {
+        reaction.onerror = null;
+        this.endReaction();
+      };
     },
 
 
@@ -3464,9 +3502,54 @@ initAmplifier() {
             "success"
           );
 
+          // Le mot de passe a été trouvé : annule l'indice automatique des 5 min.
+          if (state.passwordHintTimer) {
+            clearTimeout(state.passwordHintTimer);
+            state.passwordHintTimer = null;
+          }
 
           return this.handlePassword();
 
+        }
+
+
+        // ====================================================
+        // DEMANDE D'AIDE AVANT LE MOT DE PASSE
+        // ====================================================
+        // Astra reste verrouillée, mais si les joueurs demandent
+        // un indice / de l'aide / disent avoir oublié le mot de passe,
+        // elle leur montre clairement le chaudron.
+
+        let helpBeforePassword = false;
+        let forgotBeforePassword = false;
+
+        if (lang === "fr") {
+          helpBeforePassword = /indice|aide|aide-nous|aide nous|tu peux nous aider/i.test(t);
+          forgotBeforePassword = /mot de passe oublie|j'ai oublie|on a oublie|comment trouver.*mot de passe|trouver.*mot de passe/i.test(t);
+        }
+
+        if (lang === "en") {
+          helpBeforePassword = /hint|help|help us|can you help/i.test(t);
+          forgotBeforePassword = /forgot.*password|forgotten.*password|how to find.*password|find.*password/i.test(t);
+        }
+
+        if (lang === "de") {
+          helpBeforePassword = /hinweis|hilfe|tipp|hilf uns|kannst du uns helfen/i.test(t);
+          forgotBeforePassword = /passwort vergessen|passwort.*vergessen|wie.*passwort.*finden|passwort.*finden/i.test(t);
+        }
+
+        if (forgotBeforePassword) {
+          return {
+            file: audio.mdp_oublie,
+            video: VIDEO.cauldronHint
+          };
+        }
+
+        if (helpBeforePassword) {
+          return {
+            file: audio.indice_aide,
+            video: VIDEO.cauldronHint
+          };
         }
 
 
@@ -6175,6 +6258,33 @@ initAmplifier() {
           */
 
           app.init();
+
+          // ==================================================
+          // INDICE AUTOMATIQUE APRÈS 5 MINUTES
+          // ==================================================
+          // Si personne n'a encore trouvé le mot de passe,
+          // Astra apparaît énervée avec le chaudron dans les bras.
+
+          if (state.passwordHintTimer) {
+            clearTimeout(state.passwordHintTimer);
+          }
+
+          state.passwordHintTimer = setTimeout(() => {
+
+            if (!state.mdpValid && !state.awake && !state.isPlaying) {
+              debugLogger.log(
+                "⏱️ 5 min sans mot de passe — indice chaudron automatique",
+                "info"
+              );
+
+              videoManager.playStandaloneReaction(
+                VIDEO.cauldronHint
+              );
+            }
+
+            state.passwordHintTimer = null;
+
+          }, 5 * 60 * 1000);
 
 
           return;
