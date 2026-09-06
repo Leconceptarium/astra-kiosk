@@ -11,7 +11,7 @@
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
   />
 
   <title>
@@ -31,6 +31,18 @@
       width: 100%;
       height: 100%;
       background: #000;
+    }
+
+    html, body, button, #staffTapZone {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      touch-action: manipulation;
     }
 
     body {
@@ -183,8 +195,9 @@
       top: 50%;
       left: 50%;
 
-      /* Plein écran + inversion horizontale pour le Pepper's Ghost */
-      transform: translate(-50%, -50%) scaleX(-1);
+      /* Le body est déjà inversé pour le Pepper's Ghost.
+         Ne pas ajouter scaleX(-1) ici : cela annulerait le miroir du parchemin. */
+      transform: translate(-50%, -50%);
 
       width: 100vw;
       height: 100vh;
@@ -852,6 +865,7 @@
     muted
     loop
     playsinline
+    webkit-playsinline
     preload="auto">
   </video>
 
@@ -862,6 +876,7 @@
     muted
     loop
     playsinline
+    webkit-playsinline
     preload="auto">
   </video>
 
@@ -870,6 +885,7 @@
     id="astraReaction"
     muted
     playsinline
+    webkit-playsinline
     preload="auto">
   </video>
 
@@ -962,6 +978,7 @@
     id="parcheminImage"
     muted
     playsinline
+    webkit-playsinline
     preload="auto">
   </video>
 
@@ -2302,7 +2319,6 @@ const parcheminManager = {
   show() {
 
     const video = elements.parcheminImage;
-
     const fichier =
       this.videos[state.currentLang]
       || this.videos.fr;
@@ -2312,22 +2328,17 @@ const parcheminManager = {
       "info"
     );
 
-    // Nettoyage
-    try {
-      video.pause();
-    } catch (_) {}
+    try { video.pause(); } catch (_) {}
 
     video.classList.remove("visible");
-
-    // Charge la bonne vidéo
-    video.src = fichier;
-    video.load();
-
     video.style.display = "block";
+    video.muted = true;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
 
-    // Attend que la vidéo soit réellement prête
+    // IMPORTANT Safari/iPad : brancher les handlers AVANT load(),
+    // sinon une vidéo déjà en cache peut devenir prête avant onloadeddata.
     video.onloadeddata = () => {
-
       debugLogger.log(
         `✓ Vidéo parchemin chargée : ${fichier}`,
         "success"
@@ -2335,54 +2346,38 @@ const parcheminManager = {
 
       video.classList.add("visible");
 
-      try {
-        video.currentTime = 0;
-      } catch (_) {}
+      try { video.currentTime = 0; } catch (_) {}
 
-      video.play()
-        .then(() => {
-
-          debugLogger.log(
-            "▶ Vidéo parchemin lancée",
-            "success"
-          );
-
-        })
-        .catch(err => {
-
+      const p = video.play();
+      if (p && p.then) {
+        p.then(() => {
+          debugLogger.log("▶ Vidéo parchemin lancée", "success");
+        }).catch(err => {
           debugLogger.log(
             `Erreur lecture parchemin : ${err.name} / ${err.message}`,
             "error"
           );
-
+          this.hide();
         });
-
+      }
     };
 
     video.onended = () => {
-
-      debugLogger.log(
-        "Vidéo parchemin terminée",
-        "info"
-      );
-
+      debugLogger.log("Vidéo parchemin terminée", "info");
       this.hide();
-
     };
 
     video.onerror = () => {
-
       debugLogger.log(
         `ERREUR fichier parchemin : ${fichier}`,
         "error"
       );
-
       this.hide();
-
     };
 
+    video.src = fichier;
+    try { video.load(); } catch (_) {}
   },
-
 
   hide() {
 
@@ -5459,8 +5454,8 @@ initAmplifier() {
 
 
       /*
-       Safari peut arrêter la reconnaissance
-       même avec continuous = true.
+       Safari peut arrêter la reconnaissance.
+       On utilise volontairement des sessions courtes sur iPad.
 
        Le onend plus bas la relancera
        automatiquement.
@@ -5468,7 +5463,7 @@ initAmplifier() {
 
       // Safari iPad est nettement plus stable en sessions courtes.
       // Le onend relance automatiquement l'écoute quand nécessaire.
-      state.recognition.continuous = true;
+      state.recognition.continuous = false;
 
 
       state.recognition.interimResults =
@@ -5938,7 +5933,7 @@ initAmplifier() {
            Safari coupe parfois la reconnaissance
            sans raison apparente.
 
-           On la relance après 350 ms.
+           On la relance après 500 ms.
           */
 
           setTimeout(
@@ -6205,6 +6200,88 @@ initAmplifier() {
 
 
   // ==========================================================
+  // DÉMARRAGE iPAD DEPUIS UN VRAI GESTE UTILISATEUR
+  // ==========================================================
+  function startAstraFromUserGesture() {
+
+    if (state.started) {
+      if (state.needsGestureRestart) {
+        state.needsGestureRestart = false;
+        audioManager.unlock();
+        if (state.recognition) {
+          speechRecognition.start();
+        }
+      }
+      return;
+    }
+
+    state.started = true;
+    state.awake = false;
+
+    debugLogger.log("👆 Démarrage Astra depuis le geste GM", "success");
+    debugLogger.log("🔒 Astra attend maintenant le mot de passe", "info");
+
+    // IMPORTANT iPadOS / Safari : AudioContext + play() doivent être
+    // déclenchés directement par le vrai clic/touch du GM.
+    audioManager.initAmplifier();
+    audioManager.unlock();
+
+    // Débloque le bip dans le même geste.
+    try {
+      const bip = audioManager.thinkingAudio;
+      bip.volume = 0.01;
+      const bipUnlock = bip.play();
+
+      if (bipUnlock && bipUnlock.then) {
+        bipUnlock
+          .then(() => {
+            bip.pause();
+            try { bip.currentTime = 0; } catch (_) {}
+            bip.volume = 1;
+            debugLogger.log("✓ Lecteur bip débloqué", "success");
+          })
+          .catch(err => {
+            bip.volume = 1;
+            debugLogger.log(`Unlock bip refusé : ${err.message}`, "warn");
+          });
+      } else {
+        try { bip.pause(); bip.currentTime = 0; } catch (_) {}
+        bip.volume = 1;
+      }
+    } catch (err) {
+      debugLogger.log(`Erreur unlock bip : ${err.message}`, "warn");
+    }
+
+    // Lance aussi l'idle depuis le geste utilisateur.
+    try {
+      elements.astraIdle.muted = true;
+      elements.astraIdle.style.display = "block";
+      elements.astraIdle.classList.add("active");
+      const idlePromise = elements.astraIdle.play();
+      if (idlePromise && idlePromise.catch) idlePromise.catch(() => {});
+    } catch (_) {}
+
+    // Initialisation micro / logique Astra.
+    app.init();
+
+    // Indice automatique après 5 minutes si le mot de passe n'est pas trouvé.
+    if (state.passwordHintTimer) {
+      clearTimeout(state.passwordHintTimer);
+    }
+
+    state.passwordHintTimer = setTimeout(() => {
+      if (!state.mdpValid && !state.awake && !state.isPlaying) {
+        debugLogger.log(
+          "⏱️ 5 min sans mot de passe — indice chaudron automatique",
+          "info"
+        );
+        videoManager.playStandaloneReaction(VIDEO.cauldronHint);
+      }
+      state.passwordHintTimer = null;
+    }, 5 * 60 * 1000);
+  }
+
+  // ==========================================================
   // LANCEMENT GM : LANGUE → DÉMARRAGE IMMÉDIAT
   // ==========================================================
   document.querySelectorAll("[data-launch-lang]").forEach(btn => {
@@ -6219,8 +6296,9 @@ initAmplifier() {
         b.classList.toggle("active", b.dataset.lang === lang);
       });
 
-      // Le clic du GM sert aussi de geste iOS pour audio + micro.
-      elements.staffTapZone.click();
+      // Le clic du GM EST le geste iOS pour audio + micro.
+      // Un .click() synthétique peut perdre l'autorisation utilisateur sur Safari.
+      startAstraFromUserGesture();
 
       // Tentative plein écran navigateur quand l'API le permet.
       const root = document.documentElement;
@@ -6257,220 +6335,9 @@ initAmplifier() {
         // PREMIER TAP = DÉMARRAGE ASTRA
         // ====================================================
 
-        if (
-          !state.started
-        ) {
-
-          state.started = true;
-
-
-          /*
-           IMPORTANT :
-
-           Même après ce premier tap,
-           Astra reste "endormie".
-
-           Elle écoute le micro,
-           mais elle ne répond à RIEN
-           tant qu'elle n'entend pas le mot de passe :
-
-           FR : Bonne nuit
-           EN : Good night
-           DE : Gute Nacht
-          */
-
-          state.awake = false;
-
-
-          debugLogger.log(
-            "👆 Premier tap staff",
-            "success"
-          );
-
-
-          debugLogger.log(
-            "🔒 Astra attend maintenant le mot de passe",
-            "info"
-          );
-
-
-          // ==================================================
-          // DÉBLOCAGE AUDIO iOS
-          // ==================================================
-
-          /*
-           IMPORTANT IPAD :
-
-           audioManager.unlock()
-           doit rester DIRECTEMENT
-           dans l'événement click.
-
-           Ne pas le déplacer dans
-           un setTimeout.
-          */
-
-          audioManager.initAmplifier();
-          audioManager.unlock();
-
-
-          // ==================================================
-          // DÉBLOCAGE DU BIP
-          // ==================================================
-
-          try {
-
-            const bip =
-              audioManager.thinkingAudio;
-
-
-            bip.volume =
-              0.01;
-
-
-            const bipUnlock =
-              bip.play();
-
-
-            if (
-              bipUnlock &&
-              bipUnlock.then
-            ) {
-
-              bipUnlock
-
-                .then(
-                  () => {
-
-                    bip.pause();
-
-
-                    try {
-
-                      bip.currentTime =
-                        0;
-
-                    }
-
-                    catch (_) {}
-
-
-                    bip.volume =
-                      1;
-
-
-                    debugLogger.log(
-                      "✓ Lecteur bip débloqué",
-                      "success"
-                    );
-
-                  }
-                )
-
-                .catch(
-                  err => {
-
-                    bip.volume =
-                      1;
-
-
-                    debugLogger.log(
-                      `Unlock bip refusé : ${err.message}`,
-                      "warn"
-                    );
-
-                  }
-                );
-
-            }
-
-          }
-
-          catch (err) {
-
-            debugLogger.log(
-              `Erreur unlock bip : ${err.message}`,
-              "warn"
-            );
-
-          }
-
-
-          // ==================================================
-          // VIDÉO INITIALE
-          // ==================================================
-
-          try {
-
-            elements.astraIdle.muted =
-              true;
-
-
-            elements.astraIdle.style.display =
-              "block";
-
-
-            elements.astraIdle
-              .classList
-              .add(
-                "active"
-              );
-
-
-            elements.astraIdle
-              .play()
-              .catch(
-                () => {}
-              );
-
-          }
-
-          catch (_) {}
-
-
-          // ==================================================
-          // INITIALISATION ASTRA
-          // ==================================================
-
-          /*
-           Pas de await ici.
-
-           On veut rester le plus proche
-           possible du geste utilisateur
-           pour Safari / iPad.
-          */
-
-          app.init();
-
-          // ==================================================
-          // INDICE AUTOMATIQUE APRÈS 5 MINUTES
-          // ==================================================
-          // Si personne n'a encore trouvé le mot de passe,
-          // Astra apparaît énervée avec le chaudron dans les bras.
-
-          if (state.passwordHintTimer) {
-            clearTimeout(state.passwordHintTimer);
-          }
-
-          state.passwordHintTimer = setTimeout(() => {
-
-            if (!state.mdpValid && !state.awake && !state.isPlaying) {
-              debugLogger.log(
-                "⏱️ 5 min sans mot de passe — indice chaudron automatique",
-                "info"
-              );
-
-              videoManager.playStandaloneReaction(
-                VIDEO.cauldronHint
-              );
-            }
-
-            state.passwordHintTimer = null;
-
-          }, 5 * 60 * 1000);
-
-
+        if (!state.started) {
+          startAstraFromUserGesture();
           return;
-
         }
 
 
