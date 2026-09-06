@@ -15,7 +15,7 @@
   />
 
   <title>
-    Astra – Assistant de M. Morpheus
+    Astra – Assistante de M. Morpheus
   </title>
 
   <style>
@@ -1216,7 +1216,7 @@
     fr: {
 
       bandeau:
-        "ASTRA VOUS ÉCOUTE… AVEZ-VOUS OUBLIÉ VOTRE MOT DE PASSE POUR ACCÉDER AU PARCHEMIN ?",
+        "ASTRA VOUS ÉCOUTE… AVEZ-VOUS OUBLIÉ VOTRE MOT DE PASSE POUR ACCÉDER AUx PARCHEMINs ?",
 
       initializing:
         "Initialisation...",
@@ -3663,7 +3663,7 @@ initAmplifier() {
         let forgotBeforePassword = false;
 
         if (lang === "fr") {
-          helpBeforePassword = /indice|aide|aide-nous|aide nous|tu peux nous aider/i.test(t);
+          helpBeforePassword = /indice|aide|aide-nous|aidez nous|tu peux nous aider/i.test(t);
           forgotBeforePassword = /mot de passe oublie|j'ai oublie|on a oublie|comment trouver.*mot de passe|trouver.*mot de passe/i.test(t);
         }
 
@@ -3849,7 +3849,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
        if (
-  /parchemin.*liberation|parchemin.*liberer|potion.*liberation|potion.*liberer|recette.*liberation|recette.*liberer|liberer.*creature|liberer.*la creature|delivrer.*creature|delivrer.*la creature|comment.*liberer|comment.*delivrer/i.test(t)
+  /parchemin.*liberation|parchemin.*liberer|potion.*liberation|potion.*liberer|recette.*liberation|recette.*liberer|delivrer.*creature|liberer.*la creature|delivrer.*creature|delivrer.*reve|liberter.*liberer la creature|delivrer.*ouvrir|cage. *liberer|roy.*fiole|liberer.*la creature|comment.*liberer|comment.*delivrer/i.test(t)
 ) {
   return this.handleParchemin();
 }
