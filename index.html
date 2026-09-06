@@ -155,6 +155,9 @@
 
       letter-spacing: 2px;
 
+      /* Sécurité visuelle : le bandeau reste TOUJOURS en majuscules. */
+      text-transform: uppercase;
+
       z-index: 3;
 
       animation:
@@ -1216,7 +1219,7 @@
     fr: {
 
       bandeau:
-        "ASTRA VOUS ÉCOUTE… AVEZ-VOUS OUBLIÉ VOTRE MOT DE PASSE POUR ACCÉDER AUx PARCHEMINs ?",
+        "ASTRA VOUS ÉCOUTE… AVEZ-VOUS OUBLIÉ VOTRE MOT DE PASSE POUR ACCÉDER AU PARCHEMIN ?",
 
       initializing:
         "Initialisation...",
@@ -3268,7 +3271,7 @@ initAmplifier() {
 
        Il démarre...
 
-       puis 15 ms plus tard :
+       puis 5 ms plus tard :
 
        → on considère l'attente terminée
        → on coupe le bip
@@ -3325,7 +3328,7 @@ initAmplifier() {
 
 
                 // --------------------------------------------
-                // ATTENTE ULTRA COURTE : 15 ms
+                // ATTENTE ULTRA COURTE : 5 ms
                 // --------------------------------------------
 
                 setTimeout(
@@ -3363,7 +3366,7 @@ initAmplifier() {
 
                   },
 
-                  15
+                  5
                 );
 
               }
@@ -3420,7 +3423,7 @@ initAmplifier() {
 
             },
 
-            20
+            5
           );
 
         }
@@ -3449,7 +3452,7 @@ initAmplifier() {
       // ======================================================
 
       /*
-       Pendant les 20 ms du bip,
+       Pendant les quelques ms du bip,
        Safari commence déjà à préparer
        le fichier de réponse.
       */
@@ -5497,8 +5500,15 @@ initAmplifier() {
       state.recognition.continuous = false;
 
 
+      /*
+       MODE RÉPONSE RAPIDE :
+       Safari peut fournir une transcription intermédiaire avant le résultat final.
+       On l'analyse immédiatement : les intentions connues peuvent donc déclencher
+       Astra sans attendre la finalisation complète de la phrase.
+       Les faux résultats restent filtrés par phraseDetector.
+      */
       state.recognition.interimResults =
-        false;
+        true;
 
 
       state.recognition.maxAlternatives =
@@ -5607,7 +5617,7 @@ initAmplifier() {
 
 
             debugLogger.log(
-              `🎙️ Entendu : "${text}"`,
+              `🎙️ Entendu${result.isFinal ? " (final)" : " (rapide)"} : "${text}"`,
               "speech"
             );
 
