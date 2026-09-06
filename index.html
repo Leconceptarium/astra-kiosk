@@ -964,7 +964,7 @@
   <div id="bandeau">
 
     <span>
-      ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE                                             MOT DE PASSE OUBLIE ? 
+      ASTRA VOUS ÉCOUTE… AVEZ-VOUS OUBLIÉ VOTRE MOT DE PASSE POUR ACCÉDER AU PARCHEMIN ? 
     </span>
 
   </div>
@@ -1216,7 +1216,7 @@
     fr: {
 
       bandeau:
-        "ASTRA VOUS ÉCOUTE… MAIS ELLE ATTEND VOTRE MOT DE PASSE",
+        "ASTRA VOUS ÉCOUTE… AVEZ-VOUS OUBLIÉ VOTRE MOT DE PASSE POUR ACCÉDER AU PARCHEMIN ?",
 
       initializing:
         "Initialisation...",
@@ -1254,7 +1254,7 @@
     en: {
 
       bandeau:
-        "ASTRA IS LISTENING… BUT SHE'S WAITING FOR YOUR PASSWORD",
+        "ASTRA IS LISTENING… HAVE YOU FORGOTTEN YOUR PASSWORD TO ACCESS THE SCROLL?",
 
       initializing:
         "Initializing...",
@@ -1292,7 +1292,7 @@
     de: {
 
       bandeau:
-        "ASTRA HÖRT ZU… ABER SIE WARTET AUF IHR PASSWORT",
+        "ASTRA HÖRT ZU… HABEN SIE IHR PASSWORT FÜR DIE SCHRIFTROLLE VERGESSEN?",
 
       initializing:
         "Initialisierung...",
@@ -3541,11 +3541,10 @@ initAmplifier() {
       // ASTRA EST VERROUILLÉE
       // ======================================================
       //
-      // Plus besoin de saluer Astra.
-      // Tant que le mot de passe n'est pas prononcé,
-      // elle ignore toutes les autres phrases.
-      // Le mot de passe la réveille ET la déverrouille
-      // en une seule étape.
+      // Avant le mot de passe, Astra peut répondre aux salutations
+      // (bonjour, salut, coucou, hello, hallo, etc.) mais reste verrouillée.
+      // Toutes les autres phrases sont ignorées, sauf les demandes d'aide
+      // et le mot de passe, qui la réveille ET la déverrouille.
       //
       // ======================================================
 
@@ -3555,6 +3554,38 @@ initAmplifier() {
 
         let passwordDetected =
           false;
+
+
+        // ====================================================
+        // SALUTATIONS AUTORISÉES AVANT LE MOT DE PASSE
+        // ====================================================
+        // Astra répond, mais NE se déverrouille pas.
+
+        let greetingBeforePassword = false;
+
+        if (lang === "fr") {
+          greetingBeforePassword = /bonjour|salut|coucou|bonsoir|wesh|yo|hello|hey/i.test(t);
+        }
+
+        if (lang === "en") {
+          greetingBeforePassword = /hello|hi|hey|good morning|good evening|yo/i.test(t);
+        }
+
+        if (lang === "de") {
+          greetingBeforePassword = /hallo|guten tag|guten morgen|guten abend|hey|hi/i.test(t);
+        }
+
+        if (greetingBeforePassword) {
+          debugLogger.log(
+            "Salutation reconnue avant mot de passe — Astra reste verrouillée",
+            "info"
+          );
+
+          return {
+            file: audio.bonjour,
+            video: VIDEO.happy
+          };
+        }
 
 
         // ----------------------------------------------------
