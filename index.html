@@ -1899,6 +1899,7 @@ const PARCHEMIN_VIDEO = {
 
       state.currentLang =
         lang;
+      fastResponse.reset();
       state.lastResponse = null;
       audioPreloader.preloadAll();
 
@@ -2493,17 +2494,46 @@ const parcheminManager = {
 
   const audioPreloader = {
     cache: [],
+    timer: null,
+    generation: 0,
     preloadAll() {
-      this.cache.forEach(a => { a.pause(); a.removeAttribute('src'); a.load(); });
-      // Préparer seulement les réponses utiles au départ, dans la langue choisie.
-      const files = audioFiles[state.currentLang];
-      this.cache = ['bonjour', 'mdp', 'notif', 'parchemin', 'indice_aide', 'mdp_oublie'].map(key => {
-        const a = new Audio(files[key]); a.preload = 'auto'; a.load(); return a;
+      const generation = ++this.generation;
+      clearTimeout(this.timer);
+      this.cache.forEach(a => {
+        a.onloadeddata = a.onerror = null;
+        a.pause(); a.removeAttribute('src'); a.load();
       });
+      this.cache = [];
+      const files = audioFiles[state.currentLang];
+      const priority = ['bonjour', 'mdp', 'notif', 'parchemin', 'indice_aide', 'mdp_oublie'];
+      const queue = [...new Set([...priority.map(k => files[k]), ...Object.values(files).flat()])];
+      // Un seul MP3 de fond à la fois ; la réponse en cours reste prioritaire.
+      const next = () => {
+        if (generation !== this.generation || !queue.length) return;
+        if (state.isPlaying || document.visibilityState === 'hidden') {
+          this.timer = setTimeout(next, 500);
+          return;
+        }
+        const audio = new Audio();
+        this.cache.push(audio);
+        let done = false;
+        const advance = () => {
+          if (done || generation !== this.generation) return;
+          done = true;
+          audio.onloadeddata = audio.onerror = null;
+          clearTimeout(this.timer);
+          this.timer = setTimeout(next, 150);
+        };
+        audio.onloadeddata = audio.onerror = advance;
+        audio.preload = 'auto';
+        audio.src = queue.shift();
+        this.timer = setTimeout(advance, 5000);
+        audio.load();
+      };
       parcheminManager.prepare();
+      next();
     }
   };
-
 
   // ==========================================================
   // GESTION AUDIO
@@ -2732,6 +2762,14 @@ initAmplifier() {
     // LECTURE D'UNE RÉPONSE ASTRA
     // ========================================================
 
+    prepare(file) {
+      if (!file || state.isPlaying || !this.unlocked) return;
+      const audio = this.currentAudio;
+      if (audio.getAttribute('src') === file) return;
+      audio.preload = 'auto';
+      audio.src = file;
+      audio.load();
+    },
     play(file, videoName = VIDEO.talk) {
       if (state.isPlaying) return;
       state.isPlaying = true;
@@ -2770,7 +2808,7 @@ initAmplifier() {
         clearTimeout(this.safetyTimeout);
         state.lastResponse = { file, video: videoName };
       };
-      audio.src = file;
+      if (audio.getAttribute('src') !== file) audio.src = file;
       audio.volume = 1;
       audio.preload = 'auto';
       if (scroll) parcheminManager.show();
@@ -3131,7 +3169,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /\b(?:bonjour|salut|coucou|bonsoir|wesh|yo)\b/i.test(t)
+          /\b(?:bonjour|salut|coucou|bonsoir|wesh|yo|hello)\b/i.test(t)
         ) {
 
           return {
@@ -4786,6 +4824,106 @@ initAmplifier() {
   // RECONNAISSANCE VOCALE
   // ==========================================================
 
+  // Préparation sans effet sur le jeu : ne jamais appeler detect() sur une phrase provisoire.
+  const fastResponse = {
+    timer: null,
+    text: '',
+    ended: false,
+    consumed: false,
+    blocked: false,
+    cancel() { clearTimeout(this.timer); this.timer = null; },
+    reset() {
+      this.cancel(); this.text = ''; this.ended = false;
+      this.consumed = false; this.blocked = false;
+    },
+    speechStart() {
+      this.cancel(); this.ended = false;
+      this.blocked = state.isPlaying;
+    },
+    speechEnd() { this.ended = true; this.schedule(); },
+    preview(text) {
+      const lang = state.currentLang, files = audioFiles[lang];
+      const t = phraseDetector.normalize(text).replace(/['’\-]/g, ' ').replace(/\s+/g, ' ').trim();
+      const expanded = expandedIntent(t, lang);
+      if (expanded === 'ignore') return null;
+      // Ces demandes sont seulement préchargées ; seule la phrase finale peut les valider.
+      if (expanded === 'password') return { file: files.mdp, fast: false };
+      if (expanded === 'scroll') return state.awake ? { file: files.parchemin, fast: false } : null;
+      if (expanded === 'repeat') return state.lastResponse ? { file: state.lastResponse.file, fast: false } : null;
+      const clean = t.replace(/^(?:astra\s+|s il te plait\s+|please\s+|bitte\s+)/, '')
+        .replace(/\s+(?:astra|s il te plait|please|bitte)$/, '');
+      // Phrases complètes uniquement : les autres attendent la confirmation finale.
+      const rules = {
+        fr: [
+          ['bonjour', /^(?:bonjour|salut|coucou|bonsoir|hello)$/],
+          ['indice_aide', /^(?:un indice|donne nous un indice|donne moi un indice|aide nous|aide moi|on est bloques?|on est coinces?)$/],
+          ['qui', /^(?:qui es tu|tu es qui|comment tu t appelles)$/],
+          ['ou', /^(?:on est ou|ou sommes nous|ou est on)$/],
+          ['ca_va', /^(?:ca va|comment vas tu|comment tu vas|tu vas bien)$/],
+          ['tu_es_la', /^(?:tu es la|tu m entends|tu nous entends)$/],
+          ['faire_quoi_mtn', /^(?:on fait quoi|que faire maintenant|par ou commencer|quelle est la prochaine etape)$/],
+          ['berceuse', /^(?:chante une berceuse|chante nous une berceuse|aide nous a dormir)$/]
+        ],
+        en: [
+          ['bonjour', /^(?:hello|hi|good morning|good evening)$/],
+          ['indice_aide', /^(?:help us|help me|give us a hint|give me a hint|we are stuck)$/],
+          ['qui', /^who are you$/], ['ou', /^where are we$/], ['ca_va', /^how are you$/]
+        ],
+        de: [
+          ['bonjour', /^(?:hallo|guten tag|guten morgen|guten abend)$/],
+          ['indice_aide', /^(?:hilf uns|gib uns einen hinweis)$/],
+          ['qui', /^wer bist du$/], ['ou', /^wo sind wir$/], ['ca_va', /^wie geht es dir$/]
+        ]
+      };
+      const match = rules[lang].find(([, regex]) => regex.test(clean));
+      if (match && (state.awake || ['bonjour', 'indice_aide', 'tu_es_la'].includes(match[0]))) {
+        return {file: files[match[0]], fast: true};
+      }
+      if (expanded && files[expanded] && (state.awake || ['indice_aide', 'mdp_oublie', 'invite_mdp', 'tu_es_la'].includes(expanded))) {
+        return {file: files[expanded], fast: false};
+      }
+      return null;
+    },
+    receive(text, final, confidence) {
+      if (this.consumed || this.blocked) return;
+      if (state.isPlaying) { this.blocked = true; this.cancel(); return; }
+      this.text = text;
+      this.cancel();
+      if (final) { this.dispatch(text, confidence); return; }
+      const candidate = this.preview(text);
+      if (candidate) audioManager.prepare(candidate.file);
+      this.schedule();
+    },
+    schedule() {
+      this.cancel();
+      if (!this.ended || this.consumed || this.blocked || state.isPlaying || !this.text) return;
+      const candidate = this.preview(this.text);
+      if (!candidate || !candidate.fast) return;
+      const text = this.text, lang = state.currentLang;
+      // Déclencher peu après la fin de parole signalée, sans attendre le résultat final.
+      this.timer = setTimeout(() => {
+        this.timer = null;
+        if (this.consumed || this.blocked || state.isPlaying || lang !== state.currentLang || this.text !== text) return;
+        this.dispatch(text, 0);
+      }, 180);
+    },
+    dispatch(text, confidence) {
+      this.cancel();
+      if (this.consumed || this.blocked || state.isPlaying) return;
+      this.consumed = true;
+      state.lastSpeechConfidence = confidence;
+      state.lastSpeechText = text;
+      const response = phraseDetector.detect(text);
+      phraseHistory.record(text, response);
+      if (response && response.file) audioManager.play(response.file, response.video);
+    },
+    finishSession() {
+      // Laisser une demande complète déjà entendue finir son délai avant la prochaine session.
+      this.speechEnd();
+    }
+  };
+
+
   const speechRecognition = {
 
     // ========================================================
@@ -4929,6 +5067,7 @@ initAmplifier() {
       state.recognition.onstart =
         () => {
 
+          fastResponse.reset();
           state.recognitionStarting = false;
           state.recognitionRunning =
             true;
@@ -4958,6 +5097,7 @@ initAmplifier() {
 
       state.recognition.onspeechstart =
         () => {
+          fastResponse.speechStart();
 
           debugLogger.log(
             "🎙️ Voix détectée",
@@ -4969,6 +5109,7 @@ initAmplifier() {
 
       state.recognition.onspeechend =
         () => {
+          fastResponse.speechEnd();
 
           debugLogger.log(
             "Fin de phrase détectée",
@@ -4982,172 +5123,16 @@ initAmplifier() {
       // RÉSULTAT VOCAL
       // ======================================================
 
-      state.recognition.onresult =
-        event => {
-
-          try {
-
-            const result =
-
-              event.results[
-                event.results.length - 1
-              ];        // Attendre la phrase complète évite de répondre avant la vraie demande.
-        if (!result.isFinal) return;
-        const alternative = result[0];
-
-
-            const text =
-
-              alternative.transcript
-                .trim();
-
-
-            const confidence =
-
-              typeof alternative.confidence ===
-              "number"
-
-                ? alternative.confidence
-
-                : 0;
-
-
-            debugLogger.log(
-              `🎙️ Entendu${result.isFinal ? " (final)" : " (rapide)"} : "${text}"`,
-              "speech"
-            );
-
-
-            debugLogger.log(
-              `Confiance : ${Math.round(confidence * 100)}%`,
-              "info"
-            );
-
-
-            // =================================================
-            // ASTRA PARLE DÉJÀ
-            // =================================================
-            //
-            // On ignore tout ce que le micro
-            // reconnaît pendant sa propre réponse.
-            //
-            // =================================================
-
-            if (
-              state.isPlaying
-            ) {
-
-              debugLogger.log(
-                "Résultat ignoré : Astra parle déjà",
-                "warn"
-              );
-
-              return;
-
-            }
-
-
-            // =================================================
-            // FILTRE ANTI-FAUX POSITIFS
-            // =================================================
-            // Safari/Google peut parfois fabriquer un petit résultat
-            // à partir du bruit ambiant. On ne laisse Astra dire
-            // "je n'ai pas compris" que si la reconnaissance est
-            // suffisamment crédible.
-            state.lastSpeechConfidence = confidence;
-            state.lastSpeechText = text;
-
-            // Les vraies intentions (mot de passe, aide, etc.) restent
-            // analysées même avec une confiance imparfaite. Le seuil
-            // sert uniquement au fallback "pas compris".
-
-            // =================================================
-            // ANALYSE DE LA PHRASE
-            // =================================================
-
-            const response =
-
-              phraseDetector.detect(
-                text
-              );
-
-
-            /*
-             IMPORTANT :
-
-             Quand Astra est encore verrouillée,
-             phraseDetector.detect() retourne null.
-
-             Donc :
-             → aucun bip
-             → aucun audio
-             → aucune animation
-             → silence complet pendant le brief
-            */
-
-            phraseHistory.record(text, response);
-            if (
-              response &&
-              response.file
-            ) {
-
-              debugLogger.log(
-                `✓ Réponse choisie : ${response.file}`,
-                "success"
-              );
-
-
-              audioManager.play(
-                response.file,
-                response.video
-              );
-
-            }
-
-            else {
-
-              /*
-               Ce cas est NORMAL lorsque
-               state.awake === false (mot de passe non validé).
-
-               On ne joue surtout pas
-               phrase_non_reconnue.mp3 ici.
-              */
-
-              if (
-                !state.awake
-              ) {
-
-                debugLogger.log(
-                  "Astra attend le mot de passe → aucune réponse",
-                  "info"
-                );
-
-              }
-
-              else {
-
-                debugLogger.log(
-                  "Aucune réponse retournée",
-                  "warn"
-                );
-
-              }
-
-            }
-
-          }
-
-          catch (err) {
-
-            debugLogger.log(
-              `Erreur résultat vocal : ${err.message}`,
-              "error"
-            );
-
-          }
-
-        };
+      state.recognition.onresult = event => {
+        try {
+          const result = event.results[event.results.length - 1];
+          if (!result || !result[0]) return;
+          fastResponse.receive(result[0].transcript.trim(), result.isFinal,
+            typeof result[0].confidence === 'number' ? result[0].confidence : 0);
+        } catch (err) {
+          debugLogger.log('Erreur résultat vocal : ' + err.message, 'error');
+        }
+      };
 
 
       // ======================================================
@@ -5155,10 +5140,9 @@ initAmplifier() {
       // ======================================================
 
       state.recognition.onerror =
-        event => {
-
+        event => {          fastResponse.cancel();
+          fastResponse.blocked = true;
           const error =
-
             event.error ||
             "inconnue";
 
@@ -5300,6 +5284,7 @@ initAmplifier() {
       state.recognition.onend =
         () => {
 
+          fastResponse.finishSession();
           state.recognitionStarting = false;
           state.recognitionRunning =
             false;
@@ -5767,6 +5752,7 @@ initAmplifier() {
   let staffTapTimer = null;
   function restartListeningFromGesture() {
     if (!state.started) return;
+    fastResponse.reset();
     const previous = state.recognition;
     if (previous) {
       previous.onstart = previous.onend = previous.onerror = previous.onresult = null;
