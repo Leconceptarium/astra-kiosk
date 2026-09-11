@@ -833,6 +833,22 @@
       display: none !important;
     }
 
+    body.projecting #fullscreenBtn,
+    body.projecting #statusIndicator,
+    body.projecting #languageSelector,
+    body.projecting #debugToggle,
+    body.projecting #debugPanel,
+    body.projecting #errorMessage,
+    body.projecting #launchScreen { display: none !important; }
+    body.projecting #staffTapZone {
+      display: block !important; background: transparent !important;
+      border: 0 !important; outline: 0 !important; opacity: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #launchDiagnostics { max-width: 85vw; color: #ddd; font-family: sans-serif; }
+    #launchDiagnostics summary { cursor: pointer; }
+    #phraseHistory { max-height: 28vh; overflow: auto; text-align: left; font-size: 14px; }
+    #launchDiagnostics button { margin-top: 10px; padding: 8px; }
   </style>
 
 </head>
@@ -847,8 +863,13 @@
       <button class="launchLang" data-launch-lang="en">🇬🇧 ENGLISH</button>
       <button class="launchLang" data-launch-lang="de">🇩🇪 DEUTSCH</button>
     </div>
+    <details id="launchDiagnostics">
+      <summary>Diagnostic staff — avant le lancement</summary>
+      <p>Les 100 dernières phrases et réponses, conservées sur cet appareil si le stockage est disponible.</p>
+      <div id="phraseHistory"></div>
+      <button id="clearPhraseHistory" type="button">Effacer l’historique</button>
+    </details>
   </div>
-
 
   <!-- =====================================================
        ZONE STAFF INVISIBLE
@@ -1214,7 +1235,7 @@
     fr: {
 
       bandeau:
-        "POUR ACCÉDER AUX PARCHEMINS, DITES-MOI LE MOT DE PASSE… MON CHAUDRON GARDE CE SECRET. REGARDEZ À L’INTÉRIEUR.",
+        "ASTRA VOUS ÉCOUTE… POUR ACCÉDER À VOS PARCHEMINS, DONNEZ LE MOT DE PASSE AVANT QU’IL NE MIJOTE TROP !",
 
       initializing:
         "Initialisation...",
@@ -1252,7 +1273,7 @@
     en: {
 
       bandeau:
-        "TO ACCESS THE SCROLL, TELL ME THE PASSWORD… MY CAULDRON HOLDS THIS SECRET. LOOK INSIDE.",
+        "ASTRA IS LISTENING… TO ACCESS YOUR SCROLLS, SAY THE PASSWORD BEFORE IT SIMMERS TOO LONG!",
 
       initializing:
         "Initializing...",
@@ -1290,7 +1311,7 @@
     de: {
 
       bandeau:
-        "NENNT MIR DAS PASSWORT FÜR DIE SCHRIFTROLLE… MEIN KESSEL HÜTET DIESES GEHEIMNIS. SCHAUT HINEIN.",
+        "ASTRA HÖRT ZU… NENNT DAS PASSWORT FÜR EURE SCHRIFTROLLEN, BEVOR ES ZU LANGE KÖCHELT!",
 
       initializing:
         "Initialisierung...",
@@ -2190,6 +2211,7 @@ const PARCHEMIN_VIDEO = {
               `Vidéo réaction refusée : ${err.message}`,
               "warn"
             );
+            return false;
 
           }
         );
@@ -2201,46 +2223,39 @@ const PARCHEMIN_VIDEO = {
     // Joue une réaction SANS audio (utilisé pour l'indice 5 min)
     // --------------------------------------------------------
 
+    standaloneCleanup: null,
     playStandaloneReaction(videoName) {
-
-      if (state.isPlaying || state.mdpValid) {
-        return;
-      }
-
+      if (state.isPlaying || state.mdpValid) return;
       state.isPlaying = true;
-
       const reaction = elements.astraReaction;
-
-      // Indice chaudron : taille fixe demandée 130 x 130.
-      // Les autres animations gardent leur taille habituelle.
-      if (videoName === VIDEO.cauldronHint) {
-        reaction.style.width = "130px";
-        reaction.style.height = "130px";
-        reaction.style.maxWidth = "130px";
-        reaction.style.maxHeight = "130px";
-        reaction.style.objectFit = "contain";
-      } else {
-        reaction.style.width = "";
-        reaction.style.height = "";
-        reaction.style.maxWidth = "";
-        reaction.style.maxHeight = "";
-        reaction.style.objectFit = "";
-      }
-
-      reaction.onended = null;
-      reaction.onerror = null;
-
-      this.playReaction(videoName);
-
-      reaction.onended = () => {
-        reaction.onended = null;
+      let finished = false, timer = null;
+      const cleanup = () => {
+        clearTimeout(timer);
+        reaction.onended = reaction.onerror = reaction.onplaying = reaction.onwaiting = null;
+        this.standaloneCleanup = null;
+      };
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        cleanup();
         this.endReaction();
       };
-
-      reaction.onerror = () => {
-        reaction.onerror = null;
-        this.endReaction();
+      this.standaloneCleanup = cleanup;
+      const guard = () => {
+        clearTimeout(timer);
+        timer = setTimeout(finish, 20000);
       };
+      reaction.onended = finish;
+      reaction.onerror = finish;
+      reaction.onwaiting = guard;
+      reaction.onplaying = () => {
+        clearTimeout(timer);
+        // Secours basé sur la durée, y compris si ended n'arrive pas.
+        const seconds = Number.isFinite(reaction.duration) ? Math.max(0, reaction.duration - reaction.currentTime) + 5 : 120;
+        timer = setTimeout(finish, seconds * 1000);
+      };
+      guard();
+      this.playReaction(videoName).then(ok => { if (ok === false) finish(); }).catch(finish);
     },
 
 
@@ -2720,6 +2735,7 @@ initAmplifier() {
     play(file, videoName = VIDEO.talk) {
       if (state.isPlaying) return;
       state.isPlaying = true;
+      if (videoManager.standaloneCleanup) videoManager.standaloneCleanup();
       const scroll = videoName === null;
       const audio = this.currentAudio;
       audio.pause();
@@ -2777,7 +2793,26 @@ initAmplifier() {
   function expandedIntent(text, lang) {
     const t = text.replace(/['’\-]/g, ' ').replace(/\s+/g, ' ').trim();
     const passwords = {fr: /\bbonne nuit\b/, en: /\bgood night\b/, de: /\bgute nacht\b/};
-    if (passwords[lang].test(t)) return 'password';
+    const deniedPassword = {
+      fr: /\b(?:pas|jamais)\s+(?:le mot de passe\s+)?bonne nuit\b|\bbonne nuit\s+(?:ce |c )?(?:n est |est )?pas\b/,
+      en: /\bnot\s+(?:the password\s+)?good night\b|\bgood night\s+is\s+not\b/,
+      de: /\bnicht\s+gute nacht\b|\bgute nacht\s+ist\s+nicht\b/
+    };
+    if (passwords[lang].test(t)) {
+      if (deniedPassword[lang].test(t)) return 'ignore';
+      return 'password';
+    }
+    const deniedCommand = {
+      fr: /\b(?:ne |n )?(?:donne|donnez|affiche|montre|ouvre|repete|chante|raconte)\s+(?:\w+\s+){0,2}(?:pas|plus|jamais)\b|\b(?:veux|veut|voulons)\s+pas\b/,
+      en: /\b(?:do not|don t|never)\s+(?:show|give|open|repeat|sing|tell)\b/,
+      de: /\b(?:zeig|zeige|offne|wiederhole|sing|singe)\b.*\b(?:nicht|kein|keine)\b/
+    };
+    if (deniedCommand[lang].test(t)) return 'ignore';
+    if (lang === 'fr') {
+      if (/\b(?:mot de passe|code secret)\b/.test(t) && /\b(?:sais|sait|savons|connais|connait|connaissons|trouve|trouver)\s+(?:toujours\s+)?(?:pas|plus|jamais)\b|\bpas\s+(?:encore\s+)?trouve\b/.test(t)) return 'mdp_oublie';
+      if (/\b(?:aide|aides|aidez) nous a (?:dormir|nous endormir)\b/.test(t)) return 'berceuse';
+    }
+
     const rules = {
       fr: [
         ['repeat', /\b(repete|repeter|redis|redire|recommence|encore une fois|pas entendu|mal entendu|rien entendu)\b/],
@@ -2814,6 +2849,42 @@ initAmplifier() {
     return found ? found[0] : null;
   }
 
+  const phraseHistory = {
+    key: 'astra.phraseHistory.v1',
+    entries: [],
+    restore() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(this.key) || '[]');
+        this.entries = Array.isArray(saved) ? saved.filter(x => x && typeof x.text === 'string' && typeof x.result === 'string').slice(-100) : [];
+      } catch (_) { this.entries = []; }
+    },
+    record(text, response) {
+      const files = audioFiles[state.currentLang];
+      const unknown = response && files.pas_compris.includes(response.file);
+      const result = !response ? 'Sans réponse' : unknown ? 'Non reconnue' : response.file;
+      this.entries.push({time: new Date().toLocaleString(), lang: state.currentLang, text: String(text).slice(0,500), result});
+      this.entries = this.entries.slice(-100);
+      try { localStorage.setItem(this.key, JSON.stringify(this.entries)); } catch (_) {}
+    },
+    render() {
+      if (state.started) return;
+      const target = document.getElementById('phraseHistory');
+      target.textContent = '';
+      if (!this.entries.length) { target.textContent = 'Aucune phrase enregistrée.'; return; }
+      this.entries.slice().reverse().forEach(entry => {
+        const row = document.createElement('p');
+        row.textContent = `${entry.time} [${entry.lang}] ${entry.text} → ${entry.result}`;
+        target.appendChild(row);
+      });
+    },
+    clear() {
+      this.entries = [];
+      try { localStorage.removeItem(this.key); } catch (_) {}
+      this.render();
+    }
+  };
+
+
   const phraseDetector = {
 
     // ========================================================
@@ -2844,6 +2915,8 @@ initAmplifier() {
         this.normalize(text);      const lang = state.currentLang;
       const audio = audioFiles[lang];
       const expanded = expandedIntent(t, lang);
+      if (expanded === 'ignore') return null;
+      if (expanded === 'berceuse' && !state.awake) return null;
       if (expanded === 'password') {
         state.awake = true;
         clearTimeout(state.passwordHintTimer);
@@ -4856,6 +4929,7 @@ initAmplifier() {
       state.recognition.onstart =
         () => {
 
+          state.recognitionStarting = false;
           state.recognitionRunning =
             true;
 
@@ -5011,6 +5085,7 @@ initAmplifier() {
              → silence complet pendant le brief
             */
 
+            phraseHistory.record(text, response);
             if (
               response &&
               response.file
@@ -5225,6 +5300,7 @@ initAmplifier() {
       state.recognition.onend =
         () => {
 
+          state.recognitionStarting = false;
           state.recognitionRunning =
             false;
 
@@ -5375,7 +5451,7 @@ initAmplifier() {
       */
 
       if (
-        state.recognitionRunning
+        state.recognitionRunning || state.recognitionStarting
       ) {
 
         return;
@@ -5385,6 +5461,7 @@ initAmplifier() {
 
       try {
 
+        state.recognitionStarting = true;
         state.recognition.start();
 
 
@@ -5396,6 +5473,7 @@ initAmplifier() {
       }
 
       catch (err) {
+        state.recognitionStarting = false;
 
 
         // ----------------------------------------------------
@@ -5565,6 +5643,22 @@ initAmplifier() {
   // ==========================================================
   // DÉMARRAGE iPAD DEPUIS UN VRAI GESTE UTILISATEUR
   // ==========================================================
+  const passwordHint = {
+    schedule(delay = 5 * 60 * 1000) {
+      clearTimeout(state.passwordHintTimer);
+      state.passwordHintTimer = setTimeout(() => this.tryShow(), delay);
+    },
+    tryShow() {
+      state.passwordHintTimer = null;
+      if (!state.started || state.mdpValid || state.awake) return;
+      if (state.isPlaying || document.visibilityState === 'hidden') {
+        this.schedule(1000);
+        return;
+      }
+      videoManager.playStandaloneReaction(VIDEO.cauldronHint);
+    }
+  };
+
   function startAstraFromUserGesture() {
 
     if (state.started) {
@@ -5579,6 +5673,8 @@ initAmplifier() {
     }
 
     state.started = true;
+    document.body.classList.remove('staffMode');
+    document.body.classList.add('projecting');
   audioPreloader.preloadAll();
     state.awake = false;
 
@@ -5628,22 +5724,9 @@ initAmplifier() {
     // Initialisation micro / logique Astra.
     app.init();
 
-    // Indice automatique après 5 minutes si le mot de passe n'est pas trouvé.
-    if (state.passwordHintTimer) {
-      clearTimeout(state.passwordHintTimer);
-    }
-
-    state.passwordHintTimer = setTimeout(() => {
-      if (!state.mdpValid && !state.awake && !state.isPlaying) {
-        debugLogger.log(
-          "⏱️ 5 min sans mot de passe — indice chaudron automatique",
-          "info"
-        );
-        videoManager.playStandaloneReaction(VIDEO.cauldronHint);
-      }
-      state.passwordHintTimer = null;
-    }, 5 * 60 * 1000);
+    passwordHint.schedule();
   }
+
 
   // ==========================================================
   // LANCEMENT GM : LANGUE → DÉMARRAGE IMMÉDIAT
@@ -5678,96 +5761,37 @@ initAmplifier() {
     });
   });
 
-  // ==========================================================
-  // PREMIER TAP STAFF + MODE STAFF
-  // ==========================================================
-
+  // Cinq taps dans le coin supérieur DROIT de l'écran physique (body en miroir).
+  // Aucun panneau ne s'ouvre pendant la projection, même sans plein écran.
   let staffTapCount = 0;
-
   let staffTapTimer = null;
-
-
-  elements.staffTapZone
-    .addEventListener(
-
-      "click",
-
-      () => {
-
-
-        // ====================================================
-        // PREMIER TAP = DÉMARRAGE ASTRA
-        // ====================================================
-
-        if (!state.started) {
-          startAstraFromUserGesture();
-          return;
-        }
-
-
-        // ====================================================
-        // 5 TAPS = MODE STAFF
-        // ====================================================
-
-        staffTapCount++;
-
-
-        clearTimeout(
-          staffTapTimer
-        );
-
-
-        staffTapTimer =
-          setTimeout(
-
-            () => {
-
-              staffTapCount =
-                0;
-
-            },
-
-            2000
-
-          );
-
-
-        if (
-          staffTapCount >= 5
-        ) {
-
-          document.body
-            .classList
-            .toggle(
-              "staffMode"
-            );
-
-
-          staffTapCount =
-            0;
-
-
-          debugLogger.log(
-
-            document.body
-              .classList
-              .contains(
-                "staffMode"
-              )
-
-              ? "Mode staff activé"
-
-              : "Mode staff désactivé",
-
-            "info"
-
-          );
-
-        }
-
-      }
-
-    );
+  function restartListeningFromGesture() {
+    if (!state.started) return;
+    const previous = state.recognition;
+    if (previous) {
+      previous.onstart = previous.onend = previous.onerror = previous.onresult = null;
+      previous.onspeechstart = previous.onspeechend = null;
+      try { previous.abort(); } catch (_) {}
+    }
+    state.recognition = null;
+    state.recognitionRunning = false;
+    state.recognitionStarting = false;
+    state.manualStop = false;
+    state.needsGestureRestart = false;
+    if (audioManager.audioContext) audioManager.audioContext.resume().catch(() => {});
+    if (speechRecognition.init()) speechRecognition.start();
+    debugLogger.log('Relance discrète du micro demandée par le staff', 'info');
+  }
+  elements.staffTapZone.addEventListener('click', () => {
+    if (!state.started) return;
+    staffTapCount++;
+    clearTimeout(staffTapTimer);
+    staffTapTimer = setTimeout(() => { staffTapCount = 0; }, 2000);
+    if (staffTapCount >= 5) {
+      staffTapCount = 0;
+      restartListeningFromGesture();
+    }
+  });
 
 
   // ==========================================================
@@ -5831,7 +5855,7 @@ initAmplifier() {
       // NOUVEL ESSAI DE DÉBLOCAGE AUDIO
       // ======================================================
 
-      audioManager.unlock();
+      if (!state.isPlaying) audioManager.unlock();
 
 
       // ======================================================
@@ -6125,6 +6149,10 @@ initAmplifier() {
 
   );
 
+
+  document.getElementById('launchDiagnostics').addEventListener('toggle', () => phraseHistory.render());
+  document.getElementById('clearPhraseHistory').addEventListener('click', () => phraseHistory.clear());
+  phraseHistory.restore();
 
   // ==========================================================
   // FIN ASTRA
