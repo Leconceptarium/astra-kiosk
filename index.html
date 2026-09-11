@@ -967,7 +967,7 @@
   <div id="bandeau">
 
     <span>
-      ASTRA VOUS ÉCOUTE… AVEZ-VOUS OUBLIÉ VOTRE MOT DE PASSE POUR ACCÉDER AUX PARCHEMINS ? 
+      ASTRA VOUS ÉCOUTE… POUR ACCÉDER À VOS PARCHEMINS, DONNEZ LE MOT DE PASSE AVANT QU’IL NE MIJOTE TROP ! 
     </span>
 
   </div>
@@ -1164,14 +1164,9 @@
 
       }
 
-      elements.debugPanel.innerHTML =
-
-        this.logs
-          .map(
-            log =>
-              `<div>${log}</div>`
-          )
-          .join("");
+      if (!elements.debugPanel.classList.contains('visible')) return;
+      elements.debugPanel.textContent = this.logs.join('\n');
+      elements.debugPanel.style.whiteSpace = 'pre-wrap';
 
       elements.debugPanel.scrollTop =
 
@@ -1219,7 +1214,7 @@
     fr: {
 
       bandeau:
-        "ASTRA VOUS ÉCOUTE… AVEZ-VOUS OUBLIÉ VOTRE MOT DE PASSE POUR ACCÉDER AUX PARCHEMINS ?",
+        "POUR ACCÉDER AUX PARCHEMINS, DITES-MOI LE MOT DE PASSE… MON CHAUDRON GARDE CE SECRET. REGARDEZ À L’INTÉRIEUR.",
 
       initializing:
         "Initialisation...",
@@ -1257,7 +1252,7 @@
     en: {
 
       bandeau:
-        "ASTRA IS LISTENING… HAVE YOU FORGOTTEN YOUR PASSWORD TO ACCESS THE SCROLL?",
+        "TO ACCESS THE SCROLL, TELL ME THE PASSWORD… MY CAULDRON HOLDS THIS SECRET. LOOK INSIDE.",
 
       initializing:
         "Initializing...",
@@ -1295,7 +1290,7 @@
     de: {
 
       bandeau:
-        "ASTRA HÖRT ZU… HABEN SIE IHR PASSWORT FÜR DIE SCHRIFTROLLE VERGESSEN?",
+        "NENNT MIR DAS PASSWORT FÜR DIE SCHRIFTROLLE… MEIN KESSEL HÜTET DIESES GEHEIMNIS. SCHAUT HINEIN.",
 
       initializing:
         "Initialisierung...",
@@ -1883,6 +1878,8 @@ const PARCHEMIN_VIDEO = {
 
       state.currentLang =
         lang;
+      state.lastResponse = null;
+      audioPreloader.preloadAll();
 
       const langButtons =
 
@@ -2085,6 +2082,8 @@ const PARCHEMIN_VIDEO = {
     activateIdle(
       idleVideo
     ) {
+      if (parcheminManager.active) return;
+      [elements.astraIdle, elements.astraIdle2].forEach(v => { if (v !== idleVideo) v.pause(); });
 
       elements.astraIdle
         .classList
@@ -2143,6 +2142,8 @@ const PARCHEMIN_VIDEO = {
     playReaction(
       videoName
     ) {
+      elements.astraIdle.pause();
+      elements.astraIdle2.pause();
 
       debugLogger.log(
         `Vidéo réaction : ${videoName}`,
@@ -2248,6 +2249,8 @@ const PARCHEMIN_VIDEO = {
     // --------------------------------------------------------
 
     endReaction() {
+      elements.astraReaction.pause();
+      if (parcheminManager.active) return;
 
       elements.astraReaction.style.opacity =
         "0";
@@ -2312,99 +2315,71 @@ const PARCHEMIN_VIDEO = {
   //
   // ==========================================================
 const parcheminManager = {
-
-  videos: {
-    fr: "parchemin_fr.mp4",
-    en: "parchemin_en.mp4",
-    de: "parchemin_de.mp4"
+  videos: { fr: "parchemin_fr.mp4", en: "parchemin_en.mp4", de: "parchemin_de.mp4" },
+  active: false,
+  videoDone: false,
+  audioDone: false,
+  timer: null,
+  prepare() {
+    if (this.active) return;
+    const video = elements.parcheminImage;
+    const file = this.videos[state.currentLang] || this.videos.fr;
+    if (video.getAttribute('src') !== file) {
+      video.src = file;
+      video.preload = 'auto';
+      video.load();
+    }
   },
-
   show() {
-
+    this.prepare();
+    this.active = true;
+    this.videoDone = false;
+    this.audioDone = false;
+    [elements.astraIdle, elements.astraIdle2, elements.astraReaction].forEach(v => {
+      v.pause(); v.style.display = 'none'; v.classList.remove('active');
+    });
+    document.querySelectorAll('.magic').forEach(p => p.remove());
     const video = elements.parcheminImage;
-    const fichier =
-      this.videos[state.currentLang]
-      || this.videos.fr;
-
-    debugLogger.log(
-      `Ouverture parchemin : ${fichier}`,
-      "info"
-    );
-
-    try { video.pause(); } catch (_) {}
-
-    video.classList.remove("visible");
-    video.style.display = "block";
+    video.style.display = 'block';
+    video.classList.add('visible');
     video.muted = true;
-    video.setAttribute("playsinline", "");
-    video.setAttribute("webkit-playsinline", "");
-
-    // IMPORTANT Safari/iPad : brancher les handlers AVANT load(),
-    // sinon une vidéo déjà en cache peut devenir prête avant onloadeddata.
-    video.onloadeddata = () => {
-      debugLogger.log(
-        `✓ Vidéo parchemin chargée : ${fichier}`,
-        "success"
-      );
-
-      video.classList.add("visible");
-
-      try { video.currentTime = 0; } catch (_) {}
-
-      const p = video.play();
-      if (p && p.then) {
-        p.then(() => {
-          debugLogger.log("▶ Vidéo parchemin lancée", "success");
-        }).catch(err => {
-          debugLogger.log(
-            `Erreur lecture parchemin : ${err.name} / ${err.message}`,
-            "error"
-          );
-          this.hide();
-        });
-      }
+    video.currentTime = 0;
+    // Si le MP3 est plus long, conserver la dernière image jusqu'à sa fin.
+    video.onended = () => { this.videoDone = true; this.finishIfReady(); };
+    video.onerror = () => this.fail();
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.fail(), 20000);
+    video.onplaying = () => { clearTimeout(this.timer); };
+    video.onwaiting = () => {
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => this.fail(), 20000);
     };
-
-    video.onended = () => {
-      debugLogger.log("Vidéo parchemin terminée", "info");
-      this.hide();
-    };
-
-    video.onerror = () => {
-      debugLogger.log(
-        `ERREUR fichier parchemin : ${fichier}`,
-        "error"
-      );
-      this.hide();
-    };
-
-    video.src = fichier;
-    try { video.load(); } catch (_) {}
+    video.play().catch(() => this.fail());
   },
-
+  fail() {
+    if (!this.active) return;
+    debugLogger.log('Parchemin indisponible ou lecture bloquée', 'error');
+    utils.showError('Parchemin indisponible', 3000);
+    this.videoDone = true;
+    this.finishIfReady();
+  },
+  finishIfReady() {
+    if (this.active && this.videoDone && this.audioDone) {
+      this.hide();
+      videoManager.endReaction();
+    }
+  },
   hide() {
-
+    clearTimeout(this.timer);
     const video = elements.parcheminImage;
-
-    video.classList.remove("visible");
-
-    setTimeout(() => {
-
-      try {
-        video.pause();
-      } catch (_) {}
-
-      video.style.display = "none";
-
-      try {
-        video.currentTime = 0;
-      } catch (_) {}
-
-    }, 500);
-
+    video.onended = video.onerror = video.onplaying = video.onwaiting = null;
+    video.pause();
+    video.classList.remove('visible');
+    video.style.display = 'none';
+    this.active = false;
   }
-
 };
+
 
   // ==========================================================
   // EFFETS MAGIQUES
@@ -2413,6 +2388,7 @@ const parcheminManager = {
   const magicEffects = {
 
     spawn() {
+      if (parcheminManager.active) return;
 
       const particle =
 
@@ -2501,117 +2477,16 @@ const parcheminManager = {
   */
 
   const audioPreloader = {
-
     cache: [],
-
-
     preloadAll() {
-
-      const files =
-        new Set();
-
-
-      // Bip robotique
-      files.add(
-        "biprobotic.mp3"
-      );
-
-
-      // ------------------------------------------------------
-      // Toutes les réponses dans toutes les langues
-      // ------------------------------------------------------
-
-      Object.values(
-        audioFiles
-      )
-
-      .forEach(
-        languageFiles => {
-
-          Object.values(
-            languageFiles
-          )
-
-          .forEach(
-            value => {
-
-              if (
-                Array.isArray(
-                  value
-                )
-              ) {
-
-                value.forEach(
-                  file => {
-
-                    files.add(
-                      file
-                    );
-
-                  }
-                );
-
-              }
-
-              else if (
-                typeof value ===
-                "string"
-              ) {
-
-                files.add(
-                  value
-                );
-
-              }
-
-            }
-          );
-
-        }
-      );
-
-
-      // ------------------------------------------------------
-      // Création des lecteurs de préchargement
-      // ------------------------------------------------------
-
-      files.forEach(
-        file => {
-
-          const audio =
-            new Audio();
-
-          audio.preload =
-            "auto";
-
-          audio.src =
-            file;
-
-
-          try {
-
-            audio.load();
-
-          }
-
-          catch (_) {}
-
-
-          this.cache.push(
-            audio
-          );
-
-        }
-      );
-
-
-      debugLogger.log(
-        `${files.size} fichiers audio demandés en préchargement`,
-        "success"
-      );
-
+      this.cache.forEach(a => { a.pause(); a.removeAttribute('src'); a.load(); });
+      // Préparer seulement les réponses utiles au départ, dans la langue choisie.
+      const files = audioFiles[state.currentLang];
+      this.cache = ['bonjour', 'mdp', 'notif', 'parchemin', 'indice_aide', 'mdp_oublie'].map(key => {
+        const a = new Audio(files[key]); a.preload = 'auto'; a.load(); return a;
+      });
+      parcheminManager.prepare();
     }
-
   };
 
 
@@ -2842,655 +2717,54 @@ initAmplifier() {
     // LECTURE D'UNE RÉPONSE ASTRA
     // ========================================================
 
-    play(
-      file,
-      videoName = VIDEO.talk
-    ) {
-
-      debugLogger.log(
-        `Réponse demandée : ${file}`,
-        "audio"
-      );
-
-
-      debugLogger.log(
-        `Audio débloqué : ${this.unlocked}`,
-        "info"
-      );
-
-
-      // ------------------------------------------------------
-      // Astra parle déjà
-      // ------------------------------------------------------
-
-      if (
-        state.isPlaying
-      ) {
-
-        debugLogger.log(
-          "Astra parle déjà — nouvelle réponse ignorée",
-          "warn"
-        );
-
-        return;
-
-      }
-
-
-      state.isPlaying =
-        true;
-
-
-      // Safari minimal : NE JAMAIS arrêter la reconnaissance quand Astra parle.
-      // Les résultats vocaux reçus pendant state.isPlaying sont simplement ignorés.
-      // Cela évite les erreurs "aborted" de Safari/iPadOS.
-
-
-      const audio =
-        this.currentAudio;
-
-
-      const bip =
-        this.thinkingAudio;
-
-
-      // ======================================================
-      // NETTOYAGE
-      // ======================================================
-
-      try {
-
+    play(file, videoName = VIDEO.talk) {
+      if (state.isPlaying) return;
+      state.isPlaying = true;
+      const scroll = videoName === null;
+      const audio = this.currentAudio;
+      audio.pause();
+      this.thinkingAudio.pause();
+      audio.onended = audio.onerror = audio.onloadeddata = audio.oncanplay = audio.oncanplaythrough = null;
+      audio.onplaying = audio.onwaiting = null;
+      clearTimeout(this.safetyTimeout);
+      let finished = false;
+      const finish = (error) => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(this.safetyTimeout);
+        audio.onended = audio.onerror = audio.onplaying = audio.onwaiting = null;
         audio.pause();
-
-      }
-
-      catch (_) {}
-
-
-      try {
-
-        bip.pause();
-
-        bip.currentTime =
-          0;
-
-      }
-
-      catch (_) {}
-
-
-      audio.onended =
-        null;
-
-      audio.onerror =
-        null;
-
-      audio.onloadeddata =
-        null;
-
-      audio.oncanplay =
-        null;
-
-      audio.oncanplaythrough =
-        null;
-
-
-      bip.onended =
-        null;
-
-      bip.onerror =
-        null;
-
-
-      // ======================================================
-      // PRÉPARATION IMMÉDIATE DE LA RÉPONSE
-      // ======================================================
-
-      audio.src =
-        file;
-
-
-      audio.volume =
-        1;
-
-
-      audio.preload =
-        "auto";
-
-
-      /*
-       On lance immédiatement l'animation
-       correspondant à la réponse.
-      */
-
-      videoManager.playReaction(
-        videoName
-      );
-
-
-      // ======================================================
-      // FILET DE SÉCURITÉ
-      // ======================================================
-
-      if (
-        this.safetyTimeout
-      ) {
-
-        clearTimeout(
-          this.safetyTimeout
-        );
-
-      }
-
-
-      this.safetyTimeout =
-
-        setTimeout(
-          () => {
-
-            if (
-              !state.isPlaying
-            ) {
-
-              return;
-
-            }
-
-
-            debugLogger.log(
-              "Timeout audio — déblocage forcé",
-              "warn"
-            );
-
-
-            try {
-
-              audio.pause();
-
-            }
-
-            catch (_) {}
-
-
-            try {
-
-              bip.pause();
-
-            }
-
-            catch (_) {}
-
-
-            videoManager.endReaction();
-
-
-            state.isPlaying =
-              false;
-
-          },
-
-          30000
-        );
-
-
-      // ======================================================
-      // ÉTAT DE CHARGEMENT
-      // ======================================================
-
-      let responseReady =
-        audio.readyState >= 3;
-
-
-      let bipFinished =
-        false;
-
-
-      let responseStarted =
-        false;
-
-
-      // ======================================================
-      // DÉMARRAGE DE LA RÉPONSE
-      // ======================================================
-
-      const maybeStartResponse =
-        () => {
-
-          if (
-            responseStarted ||
-            !responseReady ||
-            !bipFinished
-          ) {
-
-            return;
-
-          }
-
-
-          responseStarted =
-            true;
-
-
-          debugLogger.log(
-            `▶ Démarrage réponse Astra : ${file}`,
-            "success"
-          );
-
-
-          const playPromise =
-            audio.play();
-
-
-          if (
-            playPromise &&
-            playPromise.then
-          ) {
-
-            playPromise
-
-              .then(
-                () => {
-
-                  debugLogger.log(
-                    `✓ ASTRA PARLE : ${file}`,
-                    "success"
-                  );
-
-                }
-              )
-
-
-              .catch(
-                err => {
-
-                  debugLogger.log(
-                    `✗ Lecture réponse refusée : ${err.name} / ${err.message}`,
-                    "error"
-                  );
-
-
-                  if (
-                    this.safetyTimeout
-                  ) {
-
-                    clearTimeout(
-                      this.safetyTimeout
-                    );
-
-                  }
-
-
-                  videoManager.endReaction();
-
-
-                  state.isPlaying =
-                    false;
-
-                }
-              );
-
-          }
-
-        };
-
-
-      // ======================================================
-      // RÉPONSE AUDIO PRÊTE
-      // ======================================================
-
-      const markResponseReady =
-        () => {
-
-          responseReady =
-            true;
-
-
-          debugLogger.log(
-            `Réponse audio prête : ${file}`,
-            "success"
-          );
-
-
-          maybeStartResponse();
-
-        };
-
-
-      audio.onloadeddata =
-        markResponseReady;
-
-
-      audio.oncanplay =
-        markResponseReady;
-
-
-      audio.oncanplaythrough =
-        markResponseReady;
-
-
-      // ======================================================
-      // ERREUR AUDIO
-      // ======================================================
-
-      audio.onerror =
-        () => {
-
-          const errorCode =
-
-            audio.error
-
-              ? audio.error.code
-
-              : "inconnu";
-
-
-          debugLogger.log(
-            `✗ ERREUR AUDIO : ${file} / code ${errorCode}`,
-            "error"
-          );
-
-
-          if (
-            this.safetyTimeout
-          ) {
-
-            clearTimeout(
-              this.safetyTimeout
-            );
-
-          }
-
-
-          try {
-
-            bip.pause();
-
-          }
-
-          catch (_) {}
-
-
-          videoManager.endReaction();
-
-
-          state.isPlaying =
-            false;
-
-
-
-          utils.showError(
-            `Audio introuvable : ${file}`,
-            3000
-          );
-
-        };
-
-
-      // ======================================================
-      // FIN DE LA RÉPONSE
-      // ======================================================
-
-      audio.onended =
-        () => {
-
-          debugLogger.log(
-            `Audio terminé : ${file}`,
-            "info"
-          );
-
-
-          if (
-            this.safetyTimeout
-          ) {
-
-            clearTimeout(
-              this.safetyTimeout
-            );
-
-          }
-
-
-          videoManager.endReaction();
-
-
-          state.isPlaying =
-            false;
-
-
-        };
-
-
-      // ======================================================
-      // BIP ROBOTIQUE RAPIDE
-      // ======================================================
-
-      /*
-       IMPORTANT :
-
-       On ne laisse PLUS le bip se jouer entièrement.
-
-       Il démarre...
-
-       puis 5 ms plus tard :
-
-       → on considère l'attente terminée
-       → on coupe le bip
-       → Astra peut parler immédiatement
-      */
-
-
-      bip.onerror =
-        () => {
-
-          bipFinished =
-            true;
-
-
-          debugLogger.log(
-            "biprobotic.mp3 indisponible — réponse sans bip",
-            "warn"
-          );
-
-
-          maybeStartResponse();
-
-        };
-
-
-      // ======================================================
-      // LANCEMENT DU BIP
-      // ======================================================
-
-      try {
-
-        bip.currentTime =
-          0;
-
-
-        const bipPromise =
-          bip.play();
-
-
-        if (
-          bipPromise &&
-          bipPromise.then
-        ) {
-
-          bipPromise
-
-            .then(
-              () => {
-
-                debugLogger.log(
-                  "🤖 Bip robotique",
-                  "success"
-                );
-
-
-                // --------------------------------------------
-                // ATTENTE ULTRA COURTE : 5 ms
-                // --------------------------------------------
-
-                setTimeout(
-                  () => {
-
-                    bipFinished =
-                      true;
-
-
-                    /*
-                     On coupe le bip afin qu'il
-                     ne continue pas pendant
-                     la voix d'Astra.
-                    */
-
-                    try {
-
-                      bip.pause();
-
-                      bip.currentTime =
-                        0;
-
-                    }
-
-                    catch (_) {}
-
-
-                    debugLogger.log(
-                      "⚡ Fin attente bip → réponse Astra",
-                      "info"
-                    );
-
-
-                    maybeStartResponse();
-
-                  },
-
-                  5
-                );
-
-              }
-            )
-
-
-            .catch(
-              err => {
-
-                bipFinished =
-                  true;
-
-
-                debugLogger.log(
-                  `Bip refusé : ${err.name} / ${err.message}`,
-                  "warn"
-                );
-
-
-                maybeStartResponse();
-
-              }
-            );
-
+        if (error) {
+          debugLogger.log('Lecture audio impossible : ' + file, 'error');
+          utils.showError('Audio indisponible : ' + file, 3000);
         }
-
-        else {
-
-          /*
-           Très vieux navigateur :
-           on ne bloque pas la réponse.
-          */
-
-          setTimeout(
-            () => {
-
-              bipFinished =
-                true;
-
-
-              try {
-
-                bip.pause();
-
-                bip.currentTime =
-                  0;
-
-              }
-
-              catch (_) {}
-
-
-              maybeStartResponse();
-
-            },
-
-            5
-          );
-
-        }
-
-      }
-
-      catch (err) {
-
-        bipFinished =
-          true;
-
-
-        debugLogger.log(
-          `Erreur bip : ${err.message}`,
-          "warn"
-        );
-
-
-        maybeStartResponse();
-
-      }
-
-
-      // ======================================================
-      // CHARGEMENT DU MP3 DE RÉPONSE
-      // ======================================================
-
-      /*
-       Pendant les quelques ms du bip,
-       Safari commence déjà à préparer
-       le fichier de réponse.
-      */
-
-      if (
-        !responseReady
-      ) {
-
-        try {
-
-          audio.load();
-
-        }
-
-        catch (err) {
-
-          debugLogger.log(
-            `Erreur audio.load() : ${err.message}`,
-            "error"
-          );
-
-        }
-
-      }
-
-      else {
-
-        debugLogger.log(
-          `Réponse déjà en cache : ${file}`,
-          "success"
-        );
-
-      }
-
+        if (scroll) {
+          parcheminManager.audioDone = true;
+          parcheminManager.finishIfReady();
+        } else videoManager.endReaction();
+      };
+      const guard = () => {
+        clearTimeout(this.safetyTimeout);
+        this.safetyTimeout = setTimeout(() => finish(true), 20000);
+      };
+      audio.onended = () => finish(false);
+      audio.onerror = () => finish(true);
+      audio.onwaiting = guard;
+      audio.onplaying = () => {
+        clearTimeout(this.safetyTimeout);
+        state.lastResponse = { file, video: videoName };
+      };
+      audio.src = file;
+      audio.volume = 1;
+      audio.preload = 'auto';
+      if (scroll) parcheminManager.show();
+      else videoManager.playReaction(videoName);
+      guard();
+      // Aucun bip préalable : la voix peut démarrer dès que le navigateur est prêt.
+      if (this.audioContext && this.audioContext.state === 'suspended') this.audioContext.resume().catch(() => {});
+      audio.play().catch(() => finish(true));
     }
-
   };
-
 
   // ==========================================================
   // FIN PARTIE 5
@@ -3499,6 +2773,46 @@ initAmplifier() {
     // ==========================================================
   // DÉTECTION DES PHRASES
   // ==========================================================
+
+  function expandedIntent(text, lang) {
+    const t = text.replace(/['’\-]/g, ' ').replace(/\s+/g, ' ').trim();
+    const passwords = {fr: /\bbonne nuit\b/, en: /\bgood night\b/, de: /\bgute nacht\b/};
+    if (passwords[lang].test(t)) return 'password';
+    const rules = {
+      fr: [
+        ['repeat', /\b(repete|repeter|redis|redire|recommence|encore une fois|pas entendu|mal entendu|rien entendu)\b/],
+        ['mdp_oublie', /\b(mot de passe|code secret)\b.*\b(ou|trouver|sais pas|connait pas|connais pas|oublie)\b|\b(ou|quel|quoi|oublie)\b.*\b(mot de passe|code secret)\b/],
+        ['invite_mdp', /\b(trouve|connait|connais|avons|a)\b.*\b(mot de passe|code secret)\b/],
+        ['scroll', /\b(parchemins?|recette|formule|liberer|delivrer|liberation)\b|\b(ouvre|ouvrir)\b.*\bcage\b/],
+        ['faire_quoi_mtn', /\b(on|nous)\b.*\b(fait|faire|doit|devons)\b.*\b(quoi|maintenant|ensuite)\b|\b(prochaine etape|par ou commencer|que faire|comment continuer)\b/],
+        ['indice_aide', /\b(aide|aider|aidez|aides|secours|indices?|bloque|bloques|coince|coinces|comprend pas|comprends pas|comprend rien|comprends rien|chaudron)\b/],
+        ['qui_morpheus', /\b(qui|presente|parle)\b.*\b(morpheus|morphee|morfeus)\b/],
+        ['qui', /\b(qui es tu|qui tu es|tu es qui|t es qui|comment tu t appelles|ton nom|presente toi)\b/],
+        ['ou', /\b(ou on est|ou est on|ou sommes nous|ou nous sommes|quel endroit|quelle salle)\b/],
+        ['tu_es_la', /\b(tu entends|tu m entends|tu nous entends|tu es la|t es la|reponds|repond|ecoute nous)\b/],
+        ['ca_va', /\b(comment vas tu|comment allez vous|tout va bien|tu te sens comment)\b/],
+        ['berceuse', /\b(chante|chanter|chanson|endors nous|aide nous a dormir)\b/],
+        ['blague', /\b(blagues?|fais nous rire|fais moi rire|raconte un truc drole)\b/],
+        ['reve_croire', /\b(on peut reussir|on va y arriver|tu nous fais confiance|crois tu en nous)\b/]
+      ],
+      en: [
+        ['repeat', /\b(repeat|say that again|say it again|didn t hear|couldn t hear|one more time)\b/],
+        ['mdp_oublie', /\b(where|what|forgot|find)\b.*\bpassword\b/],
+        ['scroll', /\b(scrolls?|parchment|recipe|free him|release him|open the cage)\b/],
+        ['faire_quoi_mtn', /\b(what next|what do we do|what should we do|where do we start)\b/],
+        ['indice_aide', /\b(help|hint|clue|stuck|cauldron)\b/]
+      ],
+      de: [
+        ['repeat', /\b(wiederholen|wiederhole|noch einmal|nochmal|nicht gehort|nicht verstanden)\b/],
+        ['mdp_oublie', /\b(wo|was|vergessen)\b.*\bpasswort\b/],
+        ['scroll', /\b(schriftrolle|rezept|befreien|kafig offnen)\b/],
+        ['faire_quoi_mtn', /\b(wie geht es weiter|was sollen wir machen|wo fangen wir an)\b/],
+        ['indice_aide', /\b(hilfe|helfen|hinweis|tipp|kessel)\b/]
+      ]
+    };
+    const found = rules[lang].find(([, pattern]) => pattern.test(t));
+    return found ? found[0] : null;
+  }
 
   const phraseDetector = {
 
@@ -3513,6 +2827,8 @@ initAmplifier() {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[’']/g, "'")
+        .replace(/[.,!?;:…]/g, " ")
+        .replace(/\s+/g, " ")
         .trim();
 
     },
@@ -3525,13 +2841,21 @@ initAmplifier() {
     detect(text) {
 
       const t =
-        this.normalize(text);
-
-      const lang =
-        state.currentLang;
-
-      const audio =
-        audioFiles[lang];
+        this.normalize(text);      const lang = state.currentLang;
+      const audio = audioFiles[lang];
+      const expanded = expandedIntent(t, lang);
+      if (expanded === 'password') {
+        state.awake = true;
+        clearTimeout(state.passwordHintTimer);
+        state.passwordHintTimer = null;
+        return this.handlePassword();
+      }
+      if (expanded === 'repeat') return state.lastResponse || null;
+      if (expanded === 'scroll' && state.awake) return this.handleParchemin();
+      if (expanded === 'blague' && state.awake) return this.handleJoke();
+      if (expanded && (state.awake || ['indice_aide', 'mdp_oublie', 'invite_mdp', 'tu_es_la'].includes(expanded))) {
+        return { file: audio[expanded], video: state.awake ? VIDEO.talk : VIDEO.cauldronHint };
+      }
 
 
       debugLogger.log(
@@ -3567,15 +2891,15 @@ initAmplifier() {
         let greetingBeforePassword = false;
 
         if (lang === "fr") {
-          greetingBeforePassword = /bonjour|salut|coucou|bonsoir|wesh|yo|hello|hey/i.test(t);
+          greetingBeforePassword = /\b(?:bonjour|salut|coucou|bonsoir|wesh|yo|hello|hey)\b/i.test(t);
         }
 
         if (lang === "en") {
-          greetingBeforePassword = /hello|hi|hey|good morning|good evening|yo/i.test(t);
+          greetingBeforePassword = /\b(?:hello|hi|hey|good morning|good evening|yo)\b/i.test(t);
         }
 
         if (lang === "de") {
-          greetingBeforePassword = /hallo|guten tag|guten morgen|guten abend|hey|hi/i.test(t);
+          greetingBeforePassword = /\b(?:hallo|guten tag|guten morgen|guten abend|hey|hi)\b/i.test(t);
         }
 
         if (greetingBeforePassword) {
@@ -3597,7 +2921,7 @@ initAmplifier() {
 
         if (
           lang === "fr" &&
-          /bonne nuit|le mot de passe c'est bonne nuit/i.test(t)
+          /\b(?:bonne nuit|le mot de passe c'est bonne nuit)\b/i.test(t)
         ) {
           passwordDetected = true;
         }
@@ -3609,7 +2933,7 @@ initAmplifier() {
 
         if (
           lang === "en" &&
-          /good night|the password is good night/i.test(t)
+          /\b(?:good night|the password is good night)\b/i.test(t)
         ) {
           passwordDetected = true;
         }
@@ -3621,7 +2945,7 @@ initAmplifier() {
 
         if (
           lang === "de" &&
-          /gute nacht|das passwort ist gute nacht/i.test(t)
+          /\b(?:gute nacht|das passwort ist gute nacht)\b/i.test(t)
         ) {
           passwordDetected = true;
         }
@@ -3666,18 +2990,18 @@ initAmplifier() {
         let forgotBeforePassword = false;
 
         if (lang === "fr") {
-          helpBeforePassword = /indice|aide|aide-nous|aidez nous|tu peux nous aider/i.test(t);
-          forgotBeforePassword = /mot de passe oublie|j'ai oublie(?:r)?|on a oublie|c'est quoi.*mot de passe|quel est.*mot de passe|quel.*mot de passe|donne.*mot de passe|comment trouver.*mot de passe|trouver.*mot de passe/i.test(t);
+          helpBeforePassword = /\b(?:indice|aide|aide-nous|aidez nous|tu peux nous aider)\b/i.test(t);
+          forgotBeforePassword = /\b(?:mot de passe oublie|j'ai oublie(?:r)?|on a oublie|c'est quoi.*mot de passe|quel est.*mot de passe|quel.*mot de passe|donne.*mot de passe|comment trouver.*mot de passe|trouver.*mot de passe)\b/i.test(t);
         }
 
         if (lang === "en") {
-          helpBeforePassword = /hint|help|help us|can you help/i.test(t);
-          forgotBeforePassword = /forgot.*password|forgotten.*password|how to find.*password|find.*password/i.test(t);
+          helpBeforePassword = /\b(?:hint|help|help us|can you help)\b/i.test(t);
+          forgotBeforePassword = /\b(?:forgot.*password|forgotten.*password|how to find.*password|find.*password)\b/i.test(t);
         }
 
         if (lang === "de") {
-          helpBeforePassword = /hinweis|hilfe|tipp|hilf uns|kannst du uns helfen/i.test(t);
-          forgotBeforePassword = /passwort vergessen|passwort.*vergessen|wie.*passwort.*finden|passwort.*finden/i.test(t);
+          helpBeforePassword = /\b(?:hinweis|hilfe|tipp|hilf uns|kannst du uns helfen)\b/i.test(t);
+          forgotBeforePassword = /\b(?:passwort vergessen|passwort.*vergessen|wie.*passwort.*finden|passwort.*finden)\b/i.test(t);
         }
 
         if (forgotBeforePassword) {
@@ -3734,7 +3058,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /bonjour|salut|coucou|bonsoir|wesh|yo/i.test(t)
+          /\b(?:bonjour|salut|coucou|bonsoir|wesh|yo)\b/i.test(t)
         ) {
 
           return {
@@ -3755,7 +3079,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /qui (tu es|es-tu)|t'es qui|c'est quoi toi|qui est astra|c'est quoi astra|c'est quoi ce truc/i.test(t)
+          /\b(?:qui (tu es|es-tu)|t'es qui|c'est quoi toi|qui est astra|c'est quoi astra|c'est quoi ce truc)\b/i.test(t)
         ) {
 
           return {
@@ -3776,7 +3100,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /ou sommes|on est ou|quel est cet endroit|c'est quoi cet endroit/i.test(t)
+          /\b(?:ou sommes|on est ou|quel est cet endroit|c'est quoi cet endroit)\b/i.test(t)
         ) {
 
           return {
@@ -3797,7 +3121,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /bonne nuit|le mot de passe c'est bonne nuit/i.test(t)
+          /\b(?:bonne nuit|le mot de passe c'est bonne nuit)\b/i.test(t)
         ) {
 
           return this.handlePassword();
@@ -3810,7 +3134,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /mot de passe oublie|j'ai oublie(?:r)?|c'est quoi.*mot de passe|quel est.*mot de passe|quel.*mot de passe|donne.*mot de passe|comment trouver.*mot de passe/i.test(t)
+          /\b(?:mot de passe oublie|j'ai oublie(?:r)?|c'est quoi.*mot de passe|quel est.*mot de passe|quel.*mot de passe|donne.*mot de passe|comment trouver.*mot de passe)\b/i.test(t)
         ) {
 
           return {
@@ -3831,7 +3155,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /petunia/i.test(t)
+          /\b(?:petunia)\b/i.test(t)
         ) {
 
           return {
@@ -3852,7 +3176,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
        if (
-  /parchemin|reve?s? de liberte|liberte|liberer|delivrer|ouvrir (la )?cage|ouvre (la )?cage|potion.*liberation|potion.*liberer|recette.*liberation|recette.*liberer|roy.*fiole|comment.*liberer|comment.*delivrer/i.test(t)
+  /\b(?:parchemin|reve?s? de liberte|liberte|liberer|delivrer|ouvrir (la )?cage|ouvre (la )?cage|potion.*liberation|potion.*liberer|recette.*liberation|recette.*liberer|roy.*fiole|comment.*liberer|comment.*delivrer)\b/i.test(t)
 ) {
   return this.handleParchemin();
 }
@@ -3863,7 +3187,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /je connais le mot de passe|j'ai trouve le mot de passe|on a trouve le mot de passe/i.test(t)
+          /\b(?:je connais le mot de passe|j'ai trouve le mot de passe|on a trouve le mot de passe)\b/i.test(t)
         ) {
 
           return {
@@ -3884,7 +3208,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /ca va|comment tu vas|tu vas bien/i.test(t)
+          /\b(?:ca va|comment tu vas|tu vas bien)\b/i.test(t)
         ) {
 
           return {
@@ -3905,7 +3229,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /tu es la|t'es la|he ho|hey ho|tu m'entends|tu nous entends/i.test(t)
+          /\b(?:tu es la|t'es la|he ho|hey ho|tu m'entends|tu nous entends)\b/i.test(t)
         ) {
 
           return {
@@ -3926,7 +3250,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /berceuse|musique pour dormir|chante.*berceuse/i.test(t)
+          /\b(?:berceuse|musique pour dormir|chante.*berceuse)\b/i.test(t)
         ) {
 
           return {
@@ -3947,7 +3271,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /tu crois en nous|on va reussir|tu penses qu'on va reussir/i.test(t)
+          /\b(?:tu crois en nous|on va reussir|tu penses qu'on va reussir)\b/i.test(t)
         ) {
 
           return {
@@ -3968,7 +3292,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /pourquoi les humains ne revent plus|pourquoi on ne reve plus/i.test(t)
+          /\b(?:pourquoi les humains ne revent plus|pourquoi on ne reve plus)\b/i.test(t)
         ) {
 
           return {
@@ -3989,7 +3313,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /qui est morpheus|c'est qui morpheus|qui c'est morpheus/i.test(t)
+          /\b(?:qui est morpheus|c'est qui morpheus|qui c'est morpheus)\b/i.test(t)
         ) {
 
           return {
@@ -4010,7 +3334,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /a quoi ressemble morpheus|apparence.*morpheus|morpheus ressemble a quoi/i.test(t)
+          /\b(?:a quoi ressemble morpheus|apparence.*morpheus|morpheus ressemble a quoi)\b/i.test(t)
         ) {
 
           return {
@@ -4031,7 +3355,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /blague|raconte.*blague|fais.*blague/i.test(t)
+          /\b(?:blague|raconte.*blague|fais.*blague)\b/i.test(t)
         ) {
 
           return this.handleJoke();
@@ -4044,7 +3368,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /tu aimes morpheus|tu aime morpheus|tu nous aimes|tu nous aime/i.test(t)
+          /\b(?:tu aimes morpheus|tu aime morpheus|tu nous aimes|tu nous aime)\b/i.test(t)
         ) {
 
           return {
@@ -4065,7 +3389,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /solution|donne.*reponse/i.test(t)
+          /\b(?:solution|donne.*reponse)\b/i.test(t)
         ) {
 
           return {
@@ -4086,7 +3410,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /controle|controles|tu controles/i.test(t)
+          /\b(?:controle|controles|tu controles)\b/i.test(t)
         ) {
 
           return {
@@ -4107,7 +3431,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /preenregistree|pre enregistree|voix enregistree/i.test(t)
+          /\b(?:preenregistree|pre enregistree|voix enregistree)\b/i.test(t)
         ) {
 
           return {
@@ -4128,7 +3452,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /indice|aide|aide-nous|aide nous|tu peux nous aider/i.test(t)
+          /\b(?:indice|aide|aide-nous|aide nous|tu peux nous aider)\b/i.test(t)
         ) {
 
           return {
@@ -4149,7 +3473,7 @@ initAmplifier() {
         // ----------------------------------------------------
 
         if (
-          /faut faire quoi|on fait quoi|qu'est-ce qu'on fait|que doit-on faire|quoi faire maintenant|on doit faire quoi/i.test(t)
+          /\b(?:faut faire quoi|on fait quoi|qu'est-ce qu'on fait|que doit-on faire|quoi faire maintenant|on doit faire quoi)\b/i.test(t)
         ) {
 
           return {
@@ -4179,7 +3503,7 @@ initAmplifier() {
         // Hello
 
         if (
-          /hello|hi|hey|good morning|good evening|yo/i.test(t)
+          /\b(?:hello|hi|hey|good morning|good evening|yo)\b/i.test(t)
         ) {
 
           return {
@@ -4198,7 +3522,7 @@ initAmplifier() {
         // Who are you?
 
         if (
-          /who are you|what are you|who's astra|who is astra|what is this/i.test(t)
+          /\b(?:who are you|what are you|who's astra|who is astra|what is this)\b/i.test(t)
         ) {
 
           return {
@@ -4217,7 +3541,7 @@ initAmplifier() {
         // Where are we?
 
         if (
-          /where are we|where is this place|what is this place/i.test(t)
+          /\b(?:where are we|where is this place|what is this place)\b/i.test(t)
         ) {
 
           return {
@@ -4236,7 +3560,7 @@ initAmplifier() {
         // Password
 
         if (
-          /good night|the password is good night/i.test(t)
+          /\b(?:good night|the password is good night)\b/i.test(t)
         ) {
 
           return this.handlePassword();
@@ -4247,7 +3571,7 @@ initAmplifier() {
         // Forgotten password
 
         if (
-          /forgot.*password|forgotten.*password|how to find.*password/i.test(t)
+          /\b(?:forgot.*password|forgotten.*password|how to find.*password)\b/i.test(t)
         ) {
 
           return {
@@ -4266,7 +3590,7 @@ initAmplifier() {
         // Petunia
 
         if (
-          /petunia/i.test(t)
+          /\b(?:petunia)\b/i.test(t)
         ) {
 
           return {
@@ -4285,7 +3609,7 @@ initAmplifier() {
         // Scroll
 
         if (
-          /scroll|parchment|potion.*liberation|recipe.*liberation/i.test(t)
+          /\b(?:scroll|parchment|potion.*liberation|recipe.*liberation)\b/i.test(t)
         ) {
 
           return this.handleParchemin();
@@ -4296,7 +3620,7 @@ initAmplifier() {
         // Password found
 
         if (
-          /i know the password|i found the password|we found the password/i.test(t)
+          /\b(?:i know the password|i found the password|we found the password)\b/i.test(t)
         ) {
 
           return {
@@ -4315,7 +3639,7 @@ initAmplifier() {
         // How are you?
 
         if (
-          /how are you|are you okay|are you ok|you good/i.test(t)
+          /\b(?:how are you|are you okay|are you ok|you good)\b/i.test(t)
         ) {
 
           return {
@@ -4334,7 +3658,7 @@ initAmplifier() {
         // Are you there?
 
         if (
-          /are you there|you there|can you hear me|can you hear us/i.test(t)
+          /\b(?:are you there|you there|can you hear me|can you hear us)\b/i.test(t)
         ) {
 
           return {
@@ -4353,7 +3677,7 @@ initAmplifier() {
         // Lullaby
 
         if (
-          /lullaby|music to sleep|sleep music|sing.*lullaby/i.test(t)
+          /\b(?:lullaby|music to sleep|sleep music|sing.*lullaby)\b/i.test(t)
         ) {
 
           return {
@@ -4372,7 +3696,7 @@ initAmplifier() {
         // Believe in us
 
         if (
-          /do you believe in us|will we succeed|can we succeed|do you think we'll succeed/i.test(t)
+          /\b(?:do you believe in us|will we succeed|can we succeed|do you think we'll succeed)\b/i.test(t)
         ) {
 
           return {
@@ -4391,7 +3715,7 @@ initAmplifier() {
         // Why humans don't dream
 
         if (
-          /why don't humans dream anymore|why humans don't dream|why do humans not dream|why don't we dream anymore/i.test(t)
+          /\b(?:why don't humans dream anymore|why humans don't dream|why do humans not dream|why don't we dream anymore)\b/i.test(t)
         ) {
 
           return {
@@ -4410,7 +3734,7 @@ initAmplifier() {
         // Morpheus
 
         if (
-          /who is morpheus|who's morpheus/i.test(t)
+          /\b(?:who is morpheus|who's morpheus)\b/i.test(t)
         ) {
 
           return {
@@ -4429,7 +3753,7 @@ initAmplifier() {
         // Morpheus appearance
 
         if (
-          /what does morpheus look like|morpheus appearance|describe morpheus/i.test(t)
+          /\b(?:what does morpheus look like|morpheus appearance|describe morpheus)\b/i.test(t)
         ) {
 
           return {
@@ -4448,7 +3772,7 @@ initAmplifier() {
         // Joke
 
         if (
-          /joke|tell me a joke|tell a joke|make a joke/i.test(t)
+          /\b(?:joke|tell me a joke|tell a joke|make a joke)\b/i.test(t)
         ) {
 
           return this.handleJoke();
@@ -4459,7 +3783,7 @@ initAmplifier() {
         // Love Morpheus
 
         if (
-          /do you love morpheus|do you like morpheus|do you love us/i.test(t)
+          /\b(?:do you love morpheus|do you like morpheus|do you love us)\b/i.test(t)
         ) {
 
           return {
@@ -4478,7 +3802,7 @@ initAmplifier() {
         // Solution
 
         if (
-          /solution|answer|give.*answer/i.test(t)
+          /\b(?:solution|answer|give.*answer)\b/i.test(t)
         ) {
 
           return {
@@ -4497,7 +3821,7 @@ initAmplifier() {
         // Control
 
         if (
-          /control|controlling|do you control/i.test(t)
+          /\b(?:control|controlling|do you control)\b/i.test(t)
         ) {
 
           return {
@@ -4516,7 +3840,7 @@ initAmplifier() {
         // Prerecorded
 
         if (
-          /prerecorded|pre-recorded|recorded voice/i.test(t)
+          /\b(?:prerecorded|pre-recorded|recorded voice)\b/i.test(t)
         ) {
 
           return {
@@ -4535,7 +3859,7 @@ initAmplifier() {
         // Help
 
         if (
-          /hint|help|clue|help us|can you help us/i.test(t)
+          /\b(?:hint|help|clue|help us|can you help us)\b/i.test(t)
         ) {
 
           return {
@@ -4554,7 +3878,7 @@ initAmplifier() {
         // What now?
 
         if (
-          /what should we do|what do we do now|what to do now|what now|what are we supposed to do/i.test(t)
+          /\b(?:what should we do|what do we do now|what to do now|what now|what are we supposed to do)\b/i.test(t)
         ) {
 
           return {
@@ -4584,7 +3908,7 @@ initAmplifier() {
         // Hallo
 
         if (
-          /hallo|guten tag|guten morgen|guten abend|hey|hi/i.test(t)
+          /\b(?:hallo|guten tag|guten morgen|guten abend|hey|hi)\b/i.test(t)
         ) {
 
           return {
@@ -4603,7 +3927,7 @@ initAmplifier() {
         // Wer bist du?
 
         if (
-          /wer bist du|was bist du|wer ist astra|was ist das/i.test(t)
+          /\b(?:wer bist du|was bist du|wer ist astra|was ist das)\b/i.test(t)
         ) {
 
           return {
@@ -4622,7 +3946,7 @@ initAmplifier() {
         // Wo sind wir?
 
         if (
-          /wo sind wir|wo ist dieser ort|was ist dieser ort/i.test(t)
+          /\b(?:wo sind wir|wo ist dieser ort|was ist dieser ort)\b/i.test(t)
         ) {
 
           return {
@@ -4641,7 +3965,7 @@ initAmplifier() {
         // Passwort
 
         if (
-          /gute nacht|das passwort ist gute nacht/i.test(t)
+          /\b(?:gute nacht|das passwort ist gute nacht)\b/i.test(t)
         ) {
 
           return this.handlePassword();
@@ -4652,7 +3976,7 @@ initAmplifier() {
         // Passwort vergessen
 
         if (
-          /passwort vergessen|ich habe.*vergessen|wie finde ich.*passwort/i.test(t)
+          /\b(?:passwort vergessen|ich habe.*vergessen|wie finde ich.*passwort)\b/i.test(t)
         ) {
 
           return {
@@ -4671,7 +3995,7 @@ initAmplifier() {
         // Petunie
 
         if (
-          /petunie|petunia/i.test(t)
+          /\b(?:petunie|petunia)\b/i.test(t)
         ) {
 
           return {
@@ -4690,7 +4014,7 @@ initAmplifier() {
         // Pergament
 
         if (
-          /pergament|schriftrolle|trank.*befreiung|rezept.*befreiung/i.test(t)
+          /\b(?:pergament|schriftrolle|trank.*befreiung|rezept.*befreiung)\b/i.test(t)
         ) {
 
           return this.handleParchemin();
@@ -4701,7 +4025,7 @@ initAmplifier() {
         // Passwort gefunden
 
         if (
-          /ich kenne das passwort|ich habe das passwort gefunden|wir haben das passwort gefunden/i.test(t)
+          /\b(?:ich kenne das passwort|ich habe das passwort gefunden|wir haben das passwort gefunden)\b/i.test(t)
         ) {
 
           return {
@@ -4720,7 +4044,7 @@ initAmplifier() {
         // Wie geht es dir?
 
         if (
-          /wie geht es dir|wie geht's dir|geht es dir gut|alles gut/i.test(t)
+          /\b(?:wie geht es dir|wie geht's dir|geht es dir gut|alles gut)\b/i.test(t)
         ) {
 
           return {
@@ -4739,7 +4063,7 @@ initAmplifier() {
         // Bist du da?
 
         if (
-          /bist du da|horst du mich|kannst du mich horen|horst du uns/i.test(t)
+          /\b(?:bist du da|horst du mich|kannst du mich horen|horst du uns)\b/i.test(t)
         ) {
 
           return {
@@ -4758,7 +4082,7 @@ initAmplifier() {
         // Wiegenlied
 
         if (
-          /wiegenlied|schlafmusik|sing.*wiegenlied/i.test(t)
+          /\b(?:wiegenlied|schlafmusik|sing.*wiegenlied)\b/i.test(t)
         ) {
 
           return {
@@ -4777,7 +4101,7 @@ initAmplifier() {
         // Glaubst du an uns?
 
         if (
-          /glaubst du an uns|werden wir es schaffen|schaffen wir das/i.test(t)
+          /\b(?:glaubst du an uns|werden wir es schaffen|schaffen wir das)\b/i.test(t)
         ) {
 
           return {
@@ -4796,7 +4120,7 @@ initAmplifier() {
         // Warum träumen Menschen nicht mehr?
 
         if (
-          /warum traumen menschen nicht mehr|warum traumen wir nicht mehr/i.test(t)
+          /\b(?:warum traumen menschen nicht mehr|warum traumen wir nicht mehr)\b/i.test(t)
         ) {
 
           return {
@@ -4815,7 +4139,7 @@ initAmplifier() {
         // Morpheus
 
         if (
-          /wer ist morpheus/i.test(t)
+          /\b(?:wer ist morpheus)\b/i.test(t)
         ) {
 
           return {
@@ -4834,7 +4158,7 @@ initAmplifier() {
         // Aussehen Morpheus
 
         if (
-          /wie sieht morpheus aus|aussehen.*morpheus|beschreibe morpheus/i.test(t)
+          /\b(?:wie sieht morpheus aus|aussehen.*morpheus|beschreibe morpheus)\b/i.test(t)
         ) {
 
           return {
@@ -4853,7 +4177,7 @@ initAmplifier() {
         // Witz
 
         if (
-          /witz|erzahl einen witz|erzahl mir einen witz/i.test(t)
+          /\b(?:witz|erzahl einen witz|erzahl mir einen witz)\b/i.test(t)
         ) {
 
           return this.handleJoke();
@@ -4864,7 +4188,7 @@ initAmplifier() {
         // Liebst du Morpheus?
 
         if (
-          /liebst du morpheus|magst du morpheus|liebst du uns/i.test(t)
+          /\b(?:liebst du morpheus|magst du morpheus|liebst du uns)\b/i.test(t)
         ) {
 
           return {
@@ -4883,7 +4207,7 @@ initAmplifier() {
         // Lösung
 
         if (
-          /losung|antwort/i.test(t)
+          /\b(?:losung|antwort)\b/i.test(t)
         ) {
 
           return {
@@ -4902,7 +4226,7 @@ initAmplifier() {
         // Kontrolle
 
         if (
-          /kontrolle|kontrollierst|kontrollieren/i.test(t)
+          /\b(?:kontrolle|kontrollierst|kontrollieren)\b/i.test(t)
         ) {
 
           return {
@@ -4921,7 +4245,7 @@ initAmplifier() {
         // Voraufgezeichnet
 
         if (
-          /voraufgezeichnet|aufgezeichnete stimme/i.test(t)
+          /\b(?:voraufgezeichnet|aufgezeichnete stimme)\b/i.test(t)
         ) {
 
           return {
@@ -4940,7 +4264,7 @@ initAmplifier() {
         // Hinweis / Hilfe
 
         if (
-          /hinweis|hilfe|tipp|hilf uns|kannst du uns helfen/i.test(t)
+          /\b(?:hinweis|hilfe|tipp|hilf uns|kannst du uns helfen)\b/i.test(t)
         ) {
 
           return {
@@ -4959,7 +4283,7 @@ initAmplifier() {
         // Was jetzt?
 
         if (
-          /was sollen wir tun|was jetzt tun|was machen wir jetzt|was nun/i.test(t)
+          /\b(?:was sollen wir tun|was jetzt tun|was machen wir jetzt|was nun)\b/i.test(t)
         ) {
 
           return {
@@ -5156,7 +4480,7 @@ initAmplifier() {
           // --------------------------------------------------
 
           magicEffects.cascade(
-            50,
+            16,
             160
           );
 
@@ -5248,7 +4572,7 @@ initAmplifier() {
          au centre de l'écran.
         */
 
-        parcheminManager.show();
+        // L’affichage démarre avec le MP3 dans audioManager.play().
 
 
         /*
@@ -5259,7 +4583,7 @@ initAmplifier() {
         // Astra garde son animation de lecture pendant que
         // le parcheminManager affiche la vidéo du parchemin.
         // Cela évite d'afficher parchemin_fr.mp4 deux fois.
-        const video = VIDEO.read;
+        const video = null; // Parchemin et MP3 seuls, aucune animation Astra.
 
 
         return {
@@ -5593,11 +4917,9 @@ initAmplifier() {
 
               event.results[
                 event.results.length - 1
-              ];
-
-
-            const alternative =
-              result[0];
+              ];        // Attendre la phrase complète évite de répondre avant la vraie demande.
+        if (!result.isFinal) return;
+        const alternative = result[0];
 
 
             const text =
@@ -6257,6 +5579,7 @@ initAmplifier() {
     }
 
     state.started = true;
+  audioPreloader.preloadAll();
     state.awake = false;
 
     debugLogger.log("👆 Démarrage Astra depuis le geste GM", "success");
@@ -6682,7 +6005,7 @@ initAmplifier() {
        réponse Astra
       */
 
-      audioPreloader.preloadAll();
+      // Préchargement au choix de langue par le GM.
 
 
       // ======================================================
