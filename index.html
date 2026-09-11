@@ -4905,7 +4905,7 @@ initAmplifier() {
         this.timer = null;
         if (this.consumed || this.blocked || state.isPlaying || lang !== state.currentLang || this.text !== text) return;
         this.dispatch(text, 0);
-      }, 60);
+      }, 30);
     },
     dispatch(text, confidence) {
       this.cancel();
