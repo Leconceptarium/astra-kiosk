@@ -4831,28 +4831,72 @@ initAmplifier() {
     ended: false,
     consumed: false,
     blocked: false,
-    cancel() { clearTimeout(this.timer); this.timer = null; },
-    reset() {
-      this.cancel(); this.text = ''; this.ended = false;
-      this.consumed = false; this.blocked = false;
+
+    // Délai ultra-court avant de valider une transcription intermédiaire stable.
+    // Le but est de ne plus dépendre du lent "speechend" de Safari.
+    FAST_STABLE_MS: 110,
+
+    cancel() {
+      clearTimeout(this.timer);
+      this.timer = null;
     },
+
+    reset() {
+      this.cancel();
+      this.text = '';
+      this.ended = false;
+      this.consumed = false;
+      this.blocked = false;
+    },
+
     speechStart() {
-      this.cancel(); this.ended = false;
+      this.cancel();
+      this.ended = false;
       this.blocked = state.isPlaying;
     },
-    speechEnd() { this.ended = true; this.schedule(); },
+
+    speechEnd() {
+      this.ended = true;
+      // Si Safari annonce effectivement la fin, réponse sans délai ajouté.
+      this.schedule(true);
+    },
+
     preview(text) {
-      const lang = state.currentLang, files = audioFiles[lang];
-      const t = phraseDetector.normalize(text).replace(/['’\-]/g, ' ').replace(/\s+/g, ' ').trim();
+      const lang = state.currentLang;
+      const files = audioFiles[lang];
+
+      const t = phraseDetector.normalize(text)
+        .replace(/[’'\-]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
       const expanded = expandedIntent(t, lang);
+
       if (expanded === 'ignore') return null;
-      // Ces demandes sont seulement préchargées ; seule la phrase finale peut les valider.
-      if (expanded === 'password') return { file: files.mdp, fast: false };
-      if (expanded === 'scroll') return state.awake ? { file: files.parchemin, fast: false } : null;
-      if (expanded === 'repeat') return state.lastResponse ? { file: state.lastResponse.file, fast: false } : null;
-      const clean = t.replace(/^(?:astra\s+|s il te plait\s+|please\s+|bitte\s+)/, '')
+
+      // Mot de passe exact : peut partir dès la transcription intermédiaire.
+      if (expanded === 'password') {
+        return { file: files.mdp, fast: true };
+      }
+
+      // Demande de parchemin et répétition : rapides une fois l'intention reconnue.
+      if (expanded === 'scroll') {
+        return state.awake
+          ? { file: files.parchemin, fast: true }
+          : null;
+      }
+
+      if (expanded === 'repeat') {
+        return state.lastResponse
+          ? { file: state.lastResponse.file, fast: true }
+          : null;
+      }
+
+      const clean = t
+        .replace(/^(?:astra\s+|s il te plait\s+|please\s+|bitte\s+)/, '')
         .replace(/\s+(?:astra|s il te plait|please|bitte)$/, '');
-      // Phrases complètes uniquement : les autres attendent la confirmation finale.
+
+      // Phrases suffisamment précises pour être lancées AVANT le résultat final.
       const rules = {
         fr: [
           ['bonjour', /^(?:bonjour|salut|coucou|bonsoir|hello)$/],
@@ -4864,61 +4908,170 @@ initAmplifier() {
           ['faire_quoi_mtn', /^(?:on fait quoi|que faire maintenant|par ou commencer|quelle est la prochaine etape)$/],
           ['berceuse', /^(?:chante une berceuse|chante nous une berceuse|aide nous a dormir)$/]
         ],
+
         en: [
           ['bonjour', /^(?:hello|hi|good morning|good evening)$/],
           ['indice_aide', /^(?:help us|help me|give us a hint|give me a hint|we are stuck)$/],
-          ['qui', /^who are you$/], ['ou', /^where are we$/], ['ca_va', /^how are you$/]
+          ['qui', /^who are you$/],
+          ['ou', /^where are we$/],
+          ['ca_va', /^how are you$/]
         ],
+
         de: [
           ['bonjour', /^(?:hallo|guten tag|guten morgen|guten abend)$/],
           ['indice_aide', /^(?:hilf uns|gib uns einen hinweis)$/],
-          ['qui', /^wer bist du$/], ['ou', /^wo sind wir$/], ['ca_va', /^wie geht es dir$/]
+          ['qui', /^wer bist du$/],
+          ['ou', /^wo sind wir$/],
+          ['ca_va', /^wie geht es dir$/]
         ]
       };
+
       const match = rules[lang].find(([, regex]) => regex.test(clean));
-      if (match && (state.awake || ['bonjour', 'indice_aide', 'tu_es_la'].includes(match[0]))) {
-        return {file: files[match[0]], fast: true};
+
+      if (
+        match &&
+        (state.awake || ['bonjour', 'indice_aide', 'tu_es_la'].includes(match[0]))
+      ) {
+        return {
+          file: files[match[0]],
+          fast: true
+        };
       }
-      if (expanded && files[expanded] && (state.awake || ['indice_aide', 'mdp_oublie', 'invite_mdp', 'tu_es_la'].includes(expanded))) {
-        return {file: files[expanded], fast: false};
+
+      // Intentions plus larges : préchargées vite, mais gardées pour le résultat final.
+      if (
+        expanded &&
+        files[expanded] &&
+        (
+          state.awake ||
+          ['indice_aide', 'mdp_oublie', 'invite_mdp', 'tu_es_la'].includes(expanded)
+        )
+      ) {
+        return {
+          file: files[expanded],
+          fast: false
+        };
       }
+
       return null;
     },
+
     receive(text, final, confidence) {
       if (this.consumed || this.blocked) return;
-      if (state.isPlaying) { this.blocked = true; this.cancel(); return; }
+
+      if (state.isPlaying) {
+        this.blocked = true;
+        this.cancel();
+        return;
+      }
+
       this.text = text;
       this.cancel();
-      if (final) { this.dispatch(text, confidence); return; }
+
       const candidate = this.preview(text);
-      if (candidate) audioManager.prepare(candidate.file);
-      this.schedule();
+
+      // Précharge le MP3 immédiatement dès qu'on sait quelle réponse risque de partir.
+      if (candidate) {
+        audioManager.prepare(candidate.file);
+      }
+
+      // Résultat final : réponse immédiate.
+      if (final) {
+        this.dispatch(text, confidence);
+        return;
+      }
+
+      // NOUVEAU :
+      // dès qu'une transcription intermédiaire correspond à une phrase rapide,
+      // on lance un micro-délai de stabilité au lieu d'attendre speechend.
+      if (candidate && candidate.fast) {
+        this.schedule(false);
+      }
     },
-    schedule() {
+
+    schedule(fromSpeechEnd = false) {
       this.cancel();
-      if (!this.ended || this.consumed || this.blocked || state.isPlaying || !this.text) return;
+
+      if (
+        this.consumed ||
+        this.blocked ||
+        state.isPlaying ||
+        !this.text
+      ) {
+        return;
+      }
+
       const candidate = this.preview(this.text);
-      if (!candidate || !candidate.fast) return;
-      const text = this.text, lang = state.currentLang;
-      // Déclencher peu après la fin de parole signalée, sans attendre le résultat final.
-      this.timer = setTimeout(() => {
-        this.timer = null;
-        if (this.consumed || this.blocked || state.isPlaying || lang !== state.currentLang || this.text !== text) return;
-        this.dispatch(text, 0);
-      }, 15);
+
+      if (!candidate || !candidate.fast) {
+        return;
+      }
+
+      const text = this.text;
+      const lang = state.currentLang;
+
+      // 0 ms après speechend ; 110 ms sur transcription intermédiaire.
+      const delay = fromSpeechEnd
+        ? 0
+        : this.FAST_STABLE_MS;
+
+      this.timer = setTimeout(
+        () => {
+          this.timer = null;
+
+          if (
+            this.consumed ||
+            this.blocked ||
+            state.isPlaying ||
+            lang !== state.currentLang ||
+            this.text !== text
+          ) {
+            return;
+          }
+
+          this.dispatch(text, 0);
+        },
+        delay
+      );
     },
+
     dispatch(text, confidence) {
       this.cancel();
-      if (this.consumed || this.blocked || state.isPlaying) return;
+
+      if (
+        this.consumed ||
+        this.blocked ||
+        state.isPlaying
+      ) {
+        return;
+      }
+
       this.consumed = true;
+
       state.lastSpeechConfidence = confidence;
       state.lastSpeechText = text;
-      const response = phraseDetector.detect(text);
-      phraseHistory.record(text, response);
-      if (response && response.file) audioManager.play(response.file, response.video);
+
+      const response =
+        phraseDetector.detect(text);
+
+      phraseHistory.record(
+        text,
+        response
+      );
+
+      if (
+        response &&
+        response.file
+      ) {
+        audioManager.play(
+          response.file,
+          response.video
+        );
+      }
     },
+
     finishSession() {
-      // Laisser une demande complète déjà entendue finir son délai avant la prochaine session.
+      // Filet de sécurité si Safari ferme la session sans résultat final.
       this.speechEnd();
     }
   };
@@ -5377,7 +5530,7 @@ initAmplifier() {
 
             },
 
-            350
+            120
           );
 
         };
