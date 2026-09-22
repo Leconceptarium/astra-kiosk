@@ -863,6 +863,12 @@
       <button class="launchLang" data-launch-lang="en">🇬🇧 ENGLISH</button>
       <button class="launchLang" data-launch-lang="de">🇩🇪 DEUTSCH</button>
     </div>
+    <details style="max-width:85vw;color:#ddd;font-family:sans-serif">
+      <summary>Voix dynamique — réglage staff</summary>
+      <p>Code d’accès du proxy Astra (jamais la clé ElevenLabs). Vide : voix MP3.</p>
+      <input id="astraVoiceCode" type="password" autocomplete="off" aria-label="Code staff du proxy Astra" placeholder="Code staff du proxy" style="max-width:70vw;padding:10px">
+      <p id="astraVoiceStatus" role="status">Configuration du serveur : voir ASTRA-VOICE.md.</p>
+    </details>
     <details id="launchDiagnostics">
       <summary>Diagnostic staff — avant le lancement</summary>
       <p>Les 100 dernières phrases et réponses, conservées sur cet appareil si le stockage est disponible.</p>
@@ -1007,6 +1013,8 @@
   </video>
 
 
+<script src="astra-voice-config.js"></script>
+<script src="astra-voice.js"></script>
 <script>
 
   /*
@@ -2766,11 +2774,12 @@ initAmplifier() {
       if (!file || state.isPlaying || !this.unlocked) return;
       const audio = this.currentAudio;
       if (audio.getAttribute('src') === file) return;
+      if (window.astraVoice && astraVoice.isDynamic(file)) return;
       audio.preload = 'auto';
       audio.src = file;
       audio.load();
     },
-    play(file, videoName = VIDEO.talk) {
+    async play(file, videoName = VIDEO.talk) {
       if (state.isPlaying) return;
       state.isPlaying = true;
       if (videoManager.standaloneCleanup) videoManager.standaloneCleanup();
@@ -2782,12 +2791,15 @@ initAmplifier() {
       audio.onplaying = audio.onwaiting = null;
       clearTimeout(this.safetyTimeout);
       let finished = false;
+      let generatedURL = null;
+      let fallbackUsed = false;
       const finish = (error) => {
         if (finished) return;
         finished = true;
         clearTimeout(this.safetyTimeout);
         audio.onended = audio.onerror = audio.onplaying = audio.onwaiting = null;
         audio.pause();
+        if (generatedURL) { URL.revokeObjectURL(generatedURL); generatedURL = null; }
         if (error) {
           debugLogger.log('Lecture audio impossible : ' + file, 'error');
           utils.showError('Audio indisponible : ' + file, 3000);
@@ -2802,13 +2814,27 @@ initAmplifier() {
         this.safetyTimeout = setTimeout(() => finish(true), 20000);
       };
       audio.onended = () => finish(false);
-      audio.onerror = () => finish(true);
+      const recover = () => {
+        if (finished) return;
+        if (!generatedURL || fallbackUsed) { finish(true); return; }
+        fallbackUsed = true;
+        audio.pause();
+        URL.revokeObjectURL(generatedURL); generatedURL = null;
+        audio.src = file;
+        guard();
+        audio.play().catch(() => finish(true));
+      };
+      audio.onerror = recover;
       audio.onwaiting = guard;
       audio.onplaying = () => {
         clearTimeout(this.safetyTimeout);
         state.lastResponse = { file, video: videoName };
       };
-      if (audio.getAttribute('src') !== file) audio.src = file;
+      // isPlaying reste vrai pendant la requête : les séquences attendent la voix.
+      try { generatedURL = window.astraVoice ? await astraVoice.resolve(file) : null; }
+      catch (_) { generatedURL = null; }
+      const source = generatedURL || file;
+      if (audio.getAttribute('src') !== source) audio.src = source;
       audio.volume = 1;
       audio.preload = 'auto';
       if (scroll) parcheminManager.show();
@@ -2816,7 +2842,7 @@ initAmplifier() {
       guard();
       // Aucun bip préalable : la voix peut démarrer dès que le navigateur est prêt.
       if (this.audioContext && this.audioContext.state === 'suspended') this.audioContext.resume().catch(() => {});
-      audio.play().catch(() => finish(true));
+      audio.play().catch(recover);
     }
   };
 
@@ -5810,6 +5836,7 @@ initAmplifier() {
       return;
     }
 
+    if (window.astraVoice) astraVoice.configure();
     state.started = true;
     document.body.classList.remove('staffMode');
     document.body.classList.add('projecting');

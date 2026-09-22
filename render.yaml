@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: astra-voice
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        sync: false
+      - key: ASTRA_ACCESS_CODE
+        sync: false
+      - key: ALLOWED_ORIGIN
+        value: https://leconceptarium.github.io
+      - key: DAILY_CHARACTER_LIMIT
+        value: "20000"
