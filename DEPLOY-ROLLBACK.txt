@@ -1,0 +1,1 @@
+Rollback Astra vers la version stable du 21 septembre 2026. Déploiement forcé pour GitHub Pages.
