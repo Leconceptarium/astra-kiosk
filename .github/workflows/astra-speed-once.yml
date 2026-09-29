@@ -1,0 +1,44 @@
+name: Astra speed patch once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/astra-speed-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore fast Astra recognition and set 5ms
+        shell: bash
+        run: |
+          git show 6d45e5519d6bee57c5400581d549fb6802dab4ea:index.html > index.html
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = 'FAST_STABLE_MS: 110,'
+          new = 'FAST_STABLE_MS: 5,'
+          if old not in s:
+              raise SystemExit('FAST_STABLE_MS 110 not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Commit speed patch
+        shell: bash
+        run: |
+          git config user.name "Leconceptarium"
+          git config user.email "toitotmax@gmail.com"
+          git add index.html
+          git commit -m "Speed up Astra responses to 5ms" || exit 0
+          git push
