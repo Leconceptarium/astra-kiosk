@@ -1,0 +1,78 @@
+name: Astra unlock banner patch once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/astra-unlock-banner-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add unlocked scroll access banner only
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          old_css = '''    body.passwordFound #bandeau,
+    body.passwordFound:fullscreen #bandeau,
+    body.passwordFound:-webkit-full-screen #bandeau {
+      display: none !important;
+    }'''
+          new_css = '''    body.passwordFound #bandeau,
+    body.passwordFound:fullscreen #bandeau,
+    body.passwordFound:-webkit-full-screen #bandeau {
+      display: block !important;
+    }'''
+          if old_css not in s:
+              raise SystemExit('passwordFound CSS block not found')
+          s = s.replace(old_css, new_css, 1)
+
+          old_js = '''        // Cache le bandeau
+
+        elements.bandeau.style.display =
+          "none";'''
+          new_js = '''        // Après déverrouillage, le bandeau confirme l'accès aux parchemins.
+        const unlockedBannerMessages = {
+          fr: "ASTRA ARCHIVE TOUS VOS PARCHEMINS. VOUS POUVEZ DÉSORMAIS Y ACCÉDER.",
+          en: "ASTRA ARCHIVES ALL YOUR SCROLLS. YOU MAY NOW ACCESS THEM.",
+          de: "ASTRA ARCHIVIERT ALLE EURE SCHRIFTROLLEN. IHR KÖNNT JETZT DARAUF ZUGREIFEN."
+        };
+
+        const unlockedBannerSpan =
+          elements.bandeau.querySelector("span");
+
+        if (unlockedBannerSpan) {
+          unlockedBannerSpan.textContent =
+            unlockedBannerMessages[state.currentLang]
+            || unlockedBannerMessages.fr;
+        }
+
+        elements.bandeau.style.removeProperty("display");'''
+          if old_js not in s:
+              raise SystemExit('password banner JS block not found')
+          s = s.replace(old_js, new_js, 1)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Commit banner patch
+        shell: bash
+        run: |
+          git config user.name "Leconceptarium"
+          git config user.email "toitotmax@gmail.com"
+          git add index.html
+          git commit -m "Show scroll access message after Astra unlock" || exit 0
+          git push
