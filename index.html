@@ -830,7 +830,7 @@
     body.passwordFound #bandeau,
     body.passwordFound:fullscreen #bandeau,
     body.passwordFound:-webkit-full-screen #bandeau {
-      display: none !important;
+      display: block !important;
     }
 
     body.projecting #fullscreenBtn,
@@ -4498,10 +4498,11 @@ initAmplifier() {
         document.body.classList.add("passwordFound");
 
 
-        // Cache le bandeau
-
-        elements.bandeau.style.display =
-          "none";
+        // Message apres deverrouillage
+        const m={fr:"ASTRA ARCHIVE TOUS VOS PARCHEMINS. VOUS POUVEZ DÉSORMAIS Y ACCÉDER.",en:"ASTRA ARCHIVES ALL YOUR SCROLLS. YOU MAY NOW ACCESS THEM.",de:"ASTRA ARCHIVIERT ALLE EURE SCHRIFTROLLEN. IHR KÖNNT JETZT DARAUF ZUGREIFEN."};
+        const b=elements.bandeau.querySelector("span");
+        if(b)b.textContent=m[state.currentLang]||m.fr;
+        elements.bandeau.style.removeProperty("display");
 
 
         /*
