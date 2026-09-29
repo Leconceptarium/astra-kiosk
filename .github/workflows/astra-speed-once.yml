@@ -3,8 +3,6 @@ name: Astra speed patch once
 on:
   push:
     branches: [main]
-    paths:
-      - '.github/workflows/astra-speed-once.yml'
 
 permissions:
   contents: write
@@ -40,5 +38,9 @@ jobs:
           git config user.name "Leconceptarium"
           git config user.email "toitotmax@gmail.com"
           git add index.html
-          git commit -m "Speed up Astra responses to 5ms" || exit 0
+          if git diff --cached --quiet; then
+            echo "Astra speed patch already applied"
+            exit 0
+          fi
+          git commit -m "Speed up Astra responses to 5ms"
           git push
