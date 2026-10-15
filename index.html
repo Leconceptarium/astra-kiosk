@@ -867,6 +867,8 @@
       <summary>Diagnostic staff — avant le lancement</summary>
       <p>Les 100 dernières phrases et réponses, conservées sur cet appareil si le stockage est disponible.</p>
       <div id="phraseHistory"></div>
+      <h3 style="font-size:15px;margin:12px 0 4px">Journal du microphone / Safari</h3>
+      <pre id="microDiagnostics" style="max-height:30vh;overflow:auto;text-align:left;white-space:pre-wrap;font-size:12px;color:#ddd"></pre>
       <button id="clearPhraseHistory" type="button">Effacer l’historique</button>
     </details>
   </div>
@@ -2885,6 +2887,34 @@ initAmplifier() {
     };
     const found = rules[lang].find(([, pattern]) => pattern.test(t));
     return found ? found[0] : null;
+  }
+
+  // Journal de diagnostic persistant entre les rechargements.
+  const microDiagnostics = {
+    key: 'astra.microDiagnostics.v1',
+    record(message) {
+      try {
+        const old = JSON.parse(localStorage.getItem(this.key) || '[]');
+        const rows = Array.isArray(old) ? old : [];
+        rows.push(new Date().toLocaleString() + ' — ' + message);
+        localStorage.setItem(this.key, JSON.stringify(rows.slice(-100)));
+      } catch (_) {}
+    },
+    render() {
+      const el = document.getElementById('microDiagnostics');
+      if (!el) return;
+      try {
+        const rows = JSON.parse(localStorage.getItem(this.key) || '[]');
+        el.textContent = Array.isArray(rows) && rows.length ? rows.slice().reverse().join('\n') : 'Aucun événement micro enregistré.';
+      } catch (_) { el.textContent = 'Journal indisponible.'; }
+    }
+  };
+  let recognitionStartWatchdog = null;
+  let recognitionRestartTimer = null;
+  let recognitionWatchdogFailures = 0;
+  function clearRecognitionWatchdog() {
+    clearTimeout(recognitionStartWatchdog);
+    recognitionStartWatchdog = null;
   }
 
   const phraseHistory = {
@@ -5221,6 +5251,9 @@ initAmplifier() {
       state.recognition.onstart =
         () => {
 
+          clearRecognitionWatchdog();
+          recognitionWatchdogFailures = 0;
+          microDiagnostics.record('MICRO DÉMARRÉ — onstart Safari');
           fastResponse.reset();
           state.recognitionStarting = false;
           state.recognitionRunning =
@@ -5251,6 +5284,7 @@ initAmplifier() {
 
       state.recognition.onspeechstart =
         () => {
+          microDiagnostics.record('VOIX DÉTECTÉE — onspeechstart');
           fastResponse.speechStart();
 
           debugLogger.log(
@@ -5281,6 +5315,7 @@ initAmplifier() {
         try {
           const result = event.results[event.results.length - 1];
           if (!result || !result[0]) return;
+          microDiagnostics.record('TEXTE REÇU [' + (result.isFinal ? 'final' : 'provisoire') + '] : ' + result[0].transcript.trim().slice(0,160));
           fastResponse.receive(result[0].transcript.trim(), result.isFinal,
             typeof result[0].confidence === 'number' ? result[0].confidence : 0);
         } catch (err) {
@@ -5296,9 +5331,11 @@ initAmplifier() {
       state.recognition.onerror =
         event => {          fastResponse.cancel();
           fastResponse.blocked = true;
+          clearRecognitionWatchdog();
           const error =
             event.error ||
             "inconnue";
+          microDiagnostics.record('ERREUR RECONNAISSANCE : ' + error);
 
 
           debugLogger.log(
@@ -5438,6 +5475,8 @@ initAmplifier() {
       state.recognition.onend =
         () => {
 
+          clearRecognitionWatchdog();
+          microDiagnostics.record('SESSION TERMINÉE — onend');
           fastResponse.finishSession();
           state.recognitionStarting = false;
           state.recognitionRunning =
@@ -5514,7 +5553,8 @@ initAmplifier() {
            On la relance après 500 ms.
           */
 
-          setTimeout(
+          clearTimeout(recognitionRestartTimer);
+          recognitionRestartTimer = setTimeout(
             () => {
 
               if (
@@ -5531,7 +5571,7 @@ initAmplifier() {
 
             },
 
-            120
+            600
           );
 
         };
@@ -5601,7 +5641,32 @@ initAmplifier() {
       try {
 
         state.recognitionStarting = true;
+        const instance = state.recognition;
+        microDiagnostics.record('DÉMARRAGE DEMANDÉ — recognition.start()');
         state.recognition.start();
+        clearRecognitionWatchdog();
+        recognitionStartWatchdog = setTimeout(() => {
+          if (state.recognition !== instance || !state.recognitionStarting || state.recognitionRunning) return;
+          microDiagnostics.record('BLOCAGE — aucun onstart après 6 secondes');
+          state.recognitionStarting = false;
+          recognitionWatchdogFailures++;
+          if (recognitionWatchdogFailures > 2) {
+            microDiagnostics.record('REPRISE AUTOMATIQUE SUSPENDUE — intervention staff nécessaire');
+            state.needsGestureRestart = true;
+            return;
+          }
+          try {
+            instance.onstart = instance.onend = instance.onerror = instance.onresult = null;
+            instance.onspeechstart = instance.onspeechend = null;
+            instance.abort();
+          } catch (_) {}
+          state.recognition = null;
+          state.recognitionRunning = false;
+          if (speechRecognition.init()) {
+            clearTimeout(recognitionRestartTimer);
+            recognitionRestartTimer = setTimeout(() => speechRecognition.start(), 800);
+          }
+        }, 6000);
 
 
         debugLogger.log(
@@ -5612,6 +5677,8 @@ initAmplifier() {
       }
 
       catch (err) {
+        clearRecognitionWatchdog();
+        microDiagnostics.record('ÉCHEC DÉMARRAGE : ' + err.name + ' / ' + err.message);
         state.recognitionStarting = false;
 
 
@@ -5906,6 +5973,10 @@ initAmplifier() {
   let staffTapTimer = null;
   function restartListeningFromGesture() {
     if (!state.started) return;
+    microDiagnostics.record('RELANCE STAFF — cinq appuis');
+    clearRecognitionWatchdog();
+    clearTimeout(recognitionRestartTimer);
+    recognitionWatchdogFailures = 0;
     fastResponse.reset();
     const previous = state.recognition;
     if (previous) {
@@ -6290,7 +6361,7 @@ initAmplifier() {
   );
 
 
-  document.getElementById('launchDiagnostics').addEventListener('toggle', () => phraseHistory.render());
+  document.getElementById('launchDiagnostics').addEventListener('toggle', () => { phraseHistory.render(); microDiagnostics.render(); });
   document.getElementById('clearPhraseHistory').addEventListener('click', () => phraseHistory.clear());
   phraseHistory.restore();
 
