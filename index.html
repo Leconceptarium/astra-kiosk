@@ -325,6 +325,7 @@ let guard = null;
 function play(it){
   if (S.playing) return;
   S.playing = true;
+  pauseRecognition();
   S.last = {file:it.file, video:it.video};
   reaction.onended = null;
   if (it.before) it.before();
@@ -341,6 +342,7 @@ function play(it){
     S.playing = false;
     const next = S.queue.shift();
     if (next) setTimeout(() => play(next), 150);
+    else resumeRecognition();
   };
 
   voice.onended = () => part('audio');
@@ -447,6 +449,7 @@ function handle(text, final){
     log('ERREUR dans handle/play : ' + err.name + ' / ' + err.message);
     S.playing = false;
     try { endReaction(); } catch (_) {}
+    resumeRecognition();
   }
 }
 
@@ -477,7 +480,7 @@ function initRecognition(){
   r.onaudioend = () => log('➜ audioend');
   r.onnomatch = () => log('➜ nomatch : son entendu mais pas compris');
   r.onresult = e => {
-    if (S.playing) return;
+    if (S.playing || S.paused || Date.now() < S.ignoreUntil) return;
     const res = e.results[e.results.length - 1];
     if (!res || !res[0]) return;
     const text = res[0].transcript.trim();
@@ -504,7 +507,7 @@ function initRecognition(){
     log('Écoute terminée');
     // Si Safari a coupé sans résultat final, on exploite la dernière transcription
     if (!S.consumed && S.lastText && !S.playing) handle(S.lastText, true);
-    if (S.needGesture || !S.started) return;
+    if (S.needGesture || !S.started || S.paused) return;
     setTimeout(startRecognition, 100);
   };
   S.rec = r;
@@ -523,6 +526,18 @@ function startRecognition(){
     log('Erreur start : ' + err.name + ' / ' + err.message);
     if (err.name !== 'InvalidStateError') S.needGesture = true;
   }
+}
+
+// Astra ne s'écoute pas elle-même : le micro est coupé pendant qu'elle parle, relancé juste après
+function pauseRecognition(){
+  S.paused = true;
+  clearTimeout(S.stableTimer);
+  try { if (S.rec) S.rec.abort(); } catch (_) {}
+}
+function resumeRecognition(){
+  S.paused = false;
+  S.ignoreUntil = Date.now() + 600;     // ignore la fin de l'écho de sa propre voix
+  setTimeout(() => { if (S.started && !S.playing && !S.paused) startRecognition(); }, 400);
 }
 
 function restartRecognition(){
