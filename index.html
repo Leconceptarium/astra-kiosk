@@ -339,7 +339,7 @@ function play(it){
 
   if (isScroll) showScroll(() => part('video')); else showReaction(it.video);
 
-  voice.src = it.file;
+  if (voice.getAttribute('src') !== it.file) voice.src = it.file;
   voice.volume = 1;
   voice.play().catch(e => { log('Lecture audio refusée : ' + e.message); part('audio'); if (isScroll) part('video'); });
 }
@@ -403,6 +403,26 @@ function scheduleHint(delay = 5*60*1000){
 // ============================================================
 // RECONNAISSANCE VOCALE
 // ============================================================
+// Devine la réponse probable SANS rien modifier (sert au préchargement et à la réponse rapide)
+function peek(text){
+  const lang = S.lang, t = norm(text), files = A(lang);
+  if (PASSWORD[lang].test(t)) return PASSWORD_DENIED[lang].test(t) ? null : files.mdp;
+  const found = INTENTS[lang].find(([,re]) => re.test(t));
+  const k = found && found[0];
+  if (!k) return null;
+  if (k === 'repeat') return S.last ? S.last.file : null;
+  if (!S.unlocked && !LOCKED_OK.includes(k)) return null;
+  if (k === 'scroll') return files.parchemin;
+  return files[k] || null;
+}
+function prepareAudio(file){
+  if (!file || S.playing) return;
+  if (voice.getAttribute('src') === file) return;
+  voice.preload = 'auto';
+  voice.src = file;
+  voice.load();
+}
+
 function handle(text, final){
   if (S.consumed || S.playing) return;
   try {
@@ -430,14 +450,18 @@ function initRecognition(){
   r.onstart = () => {
     clearTimeout(S.startTimer);
     S.running = true; S.starting = false; S.needGesture = false;
-    S.consumed = false; S.lastText = ''; S.lastConf = 0;
+    S.consumed = false; S.lastText = ''; S.lastConf = 0; clearTimeout(S.stableTimer);
     log('🎙️ Écoute active');
   };
   r.onspeechstart = () => log('Voix détectée');
   r.onaudiostart = () => log('➜ audiostart : Safari reçoit le micro');
   r.onsoundstart = () => log('➜ soundstart : du son est entendu');
   r.onsoundend = () => log('➜ soundend');
-  r.onspeechend = () => log('➜ speechend');
+  r.onspeechend = () => {
+    log('➜ speechend');
+    clearTimeout(S.stableTimer);
+    if (!S.consumed && S.lastText && !S.playing) handle(S.lastText, false);
+  };
   r.onaudioend = () => log('➜ audioend');
   r.onnomatch = () => log('➜ nomatch : son entendu mais pas compris');
   r.onresult = e => {
@@ -448,8 +472,14 @@ function initRecognition(){
     S.lastText = text;
     S.lastConf = typeof res[0].confidence === 'number' ? res[0].confidence : 0;
     log((res.isFinal ? 'FINAL' : 'interim') + ' : ' + text);
-    if (res.isFinal) handle(text, true);
-    else if (PASSWORD[S.lang].test(norm(text))) handle(text, false);   // mot de passe : réponse immédiate
+    clearTimeout(S.stableTimer);
+    if (res.isFinal) { handle(text, true); return; }
+    const cand = peek(text);
+    if (cand) {
+      prepareAudio(cand);                                   // le MP3 se charge déjà
+      const delay = PASSWORD[S.lang].test(norm(text)) ? 0 : 350;   // 350 ms sans changement = phrase terminée
+      S.stableTimer = setTimeout(() => handle(text, false), delay);
+    }
   };
   r.onerror = e => {
     log('ERREUR reco : ' + e.error);
@@ -463,7 +493,7 @@ function initRecognition(){
     // Si Safari a coupé sans résultat final, on exploite la dernière transcription
     if (!S.consumed && S.lastText && !S.playing) handle(S.lastText, true);
     if (S.needGesture || !S.started) return;
-    setTimeout(startRecognition, 250);
+    setTimeout(startRecognition, 100);
   };
   S.rec = r;
   return true;
@@ -539,16 +569,19 @@ document.querySelectorAll('#launch button[data-lang]').forEach(btn => btn.addEve
   $('bandeau').textContent = BANDEAU[S.lang];
   document.documentElement.lang = S.lang;
 
-  // Débloque l'audio iOS (fichier muet) dans ce même geste
+  // 1) Le micro démarre EN PREMIER, dans le geste du GM
+  if (initRecognition()) startRecognition();
+
+  // 2) Le déblocage audio juste après, dans le même geste (obligatoire sur iOS)
   if (!NOUNLOCK) {
     voice.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
-    voice.play().then(() => { voice.pause(); }).catch(e => log('Unlock audio refusé : ' + e.message));
+    voice.play().then(() => { voice.pause(); log('Audio débloqué'); }).catch(e => log('Unlock audio refusé : ' + e.message));
   }
 
-  showIdle();
-  if (initRecognition()) startRecognition();
+  // 3) Les vidéos et le préchargement démarrent une fois le micro stabilisé
+  setTimeout(() => { log('Démarrage vidéo idle'); showIdle(); }, 1500);
+  setTimeout(preloadAudio, 6000);
   scheduleHint();
-  preloadAudio();
 
   try {
     const root = document.documentElement, fs = root.requestFullscreen || root.webkitRequestFullscreen;
