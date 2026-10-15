@@ -43,7 +43,12 @@ body.debug #dbg{display:block}
     <button data-lang="en">🇬🇧 ENGLISH</button>
     <button data-lang="de">🇩🇪 DEUTSCH</button>
   </div>
-  <button id="dbgBtn" type="button" style="font-size:1rem;min-width:0;padding:10px 18px">🐛 Diagnostic : OFF</button>
+  <div class="row">
+    <button id="dbgBtn" type="button" style="font-size:1rem;min-width:0;padding:10px 18px">🐛 Diagnostic : OFF</button>
+    <button id="micTestBtn" type="button" style="font-size:1rem;min-width:0;padding:10px 18px">🎤 Test micro</button>
+    <button id="noVideoBtn" type="button" style="font-size:1rem;min-width:0;padding:10px 18px">🎥 Vidéos : ON</button>
+    <button id="noUnlockBtn" type="button" style="font-size:1rem;min-width:0;padding:10px 18px">🔓 Déblocage audio : ON</button>
+  </div>
 </div>
 <div id="tapZone"></div>
 
@@ -58,6 +63,7 @@ body.debug #dbg{display:block}
 <script>
 const $ = id => document.getElementById(id);
 let DEBUG = location.search.includes('debug');
+let NOVIDEO = false, NOUNLOCK = false;
 function setDebug(on){ DEBUG = on; document.body.classList.toggle('debug', on); }
 setDebug(DEBUG);
 
@@ -276,7 +282,7 @@ const idle1 = $('astraIdle'), idle2 = $('astraIdle2'), reaction = $('astraReacti
 let scrollActive = false;
 
 function showIdle(){
-  if (scrollActive) return;
+  if (scrollActive || NOVIDEO) return;
   const on = S.unlocked ? idle2 : idle1, off = S.unlocked ? idle1 : idle2;
   off.pause(); off.style.display = 'none';
   on.style.display = 'block'; on.muted = true;
@@ -428,6 +434,12 @@ function initRecognition(){
     log('🎙️ Écoute active');
   };
   r.onspeechstart = () => log('Voix détectée');
+  r.onaudiostart = () => log('➜ audiostart : Safari reçoit le micro');
+  r.onsoundstart = () => log('➜ soundstart : du son est entendu');
+  r.onsoundend = () => log('➜ soundend');
+  r.onspeechend = () => log('➜ speechend');
+  r.onaudioend = () => log('➜ audioend');
+  r.onnomatch = () => log('➜ nomatch : son entendu mais pas compris');
   r.onresult = e => {
     if (S.playing) return;
     const res = e.results[e.results.length - 1];
@@ -489,6 +501,37 @@ $('dbgBtn').addEventListener('click', () => {
   log('Diagnostic activé');
 });
 
+$('noVideoBtn').addEventListener('click', () => {
+  NOVIDEO = !NOVIDEO; $('noVideoBtn').textContent = '🎥 Vidéos : ' + (NOVIDEO ? 'OFF' : 'ON');
+  if (!DEBUG) { setDebug(true); $('dbgBtn').textContent = '🐛 Diagnostic : ON'; }
+  log('Vidéos idle ' + (NOVIDEO ? 'désactivées' : 'activées'));
+});
+$('noUnlockBtn').addEventListener('click', () => {
+  NOUNLOCK = !NOUNLOCK; $('noUnlockBtn').textContent = '🔓 Déblocage audio : ' + (NOUNLOCK ? 'OFF' : 'ON');
+  if (!DEBUG) { setDebug(true); $('dbgBtn').textContent = '🐛 Diagnostic : ON'; }
+  log('Déblocage audio ' + (NOUNLOCK ? 'désactivé' : 'activé'));
+});
+// Test du micro indépendant de la reconnaissance : affiche le niveau sonore pendant 6 s
+$('micTestBtn').addEventListener('click', async () => {
+  if (!DEBUG) { setDebug(true); $('dbgBtn').textContent = '🐛 Diagnostic : ON'; }
+  log('Test micro : parle pendant 6 secondes…');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AC();
+    const src = ctx.createMediaStreamSource(stream);
+    const an = ctx.createAnalyser(); an.fftSize = 512; src.connect(an);
+    const buf = new Uint8Array(an.fftSize);
+    let n = 0;
+    const iv = setInterval(() => {
+      an.getByteTimeDomainData(buf);
+      let max = 0; for (const v of buf) max = Math.max(max, Math.abs(v - 128));
+      log('niveau micro : ' + '█'.repeat(Math.round(max / 4)) + ' ' + max);
+      if (++n >= 12) { clearInterval(iv); stream.getTracks().forEach(t => t.stop()); ctx.close(); log('Test micro terminé'); }
+    }, 500);
+  } catch (e) { log('Test micro ÉCHEC : ' + e.name + ' / ' + e.message); }
+});
+
 document.querySelectorAll('#launch button[data-lang]').forEach(btn => btn.addEventListener('click', () => {
   if (S.started) return;
   S.lang = btn.dataset.lang;
@@ -497,8 +540,10 @@ document.querySelectorAll('#launch button[data-lang]').forEach(btn => btn.addEve
   document.documentElement.lang = S.lang;
 
   // Débloque l'audio iOS (fichier muet) dans ce même geste
-  voice.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
-  voice.play().then(() => { voice.pause(); }).catch(e => log('Unlock audio refusé : ' + e.message));
+  if (!NOUNLOCK) {
+    voice.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+    voice.play().then(() => { voice.pause(); }).catch(e => log('Unlock audio refusé : ' + e.message));
+  }
 
   showIdle();
   if (initRecognition()) startRecognition();
