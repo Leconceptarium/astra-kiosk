@@ -139,13 +139,20 @@ const PASSWORD_DENIED = {
   de:/\bnicht\b.*\bgute nacht\b|\bgute nacht\b.*\bnicht\b/
 };
 
+const DENY_CMD = {
+  fr:/\b(ne |n )?(donne|donnez|affiche|montre|ouvre|repete|chante|raconte)\s+(\w+\s+){0,2}(pas|plus|jamais)\b|\b(veux|veut|voulons)\s+pas\b/,
+  en:/\b(do not|don t|never)\s+(show|give|open|repeat|sing|tell)\b/,
+  de:/\b(zeig|zeige|offne|wiederhole|sing|singe)\b.*\b(nicht|kein|keine)\b/
+};
+
 const INTENTS = {
   fr:[
     ['repeat',/\b(repete|repeter|redis|redire|recommence|encore une fois|pas entendu|mal entendu)\b/],
-    ['mdp_oublie',/\b(mot de passe|code secret)\b.*\b(ou|trouver|sais pas|connait pas|connais pas|oublie|quoi|quel)\b|\b(ou|quel|quoi|oublie|trouver)\b.*\b(mot de passe|code secret)\b|\bj ai oublie\b|\bon a oublie\b/],
+    ['mdp_oublie',/\b(mot de passe|code secret)\b.*\b(ou|trouver|sais pas|connait pas|connais pas|oublie|quoi|quel)\b|\bpas (encore )?trouve\b.*\b(mot de passe|code secret)\b|\b(mot de passe|code secret)\b.*\bpas (encore )?trouve\b|\b(ou|quel|quoi|oublie|trouver)\b.*\b(mot de passe|code secret)\b|\bj ai oublie\b|\bon a oublie\b/],
     ['invite_mdp',/\b(trouve|connait|connais|avons)\b.*\b(mot de passe|code secret)\b/],
     ['scroll',/\b(parchemins?|recette|formule|liberer|delivrer|liberation|reves? de liberte)\b|\b(ouvre|ouvrir)\b.*\bcage\b/],
     ['faire_quoi_mtn',/\b(on|nous)\b.*\b(fait|faire|doit|devons)\b.*\b(quoi|maintenant|ensuite)\b|\b(prochaine etape|par ou commencer|que faire|comment continuer|faut faire quoi)\b/],
+    ['berceuse',/\b(aide|aides|aidez) nous a (dormir|nous endormir)\b|\bendors nous\b/],
     ['indice_aide',/\b(aide|aider|aidez|aides|secours|indices?|bloque|bloques|coince|coinces|comprend pas|comprends pas|chaudron)\b/],
     ['morpheus_apparence',/\b(ressemble|apparence)\b.*\bmorpheus\b|\bmorpheus\b.*\b(ressemble|apparence)\b/],
     ['tu_aime_morpheus',/\btu (aime|aimes) (morpheus|nous)\b/],
@@ -239,6 +246,7 @@ function detect(text, final){
     return handlePassword(files);
   }
 
+  if (DENY_CMD[lang].test(t)) return null;
   const found = INTENTS[lang].find(([,re]) => re.test(t));
   const k = found && found[0];
 
