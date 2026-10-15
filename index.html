@@ -47,6 +47,7 @@ body.debug #dbg{display:block}
     <button id="dbgBtn" type="button" style="font-size:1rem;min-width:0;padding:10px 18px">🐛 Diagnostic : OFF</button>
     <button id="micTestBtn" type="button" style="font-size:1rem;min-width:0;padding:10px 18px">🎤 Test micro</button>
     <button id="noVideoBtn" type="button" style="font-size:1rem;min-width:0;padding:10px 18px">🎥 Vidéos : ON</button>
+    <button id="gainBtn" type="button" style="font-size:1rem;min-width:0;padding:10px 18px">🔊 Volume : x2</button>
     <button id="noUnlockBtn" type="button" style="font-size:1rem;min-width:0;padding:10px 18px">🔓 Déblocage audio : ON</button>
   </div>
 </div>
@@ -64,6 +65,8 @@ body.debug #dbg{display:block}
 const $ = id => document.getElementById(id);
 let DEBUG = location.search.includes('debug');
 let NOVIDEO = false, NOUNLOCK = false;
+let GAIN = 2;        // amplification de la voix d'Astra : 1 = normal, 2 = deux fois plus fort, 3 = trois fois
+let amp = null;
 function setDebug(on){ DEBUG = on; document.body.classList.toggle('debug', on); }
 setDebug(DEBUG);
 
@@ -349,6 +352,7 @@ function play(it){
 
   if (voice.getAttribute('src') !== it.file) voice.src = it.file;
   voice.volume = 1;
+  if (amp && amp.ctx.state !== 'running') amp.ctx.resume().catch(() => {});
   voice.play().catch(e => { log('Lecture audio refusée : ' + e.message); part('audio'); if (isScroll) part('video'); });
 }
 
@@ -570,6 +574,31 @@ $('micTestBtn').addEventListener('click', async () => {
   } catch (e) { log('Test micro ÉCHEC : ' + e.name + ' / ' + e.message); }
 });
 
+$('gainBtn').addEventListener('click', () => {
+  GAIN = GAIN >= 3 ? 1 : GAIN + 1;
+  $('gainBtn').textContent = '🔊 Volume : x' + GAIN;
+});
+
+// Amplificateur : doit être créé dans le geste du GM, avant la première lecture
+function initAmp(){
+  if (amp || GAIN <= 1) return;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) { log('Web Audio indisponible — volume normal'); return; }
+    const ctx = new AC();
+    const src = ctx.createMediaElementSource(voice);
+    const gain = ctx.createGain(); gain.gain.value = GAIN;
+    // Compresseur : évite que la voix sature quand elle est amplifiée
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -12; comp.knee.value = 10; comp.ratio.value = 12;
+    comp.attack.value = 0.003; comp.release.value = 0.25;
+    src.connect(gain); gain.connect(comp); comp.connect(ctx.destination);
+    ctx.resume().catch(() => {});
+    amp = {ctx, gain};
+    log('🔊 Amplificateur x' + GAIN);
+  } catch (e) { log('Amplificateur indisponible : ' + e.message + ' — volume normal'); }
+}
+
 document.querySelectorAll('#launch button[data-lang]').forEach(btn => btn.addEventListener('click', () => {
   if (S.started) return;
   S.lang = btn.dataset.lang;
@@ -579,6 +608,8 @@ document.querySelectorAll('#launch button[data-lang]').forEach(btn => btn.addEve
 
   // 1) Le micro démarre EN PREMIER, dans le geste du GM
   if (initRecognition()) startRecognition();
+
+  initAmp();   // amplification de la voix (bouton Volume)
 
   // 2) Le déblocage audio juste après, dans le même geste (obligatoire sur iOS)
   if (!NOUNLOCK) {
