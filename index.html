@@ -2912,6 +2912,10 @@ initAmplifier() {
   let recognitionStartWatchdog = null;
   let recognitionRestartTimer = null;
   let recognitionWatchdogFailures = 0;
+  let recognitionAbortStreak = 0;
+  let recognitionSessionHadSpeech = false;
+  let recognitionLastError = '';
+  let recognitionSessionStartAt = 0;
   function clearRecognitionWatchdog() {
     clearTimeout(recognitionStartWatchdog);
     recognitionStartWatchdog = null;
@@ -5253,6 +5257,9 @@ initAmplifier() {
 
           clearRecognitionWatchdog();
           recognitionWatchdogFailures = 0;
+          recognitionSessionStartAt = Date.now();
+          recognitionSessionHadSpeech = false;
+          recognitionLastError = '';
           microDiagnostics.record('MICRO DÉMARRÉ — onstart Safari');
           fastResponse.reset();
           state.recognitionStarting = false;
@@ -5284,6 +5291,8 @@ initAmplifier() {
 
       state.recognition.onspeechstart =
         () => {
+          recognitionSessionHadSpeech = true;
+          recognitionAbortStreak = 0;
           microDiagnostics.record('VOIX DÉTECTÉE — onspeechstart');
           fastResponse.speechStart();
 
@@ -5315,6 +5324,8 @@ initAmplifier() {
         try {
           const result = event.results[event.results.length - 1];
           if (!result || !result[0]) return;
+          recognitionSessionHadSpeech = true;
+          recognitionAbortStreak = 0;
           microDiagnostics.record('TEXTE REÇU [' + (result.isFinal ? 'final' : 'provisoire') + '] : ' + result[0].transcript.trim().slice(0,160));
           fastResponse.receive(result[0].transcript.trim(), result.isFinal,
             typeof result[0].confidence === 'number' ? result[0].confidence : 0);
@@ -5335,6 +5346,7 @@ initAmplifier() {
           const error =
             event.error ||
             "inconnue";
+          recognitionLastError = error;
           microDiagnostics.record('ERREUR RECONNAISSANCE : ' + error);
 
 
@@ -5476,7 +5488,9 @@ initAmplifier() {
         () => {
 
           clearRecognitionWatchdog();
-          microDiagnostics.record('SESSION TERMINÉE — onend');
+          microDiagnostics.record('SESSION TERMINÉE — onend (' + (Date.now() - recognitionSessionStartAt) + ' ms, erreur=' + (recognitionLastError || 'aucune') + ')');
+          if (recognitionLastError === 'aborted' && !recognitionSessionHadSpeech) recognitionAbortStreak++;
+          else if (recognitionLastError !== 'aborted') recognitionAbortStreak = 0;
           fastResponse.finishSession();
           state.recognitionStarting = false;
           state.recognitionRunning =
@@ -5553,6 +5567,13 @@ initAmplifier() {
            On la relance après 500 ms.
           */
 
+          const rebuildRecognition = recognitionAbortStreak >= 2;
+          if (rebuildRecognition) microDiagnostics.record('RÉCUPÉRATION — nouvelle instance après ' + recognitionAbortStreak + ' interruptions');
+          if (recognitionAbortStreak >= 5) {
+            microDiagnostics.record('ARRÊT DES ESSAIS — Safari interrompt toujours la reconnaissance');
+            state.needsGestureRestart = true;
+            return;
+          }
           clearTimeout(recognitionRestartTimer);
           recognitionRestartTimer = setTimeout(
             () => {
@@ -5567,11 +5588,22 @@ initAmplifier() {
               }
 
 
+              if (state.isPlaying) {
+                microDiagnostics.record('RELANCE REPORTÉE — Astra parle');
+                recognitionRestartTimer = setTimeout(() => { if (state.started && !state.needsGestureRestart) this.start(); }, 1500);
+                return;
+              }
+              if (rebuildRecognition) {
+                const old = state.recognition;
+                if (old) { old.onstart = old.onend = old.onerror = old.onresult = null; old.onspeechstart = old.onspeechend = null; }
+                state.recognition = null;
+                if (!this.init()) return;
+              }
               this.start();
 
             },
 
-            600
+            recognitionLastError === 'aborted' ? Math.min(3000, 900 * Math.max(1, recognitionAbortStreak)) : 600
           );
 
         };
